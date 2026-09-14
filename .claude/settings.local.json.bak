@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "resend",
+    "n8n"
+  ]
+}

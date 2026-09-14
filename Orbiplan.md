@@ -1,0 +1,742 @@
+# Orbiplan — Building Orbi
+
+**v4 · 2026-09-05.** Design locked. **Orbi runs the real giants, unmodified. No training.**
+Scope locked: **everything Claude Code does, plus image, video and voice.**
+
+**Companion files — read all three:**
+`Orbimodels.md` = which models, exact sizes · `Orbichecklist.md` = definition of done ·
+this file = how it gets built.
+
+---
+
+# ⚡ ANSWER FIRST
+
+| | |
+|---|---|
+| **What Orbi is** | a **terminal agent** that picks the best open model per task, runs it locally, remembers everything |
+| **Replaces** | **Claude Code, entirely** — files, shell, git, skills, hooks, subagents, MCP |
+| **Adds** | **image gen · video gen · 3D · voice in and out** |
+| **Whose weights** | ✅ **theirs, real, unmodified** — Kimi K3, DeepSeek-V4, GLM-5.2, Qwen |
+| **Training** | ✅ **NONE. Ever.** |
+| **Params STORED** | **~9.1 T across 22 models · ~4.84 TB** |
+| **Params RUNNING** | **5–8 GB of RAM.** Every lane streams — nothing loads whole |
+| **Runs on your M4 24 GB?** | ✅ **yes** — see "stored ≠ running" |
+| **Lane A model** | **4 candidates, Phase 1 picks.** Leader: **Qwen3.8-Flash-Next** — native MoE, no conversion, 90 GB of 253 GB free |
+| **Speed, Lane A** | **19.48 tok/s measured** on this M4 (qwen3:8b, 2026-09-06) |
+| **Speed, Lane C giants** | ⚠️ **~25 s/token — measured, sourced below** |
+| **Code lives at** | **`~/Orbi/code`** |
+| **Built by** | **you, via Codex** |
+| **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — drive is 1+ month out** |
+
+---
+
+# 🔑 STORED ≠ RUNNING — THE WHOLE TRICK
+
+**Orbi stores ~9.3 trillion parameters. It never runs 9.3 trillion at once.**
+
+| | Stored | In RAM when active |
+|---|---|---|
+| **Lane A** — 1 resident router, MoE or dense-converted | 17–90 GB | **~5–8 GB**, streamed |
+| **Lane B** — 14 specialists | ~76 GB | **0.35–15 GB**, one at a time |
+| **Lane C** — 7 giants | **~4,750 GB** | **~8.2 GB**, streamed |
+| **Total** | **~4.84 TB** | **5–8 GB** |
+
+**~4.84 TB of weights, ~8 GB resident. Roughly 1 byte in 600 is in memory at any moment.**
+
+## 🔴 The rule this depends on: **sparse when resident — and dense is convertible**
+
+Sparsity is the entire mechanism. A dense model fires every parameter every token and gets none of
+this benefit.
+
+**But a dense model is not disqualified — it is converted.** **CMoE** turns a dense LLM into an MoE
+**training-free in under five minutes**, by profiling FFN activations, making the consistently-hot
+neurons shared experts and clustering the rest into routed experts.
+
+⚠️ **It is not free.** Training-free at 75% activation is lossless but only **5% faster**; at 25%
+activation perplexity rises **33–65%**; one hour of LoRA recovers **~76%** of dense accuracy at 1.5×
+lower latency. **And whether CMoE runs on Metal is unverified** — the 5-minute figure is quoted on a
+CUDA GPU. Full numbers and limits in `Orbimodels.md` → *When a model is dense — convert it*.
+
+**Order of preference: native MoE → convert a dense one → use dense as-is only if it fits comfortably.**
+
+**Why it works — sparse MoE.** Kimi K3 is 2.78 T params but fires **16 of its 896 experts per token,
+about 1.8%**. The sleeping ~93% stays on the SSD and is fetched only when the router asks. Peak RAM
+**measured at 8.24 GB**. **More RAM buys speed, never a different answer** — output is byte-identical
+from 8 GB to 128 GB.
+
+⚠️ **The one RAM trap:** Lane A at 8 GB **plus** Qwen3-Omni at 15 GB is **23 GB on a 24 GB machine**.
+Use the ASR + TTS pair (2.0 GB) for voice instead. Detail in `Orbimodels.md`.
+
+---
+
+# ⚠️ THE 25 s/TOKEN FIGURE — MEASURED, NOT ASSUMED
+
+**Source:** the `kimi-k3-in-c` author's own measurements running Kimi K3 (2.78 T), same prompt,
+**byte-identical output at every size** (`sample3/kimik3 hwmini.md` §3):
+
+| RAM | Measured |
+|---|---|
+| 8 GB laptop | **26.5 s/token** |
+| **32 GB laptop** | **24.2 s/token** |
+| 64 GB desktop | 19.8 s/token |
+| 128 GB+ workstation | 5.6 s/token |
+
+**Your 24 GB sits between the 8 GB and 32 GB rows, and that stretch is nearly flat** — 26.5 → 24.2 is
+**9% for 4× the RAM**. So **~25 s/token is an interpolation between two measured points**, not a guess.
+
+**Three limits:**
+1. **Author-measured**, not independently reproduced.
+2. **The reference platform is x86-64.** macOS/arm64 is a supported build, but **no M4 number has ever
+   been published.** Phase 6 produces the first.
+3. ⚠️ **Yours will be worse.** Lane C is **disk-bound** and the giants live on an **external** drive,
+   slower than your measured **3.44 GB/s internal**. Treat ~25 s/token as a **ceiling, not a target.**
+
+**In practice:** a 500-token answer takes **~3.5 hours**. **Lane C is a job you submit and walk away
+from. Never a chat.**
+
+---
+
+# THE THREE LANES
+
+| Lane | What | Stored | Speed | Use for |
+|---|---|---|---|---|
+| **A — Resident** | 1 router, **MoE or dense-converted-to-MoE**. 4 candidates | 4–90 GB | **>15 tok/s — ⚠️ unmeasured** | chat, edits, routing, driving subagents |
+| **B — Hot-swap** | 14 specialists: ASR, TTS, OCR, embeddings, guard, translation, grounding, image, video, 3D | ~76 GB | **seconds to load** | one task, then released |
+| **C — Giants** | 7 models, Kimi K3 down to DeepSeek-V4-Flash | **~4.75 TB** | ⚠️ **~25 s/token** | hard questions worth waiting for |
+
+**Rule: Lane A answers unless the task provably needs better.**
+
+## How the router actually decides
+
+**The Lane A model classifies.** One extra small-model call per request, ~0.2 s:
+
+```
+request
+  └─> Lane A model: "which of the 341 skills is this?"
+        └─> skill ──> lane ──> model ──> run
+```
+
+**Skill table from `sample1/OrbiLLM/Orbi OSSLLM research.md`** — 341 leaves, each with pick, evidence
+and a **min-viable alternative**. **Sample 3 is the authoritative research overall, but this is the one
+file sample 1 still wins** — 56 min-viable alternatives against sample 3's 3, and sample 3's own
+`OrbiOSS.md` says to use sample 1 for per-skill picks.
+
+**Always prefer the min-viable alternative.** It often moves a skill **from Lane C to Lane B** — the
+difference between 25 s/token and instant.
+
+## What you gave up, on record
+
+**The giants cannot be merged into one model.** Different hidden sizes, different tokenizers. Their
+weights do not combine — physics, not a missing tool (`sample3/LLMmerge.md`).
+
+**So Orbi is several models behind one interface, not one new model.** In exchange: **their real
+quality, at zero training cost.**
+
+---
+
+# BUILD ORDER
+
+**Phases 0–5 and 7–8 run today. Phase 6 is parked — no drive for 1+ month.**
+✅ **253.65 GB free** (Trash emptied 2026-09-06). Both Lane A candidates fit. **Only Lane A is sized against this disk** — it streams every request and needs the measured 3.44 GB/s. Lanes B and C go on the external drive.
+
+| Phase | What | Needs drive? | Exit test |
+|---|---|---|---|
+| **0** | venv, MLX, baseline | no | ✅ **COMPLETE 2026-09-06.** MLX on GPU, `check.sh` exits 0, commit `d74481c` |
+| **1** | CLI, memory, orbs, **Lane A chosen — apply the model-load procedure first** | no | **20 recall pairs, 17+ correct**, survives delete-and-restore |
+| **2** | Router | no | **18 of 20** requests route to the right lane |
+| **3** | Permissions, content policy | no | refuses a recursive delete **with the system prompt removed** |
+| **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | completes a multi-file change with tests passing |
+| **5** | Voice + media gen | no | speaks, listens, and queues an image job end to end |
+| **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
+| **7** | Improvement loop | no | one month unattended finds one upgrade you accept |
+| **8** | Tool-set redo | no | each swap measurably better, or reverted |
+
+## Phase 0 — today, one hour
+
+```bash
+sudo sysctl iogpu.wired_limit_mb=20480     # YOURS to run. Needs a password. Resets on reboot.
+cd ~/Orbi/code
+python3.12 -m venv .venv                   # your default python3 is 3.14 — unsupported
+source .venv/bin/activate
+pip install mlx-lm && pip freeze > requirements.lock
+ollama run qwen3:8b --verbose "test"       # write the tok/s down
+```
+
+## ⚠️ Two rules that follow from putting the code inside the vault
+
+**1. `orbi nuke` must be scoped to `~/Orbi/code` and nothing else.** The code now lives *inside* the
+research vault, so the old rule — "never touches `~/Orbi/`" — is impossible. Replace it with an
+allow-list of exactly one path:
+
+| `orbi nuke` may delete | `orbi nuke` must NEVER touch |
+|---|---|
+| `~/Orbi/code/` **only** | `~/Orbi/Researchhub/` · `Orbiplan.md` · `Orbimodels.md` · `Orbichecklist.md` · `CLAUDE.md` · `Logo.png` · `.obsidian/` |
+
+**Test it before trusting it:** dry-run must list only paths under `~/Orbi/code/`. If it lists
+anything else, the guard is wrong. **This is the single most dangerous command in the project.**
+
+**2. Exclude `code/` from Obsidian.** `~/Orbi` is an Obsidian vault. A Python project puts tens of
+thousands of files in `.venv/`, and Obsidian will try to index all of them. Add `code/` to
+Settings → Files & Links → Excluded files.
+
+⚠️ **Never use `~/orbi` (lowercase).** Your volume is **case-insensitive** — verified — so `~/orbi`
+and `~/Orbi` are **the same directory**.
+
+## Phase 1 — CLI, memory, orbs, and the Lane A decision
+
+- **Memory** (`sample3/LLMDB.md`): SQLite L0–L3 · BM25 + vector · **hard caps 12 items / 4,000 chars /
+  300 ms** — the caps are what stop memory eating your context
+- **Two layers: global** (facts about you, everywhere) **and per-project** (scoped to the directory)
+- **Backups**: nightly, 14 days, markdown mirror, outside the code directory
+- **Orbs**: `○` idle `◐` thinking `◓` tool `◒` waiting `●` done `◉` error `◌` stalled. Survive a crash.
+  Auto-off when piped
+- **Lane A — measured 2026-09-09, not yet locked.**
+  - ❌ **Qwen3.8-Flash-Next: 0.21 tok/s.** Catastrophic. **Settles the plan's biggest open question —
+    mmap-paging a 180B/6B MoE on an M4 does not work.** Do not retry it.
+  - ⚠️ **Gemma 4 26B-A4B @ IQ3_S: 29.33 tok/s**, routing 20/20, callable JSON 20/20, **exact arguments
+    18/20**, peak RAM 12.23 GB. Passes the gates but **18/20 is the weakness `Orbimodels.md` predicted**
+    — and IQ3_S is ~3-bit, below the DWQ 4-bit the model-load procedure requires.
+  - ⏳ **Untested: Granite 4.1 8B** (best tool calling <10B) and **Qwen3.8-27B + CMoE** (Metal support
+    unverified). **Re-test both at DWQ 4-bit before locking Lane A.**
+  - **Rank on exact-argument accuracy, then tok/s.** Above 15 tok/s is fast enough; Lane A emits tool
+    calls on every request and drives subagents, so correctness beats speed.
+  - 🔑 **Try grammar-constrained decoding before blaming the model.** llama.cpp supports **GBNF
+    grammars** — hand it the tool's JSON schema and the model becomes *incapable* of emitting anything
+    that does not match. **18/20 → 20/20 without changing models.** Cheapest quality win available, and
+    it applies to whichever candidate wins.
+
+### 🔮 Future-proofing — cheap now, expensive to retrofit
+
+Leave **schema room in the memory tables for a `decay` / `last_used` field and a `consolidated` tier.**
+Do not build either. Adding the columns later means migrating live memory; adding them now is free.
+See *Beyond the plan* below.
+
+## Phase 2 — the router *(the core of Orbi)*
+
+```bash
+orbi ask "..."              # router picks the lane
+orbi ask --lane a "..."     # force fast
+orbi job submit "..."       # force Lane C, come back later
+```
+
+**The Lane A model classifies** each request into one of the 341 skills in
+`sample1/OrbiLLM/Orbi OSSLLM research.md`, then skill → lane → model. ~0.2 s per request.
+**Always prefer that file's min-viable alternative** — it often moves a skill from Lane C to Lane B,
+which is the difference between 25 s/token and instant.
+
+**Exit:** 20 varied requests route correctly **18+ times**.
+
+### 🔮 Future-proofing — cheap now, expensive to retrofit
+
+**Log every routing decision as `task → skill → lane → model → succeeded?`.** Do not build any
+learning on top of it. Just record it. **Only 46 of the 302 researched leaves were benchmark-verified**
+— the rest are reasoned defaults, and this log is the only thing that can ever verify them. Start it
+now or start from zero later. See *Beyond the plan* below.
+
+## Phase 3 — permissions, enforced in code
+
+| Tier | Examples | Behaviour |
+|---|---|---|
+| Auto | read, `ls`, `git status` | runs, logged |
+| Confirm | write, edit, commit, install | asks, shows the diff |
+| **Never** | recursive delete, `sudo`, force-push, writing outside allowed roots | **refused in code** |
+
+**Permissive to you** — no refusals on your own machine. Normally-aligned model, permissive prompt,
+**not an abliterated one**. **Guards detect, they do not refuse**: fetched web text is **data, never
+instructions**.
+
+## Phase 4 — the agent layer *(the biggest phase)*
+
+Files · shell · git · skills · hooks · MCP · web — full detail in `Orbichecklist.md` §5–13.
+
+🔑 **Constrain every tool call with a GBNF grammar**, not a prompt instruction. Most agent failures are
+malformed tool calls, not bad reasoning. A grammar makes an invalid call unrepresentable rather than
+unlikely — the difference between an agent that mostly works and one that does.
+
+**Subagents, both modes:**
+
+| Mode | RAM | Parallel? | Use when |
+|---|---|---|---|
+| **Shared** *(default)* | ~0 extra | no — interleaved | almost always |
+| **Separate process** | ~5 GB each | yes, real | the task genuinely needs concurrency |
+
+⚠️ **Hard-cap separate processes from free RAM and refuse to exceed it.** At ~5 GB each you get about
+three before the machine is gone.
+
+**Cloud policy:** Orbi uses cloud **when necessary, without asking**. It rotates the **16 free-tier
+providers in `sample3/Cloudcall/`** in order, and when all are exhausted **falls back to local and says
+so**. **It never spends money** — the budget cap stays at 0.
+
+## Phase 5 — voice and media
+
+- **Voice both ways.** **Push-to-talk, no always-on mic.** ASR + TTS pair (2.0 GB), **not** Qwen3-Omni
+- **Image, video and 3D generation are queued jobs**, same machinery as Lane C. They never block the
+  terminal
+
+## Phase 6 — Lane C giants ⏸ **PARKED — no drive for 1+ month**
+
+**Do not start this phase.** The drive is not ordered as of 2026-09-05. Phases 0–5 and 7–8 deliver
+the whole product apart from the giants; come back here when the hardware exists.
+
+### When it arrives — measure it first
+
+```bash
+dd if=/dev/zero of=/Volumes/<drive>/spd.bin bs=1m count=4096 && sync
+dd if=/Volumes/<drive>/spd.bin of=/dev/null bs=1m && rm /Volumes/<drive>/spd.bin
+```
+**Every Lane C estimate depends on this number.**
+Then `kimi-k3-in-c` for the 2.8 T tier — **needs ~1.7 TB free** (1.56 TB checkpoint + 109 GB trunk).
+⚠️ **Resolve all 11 unconfirmed HF paths before starting a 4.9 TB download.**
+
+---
+
+# 🔮 BEYOND THE PLAN — 50 improvements, after Phase 8
+
+**Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
+Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
+
+## ⭐ Do these three first
+
+| # | Why it goes first |
+|---|---|
+| **13** | **Eval harness.** You cannot improve what you cannot measure. Phase 7 currently gates model swaps on **throughput only** — a faster, dumber model passes today. Seed it from Phase 1's frozen 20 cases. **Cheapest item here and everything else depends on it** |
+| **14** | **Outcome routing.** Start *logging* in Phase 2 even if you never learn from it. **Only 46 of 302 leaves were benchmark-verified**; this log is the sole path to verifying the rest. Start now or start from zero later |
+| **42** | **Keep the distillation pairs.** Phase 6 starts generating `(prompt, giant answer)` pairs. Storing them costs nothing; they cannot be recovered retroactively |
+
+---
+
+## Speed & hardware
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **1** | **Cross-lane speculative decoding** | **The biggest unlock.** Lane A drafts, Lane C verifies in batch — giant quality near Lane A speed | High risk, unmeasured. ⚠️ The plan's ban is narrower than it reads: it is a loss for *same-model* drafting in llama.cpp on Metal. **MLX supports it, and a 4B drafter against a 2.8 T verifier has never been measured on Apple Silicon** |
+| **2** | **Confidence cascade** | tiny → A → B → C, escalating only when confidence is low. Most requests never leave the cheapest tier | Needs #11 (confidence estimation) first |
+| **3** | **Warm pool** | Keep 2–3 Lane B models preloaded in spare RAM. Removes cold-load latency from common paths | RAM pressure; needs #36 to evict sanely |
+| **4** | **Batch Lane C overnight** | Amortise the minutes-long load across a night's queued prompts. Makes 25 s/token tolerable | Scheduling only. Low risk |
+| **5** | **Auto-quant search** | Find the lowest quant per model that still passes eval. Directly frees disk and RAM | Needs #13. Gemma's IQ3_S-vs-DWQ gap shows why this matters |
+| **6** | **Per-project KV cache** | Resident Lane A stops re-ingesting the same context every turn | Cheap. Compounds with the 32K cap |
+| **7** | ⭐ **Thunderbolt clustering** | **The only direction not capped by 24 GB.** A second Mac changes Lane C's economics completely | Hardware money. Research sits unused in `sample3/UHWmini.md` §7 |
+
+## Quality
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **8** | **Grammar-constrained tool calls** | ✅ **Already pulled into the build.** Makes an invalid call unrepresentable, not merely unlikely | — |
+| **9** | **Self-consistency** | Sample N, take the majority. Reliable accuracy gain on hard reasoning | N× the tokens. Use only where it earns it |
+| **10** | **Critic pass** | A cheap model checks Lane A's answer before it returns | One extra small call per request |
+| **11** | **Confidence + abstention** | Orbi says *"I don't know"* instead of guessing. **Your stated biggest pain was verifying claims** | Hard to calibrate honestly |
+| **12** | **Specialist ensemble** | Combine Lane B models where skills overlap | Load cost; only worth it for high-stakes leaves |
+| **13** | ⭐ **Eval harness** | **Prerequisite for everything else.** Frozen tasks with known-good outputs, run before and after every swap | Small — a day, mostly fixtures |
+
+## Router
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **14** | ⭐ **Outcome-based routing** | Learns from what actually worked. **Validates the 256 unverified leaves for free** | Logging now; reweighting later |
+| **15** | **Task decomposition** | *"Refactor this and add tests"* is two skills. The router picks one. Decompose, route each, compose | Turns the router into an orchestrator — real complexity |
+| **16** | **Re-routing on failure** | Today routing is one shot with no recovery | Needs a failure signal, which needs #11 |
+| **17** | **Learned tool selection** | Which tool actually solved which task | Same log as #14 |
+
+## Memory
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **18** | **Consolidation** | Compress old memories into durable facts. **Without it the hard caps slowly truncate away things worth keeping** | Needs a compaction pass |
+| **19** | **Decay / forgetting** | **A wrong fact currently outlives a right one, at equal weight, forever** | Schema field — leave room in Phase 1 |
+| **20** | **Episodic vs semantic split** | What happened, versus what is true. Different retention rules | Schema change |
+| **21** | **Contradiction detection** | Flag when new information conflicts with something stored | Needs #22 |
+| **22** | **Provenance + confidence** | Where a fact came from and how sure it is | Schema change |
+| **23** | **Cross-project transfer** | Learn a pattern in project A, apply it in B | Risks the leakage the two-layer design prevents |
+| **24** | **Index `Researchhub/`** | **64 MB of your own research is invisible to the agent built on it** — `UHWmini.md`, 233 wiki pages, the 341-skill table | Embedding model already exists. Cheap |
+
+## Agent
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **25** | **Checkpointing** | Resume long tasks after a crash instead of restarting | Moderate |
+| **26** | **Undo for agent actions** | Rollback beyond git — config, memory, installed tools | Needs an action journal |
+| **27** | **Dry-run whole plans** | See everything before anything executes | Pairs naturally with #29 |
+| **28** | **Dependency-graph subagent scheduling** | Real parallelism instead of spawn-and-hope. **Matters because separate-process mode caps at ~3 on 24 GB** | Scheduler complexity |
+
+## Interface
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **29** | **Plan approval** | Show the plan, let you edit it, then execute | Low |
+| **30** | **Session branching** | Fork a conversation to try two approaches | Storage, and UI thought |
+| **31** | ⭐ **Ambient mode** | Orbi watches the repo and suggests unprompted. **Changes it from a tool to a presence** | Always-on cost; noise risk if it is wrong often |
+| **32** | **Voice barge-in** | Interrupt mid-answer | Needs the voice stack from Phase 5 |
+| **33** | **Long-job notifications** | Lane C and media jobs tell you when they land | Trivial |
+
+## Reliability & ops
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **34** | **Health telemetry** | Track tok/s drift and memory growth over time, not just at swap points | Low |
+| **35** | **Auto-rollback** | Revert a model swap that regresses quality | Needs #13 |
+| **36** | **Disk pressure management** | Auto-evict the least-used Lane B models | Low. Needed once Lane B is fully installed |
+| **37** | **Energy monitoring** | ⚠️ **Your own research flags 3.8–12.5× per-token energy on SSD offload.** For an always-on agent that is a real cost | Measurement only |
+
+## Security
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **38** | **Sandbox for agent-run code** | Phase 3 gates *what* runs; this bounds *what it can reach* | Real work — containers or a jail |
+| **39** | **Egress allowlist** | Constrain what Orbi may contact | Low |
+| **40** | **Secret scanning** | Catch credentials before any outbound call | Low |
+| **41** | **Tamper-evident audit log** | An action record that cannot be quietly edited | Moderate |
+
+## Learning
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **42** | ⭐ **Lane C → Lane A distillation** | **The giant's judgment at Lane A speed.** Every Lane C job yields a `(your real prompt, giant answer)` pair. After a year that is a training set of **your actual work**, not a public benchmark. Closest thing to the project's original "clone the good models" goal | ⚠️ **It is training** — it breaks the zero-training promise. One hour of LoRA, not a pretraining run. **Keep the pairs from Phase 6 regardless** |
+| **43** | **Auto-refresh the vault** | Re-verify model picks monthly. **Qwen shipped three generations in six months** | Search budget |
+| **44** | **Watch upstream repos** | Know when a tool Orbi depends on changes or dies | Low |
+
+## Economics
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **45** | **Free-tier optimizer** | Pick the Cloudcall provider by remaining quota rather than fixed order | Quota tracking |
+| **46** | **Local-vs-cloud per request** | Decide by latency and cost, not a static rule | Needs #34 |
+
+## Efficiency & self-tuning
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **47** | **Prompt self-optimisation** | The list improves **models** (#42) and **routing** (#14) — **nothing improves Orbi's own prompts.** A failed task teaches you about the *instruction*, not only the model. DSPy-style tuning treats prompts as parameters | **Pairs directly with #13** — once you can measure, the prompt is the cheapest thing to change |
+| **48** | **In-flight context compression** | **#18 consolidates *stored* memory; nothing compresses the *live* conversation.** A long session fills 32K regardless of memory quality, then truncates the task being worked on. Summarise finished sub-tasks to a line each | **Matters most in Phase 4**, where multi-file work runs long |
+| **49** | ⭐ **Semantic answer cache** | Recurring questions — *"how does this module work"* — each cost a full inference today. Embed the question; if near a previous one, return the stored answer with provenance. **Turns repeats into ~0 tokens** | **The embedding model already exists for memory.** Cheapest latency win here, and the likeliest of these four to be worth building |
+| **50** | **Thermal & sustained operation** | **`sample3/UHWmini.md` §8 covers this and nothing on the list used it.** A Mac mini running an always-on agent throttles. Worth knowing whether 29 tok/s still holds at hour six, and backing off when it does not | **#31 ambient mode turns intermittent load into permanent load**, and it is where **#37's 3.8–12.5× per-token energy** cost lands |
+
+---
+
+## The honest shape of this list
+
+**Most of these are small. Three are not.** #1 (spec decoding) may not work at all. #42 (distillation)
+changes what Orbi promises. #7 (clustering) costs hardware. Everything else is a day or two each.
+
+**The dependency chain that matters:** **#13 → #35, #5** · **#11 → #2, #16** · **#14 → #17** ·
+**#22 → #21**. Build #13 first and four other items become possible.
+
+# OPERATIONS
+
+| | |
+|---|---|
+| **Secrets** | macOS Keychain. Never in config, DB, logs or backups |
+| **Spend cap** | `orbi budget set --monthly N`. **Default 0 = free tiers and local only.** Hard stop at 100% |
+| **Rollback** | skills, prompts, config in git · memory backed up nightly · `orbi rollback` |
+| **Logs** | L0 90 days · actions 180 days · backups 14 days · **alarm if `orbi.db` > 2 GB** |
+| **Benchmarks** | weekly. **>10% throughput drop blocks `dev` → `stable`** |
+| **Uninstall** | `orbi nuke`, dry-run default. **Deletes `~/Orbi/code/` only** — never `Researchhub/`, the planning files, or `.obsidian/` |
+| **MCP** | Orbi is an MCP client. ⚠️ `n8n` and `imessage` currently fail to connect |
+| **Packaging** | `pip install -e ~/Orbi/code`. Python pinned `<3.13` |
+| **Multi-session** | safe **only** with SQLite WAL + `busy_timeout` |
+
+---
+
+# 🔧 THE MODEL-LOAD PROCEDURE — runs for EVERY model, EVERY lane
+
+**`sample3/UHWmini.md` is not a reference section. It is a procedure.** Every technique in it applies
+at the moment a model is loaded — Lane A in Phase 1, Lane B in Phase 5, Lane C in Phase 6. **Phases do
+not "do" hardware; every phase that touches a model runs this.**
+
+## Once per machine
+
+```bash
+bash ~/Orbi/Researchhub/sample3/uhwmini-setup.sh   # audits the machine, safe to re-run
+sudo sysctl iogpu.wired_limit_mb=20480             # ✅ done — but RESETS ON REBOOT
+```
+⚠️ **The wired limit resets on every reboot.** `check.sh` must verify it and warn. Biggest single win.
+
+## Once per model — before it is ever benchmarked
+
+| Step | Do | Why |
+|---|---|---|
+| **1. Quantise** | **DWQ 4-bit**, not plain 4-bit | Same file size, **quality of 6-bit**. Free. MLX only |
+| **2. Verify** | confirm the DWQ build loads and matches | A bad quant silently degrades everything downstream |
+
+## Every load — the standard flag set
+
+```bash
+llama-server -m <model>   -lm mmap \                    # NOT --no-mmap, which is deprecated
+  -fa on \                      # flash attention — confirm it actually took
+  -ctk q8_0 -ctv q8_0 \         # quantise the KV cache
+  -c 32768                      # cap context; the cache outgrows the model past ~100K
+```
+
+**Never:**
+- ❌ **Speculative decoding in llama.cpp on Metal** — a **loss**, −11% to −28%. MLX only.
+- ❌ **The Neural Engine.** Settled dead end for token generation.
+- ❌ **`--no-mmap`.** Deprecated.
+
+## Every benchmark
+
+**Run 10 minutes, not 60 seconds**, and watch memory pressure throughout. A model that looks fine for
+one minute can thrash at minute six.
+
+## Per-lane notes
+
+- **Lane A** — resident, so it gets the full treatment. **Phase 1 must apply all of this before
+  measuring the four gates**, or the tok/s number is meaningless.
+- **Lane B** — loads and unloads in seconds. Quantise once, then the standard flags.
+- **Lane C** — streamed. `-lm mmap` is doing the heavy lifting; expert paging is the bottleneck.
+- **Dense models** — see `Orbimodels.md` → *When a model is dense, convert it* (CMoE, training-free).
+
+# HONEST RISKS
+
+1. **Lane C may not earn its 4.9 TB.** ~25 s/token, worse on an external drive. Phase 6's exit test is
+   designed to kill it.
+2. **No Apple Silicon number exists** for the 2.8 T tier. Phase 6 produces the first.
+3. **Turbo Fieldfare is not an escape hatch.** It proves Apple Silicon expert streaming works, but is
+   **pinned to one model and one quantisation** and needs macOS 26 / Swift 6.2 / Metal 4. A borrowable
+   design (16-slot-per-layer LFU cache), not a runtime for your models.
+4. **The scope is now very large.** Claude Code parity plus voice plus media is **116 checklist items**.
+   Phases 0–3 are small; **Phase 4 is most of the work**.
+5. **Subagents fight the RAM budget.** Separate-process mode caps at about three. Shared mode is the
+   default for a reason.
+6. **11 of 23 HF paths are unconfirmed.** Resolve before downloading terabytes.
+7. ✅ **Stale models resolved 2026-09-06.** The two that were actually in the lane tables are replaced:
+   `granite-guardian-3.x` → **Granite Guardian 4.1 8B**, and `Molmo-72B-0924` → **Molmo2 8B** (1/9 the
+   size, better pointing scores, freeing 36 GB). The other three audit entries — `Llama-Guard-3`,
+   `wildguard`, `bge-m3` — **Orbi does not use them**; better picks already hold those roles.
+   **Version audit continued 2026-09-06:** five more corrections applied — `PaddleOCR-VL` pinned to
+   **1.6**, both DeepSeek models pinned to their dated GA tags (**`-0813`**, **`-0731`**), **Wan 2.7
+   superseded by Wan 3.0** (beta) and **Hunyuan3D-2.1 by v3**. `canary-qwen-2.5b` and
+   `Qwen3-Omni-30B-A3B` confirmed current. ✅ **Version audit complete — every model checked, nothing outstanding.** Upgrades applied:
+   `Qwen-Image` → **`Qwen-Image-2512`**, `Qwen3-Reranker-8B` → **`-4B`** (beats the 8B on MTEB-R at
+   half the size), embeddings → **`Harrier-oss-v1-27B`** (**#1 on multilingual MTEB-v2**, MIT), and
+   **`Qwen3-VL-235B` dropped** (Sept 2025, superseded, and Lane A is multimodal). Full audit in
+   `Orbimodels.md`.
+8. ⚠️ **Disk is adequate, not roomy. 93.3 GB free (measured 2026-09-06).** Lane A candidate #1
+   (Qwen3.8-27B + CMoE, 17 GB) fits with room for all of Lane B. Candidate #2 (Flash-Next, 90 GB)
+   fits with **3 GB spare and no room for anything else**. **Correction on record:** an earlier
+   estimate said 113.8 GB would be reclaimed by deleting caches and Orbi-Sources; the real gain was
+   **28.4 GB**, because `du` reports logical size on APFS and both the HuggingFace cache and the
+   180 git repos shared blocks heavily. **Freeing the 62 GB CrossOver Steam bottle is the one move
+   that would make every option comfortable.**
+9. **Licences vary.** Kimi K3 and GLM-5.3 custom; `NLLB` CC-BY-NC and `FLUX.2 dev` non-commercial were
+   **excluded**. Picked on evidence, licence flagged per row — an open-source Orbi must swap the custom
+   rows.
+10. **Research ages in weeks.** Qwen shipped 3 versions in 6 months. Phase 7 exists for this.
+
+---
+
+# OPEN QUESTIONS
+
+1. **Will Lane A hit 15 tok/s?** **Qwen3.8-Flash-Next** is the right shape (MoE, 6B active) but
+   **streaming a 180B/6B MoE on an M4 has never been measured by anyone.** Phase 1 answers it.
+2. **Which giants earn their disk?** Phase 6 measures each against Lane A.
+3. ~~**When does the 8 TB drive arrive?**~~ — **answered 2026-09-05: not ordered yet, likely 1+ month
+   out.** **Phase 6 is parked.** Build Phases 0–5 and 7–8 first; they are the whole product minus the
+   giants. Do not design around Lane C arriving soon.
+
+---
+
+## Change Log
+
+- **2026-09-12 (v20)** — **"Beyond the plan" taken from 46 to 50** with a new *Efficiency & self-tuning*
+  group. These fill genuine gaps rather than padding: **#47 prompt self-optimisation** — the list
+  improved models and routing but **nothing improved Orbi's own prompts**, though a failed task teaches
+  you about the instruction as much as the model; **#48 in-flight context compression** — #18
+  consolidates *stored* memory while **nothing compresses the live conversation**, so a long Phase 4
+  session fills 32K and truncates the very task being worked on; **#49 semantic answer cache** —
+  recurring questions each cost a full inference today and **the embedding model needed to fix that
+  already exists for memory**, making it the cheapest latency win on the whole list; and **#50 thermal
+  and sustained operation** — `UHWmini.md` §8 covers it and **nothing used it**, which matters because
+  ambient mode (#31) converts intermittent load into permanent load, and that is where #37's
+  3.8–12.5× per-token energy cost actually lands.
+
+- **2026-09-11 (v19)** — **"Beyond the plan" expanded from 8 items to 46**, at the user's request to
+  hold nothing back, grouped into speed/hardware, quality, router, memory, agent, interface,
+  reliability, security, learning and economics. Each carries what it buys and what it costs. **Three
+  are marked do-first for the same reason — they are free now and impossible to backfill:** the **eval
+  harness** (#13), without which Phase 7 gates model swaps on throughput alone and no other improvement
+  can be proven; **outcome logging** (#14), the only path to ever verifying the 256 skill leaves that
+  were never benchmarked; and **keeping the distillation pairs** (#42) from Phase 6 onward. The user
+  accepted all three of the ideas that change what Orbi fundamentally is — **distillation**, which
+  breaks the zero-training promise; **a second machine** via Thunderbolt clustering, the only direction
+  not capped by 24 GB; and **ambient mode**, which turns Orbi from a tool into a presence. Recorded the
+  dependency chain — **#13 → #35 and #5 · #11 → #2 and #16 · #14 → #17 · #22 → #21** — so the build
+  order is visible rather than implied.
+
+- **2026-09-11 (v18)** — **Four more future ideas added, and one pulled forward into the build.**
+  🔑 **Grammar-constrained decoding (GBNF) is a now-item, not a future one** — recorded against the
+  Lane A decision and Phase 4's tool layer, because it plausibly fixes the **18/20 exact-argument score
+  measured 2026-09-09 without changing models**: a grammar makes an invalid tool call *unrepresentable*
+  rather than merely unlikely, and llama.cpp already supports it. Added to *Beyond the plan*:
+  **Lane C → Lane A distillation**, which turns discarded giant-model answers into a training set of
+  the user's real work and is the closest thing to the project's original "clone the good models" goal
+  — with the note that **the pairs should be kept from Phase 6 onward even if never trained on**;
+  **task decomposition**, since the router classifies once while real requests span several skills;
+  **per-project KV cache**, absent from the plan entirely; and **indexing `Researchhub/`**, because
+  64 MB of the project's own research is invisible to the agent built on top of it.
+
+- **2026-09-11 (v17)** — **Added a "Beyond the plan" section** recording the four ceilings Phases 0–8
+  hit: **cross-lane speculative decoding** (Lane A drafts, Lane C verifies — the ban is narrower than it
+  reads, applying to same-model drafting in llama.cpp on Metal, while **MLX supports it and nobody has
+  measured a small drafter against a 2.8 T verifier on Apple Silicon**); **outcome-based routing**;
+  **memory consolidation and decay**; and **a real eval harness**, which is the cheapest and which
+  everything else depends on, since Phase 7 currently gates model swaps on throughput alone and **no
+  check exists for quality**. Two **future-proofing** notes added inline — Phase 1 leaves schema room
+  for `decay`/`consolidated`, Phase 2 logs routing outcomes — both a few lines now, both requiring live
+  migration or months of lost data if deferred. **Neither is to be built yet.**
+  Also fixed two real defects found while editing: **Phase 2 had no detail section at all** — the
+  router, the core of Orbi, went straight from Phase 1 to Phase 3 — and **Phase 1's Lane A text was
+  three successive edits mashed together**, naming three different leaders and a stale disk figure. It
+  now records the actual Phase 1 results: **Flash-Next failed at 0.21 tok/s** (settling the biggest open
+  question — mmap-paging a 180B/6B MoE on an M4 does not work), **Gemma passed at 29.33 tok/s but only
+  18/20 on exact arguments** at a sub-spec IQ3_S quant, and **Granite 4.1 8B and Qwen3.8-27B + CMoE
+  remain untested.**
+
+- **2026-09-06 (v16)** — **Fixed a real structural gap the user caught: `UHWmini.md` had no execution
+  path.** Its 955 lines are the project's designated most-important research, yet the plan carried its
+  rules as a **standalone reference section that no phase ran**, `uhwmini-setup.sh` was referenced
+  **zero times** in any planning file, and the 126-item checklist contained **no hardware items at
+  all** — no quantisation, no KV-cache, no flag set. Phase 0 hit the wired limit only because the
+  sysctl happened to sit in its command block. **Replaced the reference section with a
+  "model-load procedure" that every phase touching a model must run**: once-per-machine setup
+  (including the reboot-resets warning), once-per-model DWQ 4-bit quantisation, the standard
+  `-lm mmap -fa on -ctk q8_0 -ctv q8_0 -c 32768` load, the three nevers (llama.cpp speculative decoding
+  on Metal, the ANE, `--no-mmap`), and the 10-minute benchmark rule. **Phase 1 must apply it before
+  measuring Lane A's gates, or the tok/s figure is meaningless.**
+
+- **2026-09-06 (v15)** — **Phase 0 complete and independently verified**: `.venv` on Python 3.12.13,
+  `mlx-lm==0.31.3` reporting `Device(gpu, 0)`, `check.sh` exiting 0, `orbi.toml`, `BASELINE.md`, clean
+  tree, commit `d74481c` pushed to `github.com/MinhDuc2612/Orbi`. **`iogpu.wired_limit_mb` is now
+  20480** — the user ran it. **Lane A re-ranked**: with the Trash emptied, free disk went 93.3 →
+  **253.65 GB**, so **`Qwen3.8-Flash-Next` becomes candidate #1**. Converting a dense model was only
+  ever the answer to a disk squeeze that no longer exists; Flash-Next needs **no conversion and carries
+  none of CMoE's quality cost**. `Qwen3.8-27B + CMoE` drops to #2 as the fallback.
+
+- **2026-09-06 (v14)** — **Two deferred decisions closed, per the standing rule that a flagged error
+  is still an error.** **`Qwen3-VL-235B` dropped** — released **23 Sept 2025**, and **Qwen3.5's unified
+  vision-language foundation outperforms Qwen3-VL**; both Lane A candidates are multimodal, so it
+  earned none of its **118 GB**. **Embeddings switched to `microsoft/Harrier-oss-v1-27B`**, which ranks
+  **#1 on multilingual MTEB-v2** (the newer benchmark), is **MIT**, and whose 0.6B already beats
+  Qwen3-Embedding-0.6B; `Qwen3-Embedding-8B` led only the older MTEB. Costs 13.5 GB against 4.3 GB, so
+  `Harrier-0.6B` remains the fast path. **Totals: 22 models · ~9.1 T · ~4.84 TB. Nothing unchecked.**
+
+- **2026-09-06 (v13)** — **Version audit finished; every model in the list has now been checked.**
+  Confirmed current: `Qwen3-ASR-1.7B`, `Qwen3-TTS-12Hz-1.7B`, `Qwen3-Embedding-8B` (still #1 MTEB at
+  70.6) and `MiLMMT-46-12B` (Gemma3-based, path resolved to `xiaomi-research/`). **Three upgrades:**
+  `Qwen-Image` → **`Qwen-Image-2512`** now that its weights have shipped under Apache-2.0;
+  `Qwen3-Reranker-8B` → **`-4B`**, since the 4B **beats the 8B on MTEB-R (69.76)** at half the size;
+  and **Harrier** documented as a three-model family (270M/0.6B/27B, MIT, 30 Mar 2026) that ranks
+  **#1 on multilingual MTEB-v2**, so **its 27B may beat `Qwen3-Embedding-8B` — both get benched at
+  Phase 1**. Lane B drops to **~130 B / ~67 GB**.
+
+- **2026-09-06 (v12)** — **Version audit continued; five more stale picks corrected.**
+  `PaddleOCR-VL` pinned to **1.6** (28 May 2026); `DeepSeek-V4-Pro` → **`-0813`** (GA 13 Aug 2026) and
+  `-Flash` → **`-0731`** (31 Jul 2026); **Wan 2.7 superseded by Wan 3.0** (public beta 6 Aug 2026 —
+  native 30-second 1080p with audio, kept as a Phase 5 decision since it is beta); **Hunyuan3D-2.1
+  superseded by v3**. Confirmed current: `canary-qwen-2.5b` (most accurate open ASR, 5.63% WER) and
+  `Qwen3-Omni-30B-A3B` — **Qwen3.5-Omni exists but is proprietary**. Also learned **Qwen3.8-Flash-Next
+  is multimodal**, strengthening it as a Lane A candidate, and that **no Qwen 4 exists or is announced**.
+  **7 models remain unchecked**, listed by name rather than assumed current.
+
+- **2026-09-06 (v11)** — **Corrected a framing error the user caught: the internal-disk constraint was
+  being applied to all three lanes when it only belongs to one.** **Lane A alone is sized against the
+  internal SSD**, and permanently, not as a stopgap — it streams experts on every request, so disk read
+  speed sets tok/s, and the internal disk is a measured **3.44 GB/s** against slower external
+  Thunderbolt. **Lanes B and C are external-drive-bound**: Lane C is 4.9 TB and was never going on a
+  500 GB internal disk, and Lane B has no speed argument since a specialist loads, runs for seconds and
+  unloads. Also freed the **62 GB CrossOver Steam bottle** on user instruction, which takes internal
+  free to **~155 GB once the Trash is emptied** and makes both Lane A candidates comfortable.
+
+- **2026-09-06 (v10)** — **Disk resolved to 93.3 GB free** (from 64.9). Both Lane A candidates now fit
+  — #1 comfortably, #2 with only 3 GB spare. **Correction recorded:** the earlier claim that 113.8 GB
+  would be reclaimed was wrong; the true gain was **28.4 GB**, because `du` reports *logical* size on
+  APFS and the HuggingFace cache and 180 git repos shared blocks, so `du` counted them repeatedly.
+  A second wrong call is also corrected: the unreclaimed space was blamed on APFS snapshots, but
+  `diskutil apfs listSnapshots` shows **no snapshots on the data volume** — block sharing was the whole
+  explanation. The dead `Orbi-Tools` symlink is confirmed removed.
+
+- **2026-09-06 (v9)** — **Three blockers worked through.** **(1) Stale models resolved:**
+  `granite-guardian-3.x` → **Granite Guardian 4.1 8B** (April 2026, adds Bring-Your-Own-Criteria,
+  Ollama `granite4.1-guardian`), and `Molmo-72B-0924` → **Molmo2 8B**, which is **1/9 the size and
+  beats Gemini 3 Pro on video pointing (38.4 vs 20.0 F1)** — it moves from Lane C to Lane B and frees
+  **36 GB**. The other three audit entries (`Llama-Guard-3`, `wildguard`, `bge-m3`) are **not used by
+  Orbi**; better picks already hold those roles. Totals now **23 models · ~9.3 T · ~4.95 TB**.
+  **(2) First real hardware number: `qwen3:8b` runs at 19.48 tok/s on this M4.** That sets the Lane A
+  active-parameter budget at **≤ ~10 B active** for 15 tok/s, which every MoE candidate clears — and
+  projects **unconverted dense 27B at ~5.8 tok/s**, so the decision to convert it is now backed by a
+  measurement rather than architecture alone. **Granite 4.1 8B is a proven-viable floor.**
+  **(3) Disk is the one blocker left** and needs commands only the user can run.
+
+- **2026-09-06 (v8)** — Lane A resolved into **four live candidates** rather than one pick plus
+  rejects, after the user caught a contradiction: the plan said *dense is convertible, not
+  disqualified*, then rejected Qwen3.8-27B for being dense. **Qwen3.8-27B + CMoE is now the leader**
+  — at ~17 GB it fits the real 89 GB free, keeps a native vision encoder and is Apache-2.0, where
+  native-MoE Qwen3.8-Flash-Next at 90 GB misses by 1 GB. All three lane tables in `Orbimodels.md` were
+  rewritten to one shape, grouped by job, **with stale models flagged in the table itself** —
+  `granite-guardian-3.x` (Phase 3's guard, and Granite is on 4.1) and `Molmo-72B-0924` (two years old).
+
+- **2026-09-05 (v7)** — **Two corrections.** **(1) The "no dense model in Lane A" rule was too strong**
+  and is replaced: **dense is convertible, not disqualified.** **CMoE** converts a dense LLM to MoE
+  **training-free in under five minutes**; the plan now states the order of preference — native MoE,
+  then convert, then dense-as-is only if it fits — along with the measured cost (75% activation
+  lossless but only 5% faster; 25% activation costs 33–65% perplexity; 1 hr LoRA recovers ~76%) and the
+  blocking unknown that **CMoE on Metal is unverified**. **(2) Disk re-measured at the user's request:
+  64.9 GB free, not 133 GB** — free space fell ~68 GB. **Lane A at 90 GB no longer fits**, which is now
+  risk 8 with four ordered options, and Phase 1 must resolve it before downloading.
+
+- **2026-09-05 (v6)** — **Lane A was dense. Corrected.** v5 picked a dense model, which contradicts
+  the plan's own premise — sparsity is the only reason ~9.5 T fits a 24 GB machine, and a dense model
+  fires every parameter every token. **A rule is now stated in "stored ≠ running": MoE only, no dense
+  model in Lane A**, checked before quality. Lane A is **Qwen3.8-Flash-Next — MoE, 180B total, 6B
+  active**, ~90 GB on disk and ~3 GB active, running today off the internal SSD at its measured
+  3.44 GB/s. **The unmeasured risk is stated plainly:** no general MoE expert-streaming runtime exists
+  for Apple Silicon, so it runs via `llama.cpp -lm mmap`, and **no tok/s figure for a 180B/6B MoE on an
+  M4 has ever been published** — Phase 1 measures it before anything else. Also corrected the file's
+  **Qwen-centric framing**: the rule is best model per skill by benchmark, **newest version of whichever
+  family wins**. A version audit across all families found **five known-stale models**, four in the
+  guard/embedding roles Phase 3 depends on, now risks 7 and 8.
+
+- **2026-09-05 (v5)** — **Lane A decided: Granite 4.1 8B** (~4.3 GB), which ties Qwen3.5-9B for the
+  top open model under 10B as of September 2026 and **leads it on tool calling** — Lane A's real job.
+  Qwen3.5-9B is the fallback if routing accuracy falls short. **Code moved from `~/Projects/orbi` to
+  `~/Orbi/code`** on user instruction, which forced a **rewrite of the `orbi nuke` spec**: the code now
+  sits *inside* the research vault, so "never touches `~/Orbi/`" is impossible and is replaced by an
+  allow-list of exactly one deletable path, with a dry-run test. Also flagged that `code/` must be
+  excluded from Obsidian's indexer. **Phase 6 parked** — the 8 TB drive is not ordered and is 1+ month
+  out, so Phases 0–5 and 7–8 are the build.
+
+- **2026-09-05 (v4 — scope lock)** — Rewritten after a full requirements pass. **Scope changed
+  materially: Orbi now replaces Claude Code entirely** — files, shell, git, skills, hooks, subagents,
+  MCP, web — **and adds image, video, 3D and full two-way voice.** Twelve decisions recorded, each
+  previously unspecified: **the router mechanism** is the Lane A model classifying into one of the 341
+  skills (~0.2 s per request), which was the single biggest hole in v3; **code lives at
+  `~/Projects/orbi`**, because the volume was verified **case-insensitive** and the old `~/orbi` would
+  have been the same directory as the `~/Orbi` vault, letting `orbi nuke` delete the research;
+  **subagents run in both modes**, shared by default with separate processes opt-in and hard-capped
+  from free RAM; **media generation is queued**, never interactive; **cloud is used when necessary
+  without asking**, rotating the 16 Cloudcall free-tier providers then falling back to local, never
+  spending; **memory is global plus per-project**; **voice is push-to-talk with no always-on mic**;
+  **sample 1's `OrbiOS/` and `OrbiIntelligent/` are out of scope**, archive only; **models are picked
+  on evidence with licences flagged**, excluding only CC-BY-NC and non-commercial ones.
+  **A new Phase 4 (agent layer) was inserted** and media moved to 5, giants to 6, improvement to 7,
+  tool-set redo to 8 — phases 0–3 unchanged. **Two companion files created:** `Orbimodels.md`, the
+  explicit 23-model list whose params and disk actually sum (**~9.3 T, ~5.0 TB**) replacing the soft
+  "~26 models, ~4.9 TB", and `Orbichecklist.md`, **116 items** across 17 groups tagged P0/P1/P2, which
+  exists because the agreed definition of done requires a real checklist. Also recorded the **RAM trap**
+  — Lane A at 8 GB plus Qwen3-Omni at 15 GB is 23 GB of 24 — and the resulting rule to use the
+  2.0 GB ASR+TTS pair for voice instead.
+
+- **2026-09-05 (v3)** — **Risk 7 resolved: GLM-5.2 is 753 B total / ~40 B active**, verified against
+  the Hugging Face card for `zai-org/GLM-5.2`. Sample 1's `~355 B` was **GLM-4.5's** figure carried
+  forward under the wrong name; its two other rows said `744 B`, which is **GLM-5.3's** total. Phase 6
+  (then Phase 6's predecessor) rewritten to state that the existing tooling is **sample-stage and must
+  be redone during the build**, not inherited.
+
+- **2026-09-05 (v2 — clarity pass)** — **The 25 s/token figure sourced, not asserted**, to the
+  `kimi-k3-in-c` author's measured table, with the interpolation reasoning and three limits shown.
+  **"Stored versus running" made the headline.** **Contradictions removed** — "15–40 tok/s" vs
+  "15–20", "~25 models" vs "~26", and a stale session-cost figure.
+
+- **2026-09-05 (v1)** — Design locked to **option A: Orbi runs the real giant models, unmodified, with
+  no training of any kind.** Replaces the earlier plan of building one 4 T MoE by sparse upcycling and
+  distillation. Recorded that **the giants cannot be merged** — different hidden sizes and tokenizers —
+  so **Orbi is several models behind one interface, not one new model**, compensated by their real
+  quality at zero training cost. Architecture set as three lanes.

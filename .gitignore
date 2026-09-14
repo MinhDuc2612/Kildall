@@ -1,0 +1,13 @@
+# code/ is its own repository with its own remote
+code/
+
+# Obsidian workspace state, not content
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Orbi runtime output
+backups/
+
+# macOS
+.DS_Store
+**/.DS_Store

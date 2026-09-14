@@ -1,0 +1,6 @@
+# Abliteration
+
+A technique (Arditi et al., 2024, "Refusal in Language Models Is Mediated by a Single Direction") for removing refusal behavior from open-weight LLMs by editing weights directly rather than fine-tuning. Core finding: safety-trained LLMs refuse harmful requests because of one specific direction in internal activation space (the residual stream), not because refusal is spread diffusely across the network. Process: run the model on harmful vs. harmless prompts, take the mean activation difference per layer to approximate a "refusal direction," select the most effective layer/direction, then remove it from the weight matrices via orthogonal projection. Requires no training corpus or GPU cluster — Heretic's benchmarks show ~20 minutes on a single RTX 3090 for a 4B model. A 2026 study ("One Pass to Break Them All") found post-abliteration compliance jumped from 5.8% to 98.0% across five safety-trained models and six harm categories. Only applies to open-weight models whose weights you can download — cannot touch closed hosted APIs. Published defenses (extended-refusal training, APRA) reduce but don't eliminate the effect.
+
+## Mentioned in
+- [Uncensored Content](../../OrbiLLM/uncencored%20content.md)
