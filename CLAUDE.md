@@ -1079,3 +1079,11 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 - Frozen recall **20/20**, separate target-removed abstention **20/20**. Retrieval caps/scope and actual delete-then-restore of30rows/vectors pass; worst retrieval43.30ms, within12items/4000chars/300ms. Both frozen fixture hashes remain unchanged. Evidence:code/.session/phase2-20260914/final/recall.json and abstention.json.
 - All **18 existing real CLI/control checks pass**, including remember/recall, streaming, continuation, piping, Ctrl-C, crash recovery and restore admission. New installed-command checks also pass for forcedA piped input, auto specialist preview, inspectable reason/decision and deferred job submit; no B/C execution. Evidence:final/cli.json and code/.session/phase2-20260914/commands/results.json.
 - Product IQ3 and the recordedDWQ full tool suites are still running sequentially. Do not claim their final scores from these memory/CLI passes.
+
+
+## 2026-09-14 — Installed IQ3 tool result and test-artifact recovery
+
+- The full installed **Gemma IQ3_S** tool suite measured **17/20 first-pass, 20/20 post-retry**, callable JSON20/20, accepted20/20, with **three retries: t07/t09/t12**. Coarse routing remains20/20. The earlier18/20 first-pass figure was from the **DWQ MLX** suite, not this IQ3 run; do not conflate them. The mandatory post-retry gate passes.
+- The combined runner then exited1 while saving, with exact error `OSError: Could not verify /Users/minhduc/Orbi/code/.session/phase2-20260914/final/product-iq3-tools.json.tmp`. Cause: regex example tuples serialize to JSON arrays, so strict equality against the Python tuple data failed. This is a harness artifact error, not model output failure.
+- Recovered the complete serialized raw result, verified all20 frozen prompts/tool schemas, greedy request parameters, accepted post-retry results and protected hashes, then published the identical JSON data. No inference was repeated or scored differently. Recovery evidence/raw SHA: code/.session/phase2-20260914/artifact-save-recovery.json. Ignored runner now normalizes tuple metadata to JSON-native lists before verified save. Product code is unchanged.
+- IQ3/Harrier servers were stopped in the runner's finally block. The remaining full DWQ suite is running separately offline, preserving backend separation. Its final score is still pending.
