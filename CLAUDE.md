@@ -1047,3 +1047,11 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
   LaneA stays Gemma IQ3_S with cache-ram0; wired limit20480, MLX GPU,129.39GB free,
   check.sh exits0. Baseline19.48tok/s unchanged. Phase1 regression targets are recall
   20/20 and tool18/20 first-pass,20/20 post-retry. Frozen fixtures remain unchanged.
+
+
+## 2026-09-14 — Phase 2 catalog and routing implementation in progress
+
+- Recounted the complete sample1 skill source: **302 leaves, 8 domains, 39 subdomains**, not341. Preserved all source rows in a static runtime catalog inside code; no research/spec edits.46 source verification tags,125 reasoned defaults,131 N/A tags;115 leaves have no model pick.56 alternative markers include only13 explicitly named candidate alternatives (2 self-picks).
+- Added catalog stable IDs, source lines/hash, original versus preferred picks, historical verification status and explicit capacity estimates. Estimates do not certify model fit, availability or quality. All13 named min-viable choices are preferred. Catalog self-check verifies every source row.
+- Implemented ask auto/forcedA, job submit deferredC, SQLite routing decisions/outcomes and project-scoped decision inspection. Reuses the exact frozen19-category classifier policy before bounded group/leaf selection; final dispatch is scored separately from coarse classification. No downloads, B/C runtimes or learning. Missing catalog picks use named companion-plan defaults with that uncertainty recorded.
+- Local control checks pass for unavailable-lane non-execution, deferred job persistence, errors, cancellation, crash recovery and project isolation; existing verbatim-tool and CLI admission controls pass. Full live routing and Phase1 regressions are running; **no new accuracy pass is claimed yet**. Wired limit rechecked20480 before measurement. Frozen input hashes verified before edits.
