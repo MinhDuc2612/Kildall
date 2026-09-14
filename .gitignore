@@ -11,3 +11,8 @@ backups/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Cloned third-party repos — own upstream history, not ours to version
+Researchhub/sample1/OrbiIntelligent/leadfind/Scrapling/
+Researchhub/sample1/OrbiLLM/LLMtrain/Soup/
+Researchhub/sample1/OrbiLLM/automation template/awesome-n8n-templates/
