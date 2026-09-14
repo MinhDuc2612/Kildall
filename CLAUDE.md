@@ -1072,3 +1072,10 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 - Full corrected product routing run **19/20** (category20/20, final lane19/20), exit0. Onlyr17 misses: frozenC expectation versus the explicitly preferred Qwen3.5-27B proof model inB. Do not call this20/20 or erase the miss. All other lanes pass; no B/C execution. SixA turns completed with succeeded1; fourteen unavailable decisions recorded null.
 - Final evidence:code/.session/routing-6f3eba70b3df406993fb651a734c426b/results.json and code/.session/phase2-20260914/routing-final.json. Mean routing15.71s, max single classification prompt1073tokens, context4096unchanged. Wired20480 verified before measurement; fixtureSHA unchanged. BENCHMARKS.md includes both initial15/20 failure and corrected19/20 with actual inspectable invoice decision.
 - FullPhase1 regression runner is active with offline model loading: frozen recall20pairs plus20target-removed abstention checks, real installed Phase2 command checks, the18existing CLIchecks, complete IQ3 tool suite and recordedDWQ tool suite. No final Phase1 pass is claimed until all results are read.
+
+
+## 2026-09-14 — Phase 2 memory and CLI regressions passed
+
+- Frozen recall **20/20**, separate target-removed abstention **20/20**. Retrieval caps/scope and actual delete-then-restore of30rows/vectors pass; worst retrieval43.30ms, within12items/4000chars/300ms. Both frozen fixture hashes remain unchanged. Evidence:code/.session/phase2-20260914/final/recall.json and abstention.json.
+- All **18 existing real CLI/control checks pass**, including remember/recall, streaming, continuation, piping, Ctrl-C, crash recovery and restore admission. New installed-command checks also pass for forcedA piped input, auto specialist preview, inspectable reason/decision and deferred job submit; no B/C execution. Evidence:final/cli.json and code/.session/phase2-20260914/commands/results.json.
+- Product IQ3 and the recordedDWQ full tool suites are still running sequentially. Do not claim their final scores from these memory/CLI passes.
