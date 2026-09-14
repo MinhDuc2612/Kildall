@@ -1064,3 +1064,11 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 - First measured three-call routing mean15.21s (20 decisions); this does not meet the plan's unmeasured0.2s estimate. Catalog has no translation leaf: nearest-leaf mapping is inspectable and the translation job uses the companion specialist default.
 - Fixed a forced-job edge found by control tests: a B specialist override cannot be relabelled C; forcedC uses the named giant default. Controls now cover actual-generation cancellation and routing-log restore as well as deferred states and project scoping.
 - Editable reinstall first failed exactly with pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'. Installed only pinned build tooling setuptools80.9.0, then verified offline editable reinstall and pip check. No model downloads. Phase1 regression runner prepared for frozen recall/abstention, installed IQ3 tool suite, and the previously recorded DWQ tool suite.
+
+
+## 2026-09-14 — Phase 2 routing gate measured; regressions pending
+
+- Code commits:0b2bd62 (complete runtime catalog), db44f39 (routing/CLI/logging/deferred jobs). Neither has been pushed yet; final regression and documentation handoff are pending.
+- Full corrected product routing run **19/20** (category20/20, final lane19/20), exit0. Onlyr17 misses: frozenC expectation versus the explicitly preferred Qwen3.5-27B proof model inB. Do not call this20/20 or erase the miss. All other lanes pass; no B/C execution. SixA turns completed with succeeded1; fourteen unavailable decisions recorded null.
+- Final evidence:code/.session/routing-6f3eba70b3df406993fb651a734c426b/results.json and code/.session/phase2-20260914/routing-final.json. Mean routing15.71s, max single classification prompt1073tokens, context4096unchanged. Wired20480 verified before measurement; fixtureSHA unchanged. BENCHMARKS.md includes both initial15/20 failure and corrected19/20 with actual inspectable invoice decision.
+- FullPhase1 regression runner is active with offline model loading: frozen recall20pairs plus20target-removed abstention checks, real installed Phase2 command checks, the18existing CLIchecks, complete IQ3 tool suite and recordedDWQ tool suite. No final Phase1 pass is claimed until all results are read.
