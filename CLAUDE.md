@@ -1099,3 +1099,10 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 - Important limits: actual routing mean **15.71 seconds**, not the plan's unmeasured 0.2 seconds; the source has no translation leaf and uses an inspectable nearest-leaf association plus the translation specialist job default. B/C model fit and per-leaf quality remain unmeasured. Deferred jobs persist but have no execution scheduled while C is parked.
 - Final audit passed at `code/.session/phase2-20260914/final-audit.json`; raw backend-specific results are under `final/`, command transcripts under `commands/`. BENCHMARKS.md preserves the initial 15/20 routing failure, final 19/20, and the exact recovered harness-save error. Recovery changed JSON metadata representation only, never model outputs or scores. README now distinguishes IQ3/DWQ results and documents the commands.
 - Code commits **0b2bd62**, **db44f39**, and **8b815f1** were pushed to `origin/main`; remote SHA was independently verified as **8b815f1f81d92885481cfbf95004623b4826ff64**, with a clean code tree. Root CLAUDE entries were appended and committed separately as work progressed; the root repository was not pushed. Phase 3 has not been started.
+
+
+## 2026-09-15 — Routing latency diagnosis started
+
+- Resumed from code 8b815f1 with both repositories clean; wired limit verified 20480. Frozen bench SHA and canonical recall SHA verified unchanged before work. No downloads or runtime/config changes.
+- Instrument the current three classifier calls before optimizing: actual prompt tokens, prefill/generation, HTTP preflights, construction/catalog reads and cold versus warm startup. The implementation already narrows 39 groups to at most 10 leaves; it does not send all 302 leaves in each prompt.
+- Historical correction to the September 14 handoff: IQ3 also previously measured 18/20 in code/.session/gemma-iq3-nocache-quality.json. The latest IQ317/20 adds t09 punctuation failure to t07/t12; the routing catalog is absent from its tool prompts. Investigating shared policy/sampling instead of claiming routing prompt crowding.
