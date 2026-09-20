@@ -1256,3 +1256,38 @@ All20 decisions use the single-call path on these short frozen inputs; no B/C
 model executes. Both fixture files are unchanged. The hierarchy and its unmatched
 outcome, forcedA bypass, invalid outputs, failure/cancellation/crash persistence,
 backup restore and project-scoped inspection pass deterministic controls.
+
+
+### Controlled IQ3 baseline; IQ4 blocked by reset wired limit — 2026-09-20
+
+The completed same-runtime comparison baseline used Gemma UD-IQ3_S, llama.cpp
+b10809, mmap, Flash Attention, Q8 KV, context4096, one slot, cache768MiB and
+three checkpoints. Production prompts/config/source hashes were frozen.
+
+| Quant | tok/s | Product routing | Callable JSON | Exact first-pass | Post-retry | Peak RSS | Memory pressure |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| UD-IQ3_S | 26.637 | 20/20 | 20/20 | 17/20 | 20/20 | 13.092GB (12.193GiB) | 600.524s:25 normal,96 warning samples; no critical samples |
+| UD-IQ4_XS | Pending | Pending | Pending | Pending | Pending | Pending | Not started |
+
+IQ3 first-pass failures are t07/t09/t12; all pass after one retry each. Recall
+and answer-removed abstention are both20/20. Actual product routing averages
+5.0554s over all20 decisions;15 catalog-cache hits average0.8315s and5 are
+misses. This agrees with the preceding product gate, not a blanket sub-second
+claim. The ten-minute observation fails the harness's all-normal pressure
+criterion: pressure2 is a warning, not a clean memory pass. No critical pressure
+or benchmark error was recorded. Peak RSS is the monitored generation process,
+not total system RAM.
+
+Evidence: `.session/iq4-comparison-20260920/iq3/` includes raw outputs, native
+timings, memory samples, protocol/config/source hashes and verified shutdown.
+Before/after wired limit was20480 for that completed run. Frozen bench SHA
+`fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d`
+and canonical recall SHA
+`888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d`
+were unchanged.
+
+On resuming at20:06 local time, the live read returned exactly
+`iogpu.wired_limit_mb: 0`. IQ4 has not started; no adoption decision or
+`orbi.toml` change was made. The user must run
+`sudo sysctl iogpu.wired_limit_mb=20480` and confirm before measurement resumes.
+No sudo command was executed by the agent.
