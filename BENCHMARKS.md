@@ -1291,3 +1291,90 @@ On resuming at20:06 local time, the live read returned exactly
 `orbi.toml` change was made. The user must run
 `sudo sysctl iogpu.wired_limit_mb=20480` and confirm before measurement resumes.
 No sudo command was executed by the agent.
+
+### Completed IQ3 versus IQ4 comparison — 2026-09-20
+
+After the user restored the wired limit, the live read returned 20480 before
+IQ4 began; it remained 20480 at the end. IQ3 had already finished and stopped.
+Both runs used the same frozen source/config/prompt protocol, native runtime,
+greedy decoding, context 4096, Q8 KV, cache 768MiB and three checkpoints. The
+generation model path selects each quant; test data directories are isolated per run. No downloads,
+MLX substitution, routing tuning, fixture edits or argument repairs occurred.
+
+| Candidate | tok/s | Product routing /20 | Callable JSON /20 | Exact args first-pass /20 | Post-retry /20 | Peak generation RSS | 10-minute memory pressure |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Gemma UD-IQ3_S | 26.637 | 20 | 20 | 17 | 20 | 13.092GB | 600.524s; 25 normal, 96 warning; 0 critical |
+| Gemma UD-IQ4_XS | 24.002 | 20 | 20 | 18 | 20 | 3.974GB | 600.573s; 48 normal, 73 warning; 0 critical |
+
+These are measured process RSS peaks, **not total unified-memory footprints**.
+Device-wide GPU memory in use peaked at 14.211GB for IQ3 and 16.567GB for IQ4;
+allocated GPU memory peaked at 15.157GB and 17.413GB. The lower IQ4 process RSS
+does not establish lower model RAM use. Measurements were sequential, separated
+by a user reboot/restoration; foreground workload and OS memory accounting were
+not controlled. Both observations have 121 samples at approximately 5-second
+intervals, no monitor errors, and fail the harness's all-normal memory criterion.
+The harness exits 1 for a failed gate; a completed measurement is not a passed gate.
+
+**t09 passes first-pass on IQ4.** For the identical request/schema/system prompt,
+IQ3 emitted `I prefer replies in Vietnamese` and IQ4 emitted
+`I prefer replies in Vietnamese.`. The required final period is present in IQ4.
+IQ3 first-pass failures: t07/t09/t12, with 3 retries; IQ4: t07/t12, with 2 retries.
+Every retry is reported separately; both post-retry suites score 20/20.
+The original coarse routing benchmark also remains 20/20 on both.
+
+**Decision: retain IQ3; do not adopt IQ4 yet.** IQ4 meets the tool-improvement
+and >15 tok/s conditions, but violates the mandatory recall non-regression gate:
+IQ3 recall 20/20, IQ4 recall 19/20. IQ4's only miss is recall-18,
+`Who owns the go-live checklist?` → `UNKNOWN`, although the Imani Tran release
+coordinator fact appears second in retrieved memory. This is an answer failure,
+not a missing retrieval. Abstention remains 20/20 for each quant. No claim that
+recall is unchanged is warranted. Production `orbi.toml` and setup artifacts
+remain on IQ3; both existing GGUFs are retained. No prompt fix was folded into
+this quantization comparison.
+
+All 20 first-pass tool request objects are byte-for-byte identical across quants.
+Recall uses generated timestamp/UUID project directories in the retrieved text,
+so its complete requests are not byte-identical. After normalizing only those
+ephemeral paths, all 20 requests and retrieved item ordering/text match; effective
+greedy sampling matches throughout. The observed recall failure blocks adoption,
+but this comparison alone cannot prove quantization caused it rather than
+sensitivity to the changed directory text.
+
+Product routing remains 20/20 categories/final lanes for both, with no missed
+r-cases. The complete 20-decision mean changes from 5.0554s (IQ3) to 4.9978s
+(IQ4), a measured difference of −0.0576s. Each has 15 substantive catalog-cache
+hits and 5 misses; hit-only means are 0.8315s and 0.8165s. These single runs do not
+establish a statistically significant latency improvement or a sub-second
+overall router. No new leaf-accuracy claim is made.
+
+Memory retrieval retains 12 items / 4000 chars / 300 ms caps and correct scopes on both;
+worst measured retrieval 35.581ms (IQ3) and 89.732ms (IQ4). Both delete-then-restore
+tests preserve all 30 rows/vectors and snapshot hashes. Both fixture hashes were
+verified unchanged before and after each run:
+
+- Recall canonical SHA256: `888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d`.
+- Routing/tools SHA256: `fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d`.
+- `test_recall.py` byte SHA256: `ae83425c9cd3a569403c50d7ee95eb6a90a3569d1062856aecf50af52fb2387d`.
+
+Flash Attention was enabled at context level: both native commands specify
+`-fa on` and Q8_0 V cache, and the pinned runtime rejects quantized V when FA
+is disabled, including a second check after graph reservation. This is stronger
+than checking the requested flag, but is not a per-kernel device trace.
+[Pinned native initialization](https://github.com/ggml-org/llama.cpp/blob/5266f24da/src/llama-context.cpp#L416-L423).
+IQ4_XS is a GGUF quant, **not DWQ**; the spec's literal DWQ procedure remains
+inapplicable to this unchanged llama.cpp path. No new 32K-context qualification
+is claimed from the frozen 4K runtime comparison.
+
+Raw evidence and verified shutdowns: `.session/iq4-comparison-20260920/iq3/`
+and `iq4/` (`summary.json`, `tools.json`, `recall.json`, `abstention.json`,
+`routing.json`, `memory.json`, `runtime.json`, `protocol.json`, `verification.json`).
+The shared harness SHA256 is
+`280a508d70c077d5603663ed58c92d83851b11500bf08a55c2928f74f367a603`.
+
+Final health initially exited 1 with exactly:
+`WARNING: Nightly backup registration is missing or mismatched. Run: /Users/minhduc/Orbi/code/.venv/bin/orbi --schedule-backups`.
+Re-registered the existing 03:00 backup job using that command; subsequent
+`./check.sh` exited 0: Python 3.12.13, MLX `Device(gpu, 0)`, wired 20480,
+126.15GB free, backup registration verified. Logs: `final-health.log` and
+`final-health-restored.log` in the comparison directory. This health pass does
+not override either benchmark's memory-pressure failure or IQ4's recall miss.

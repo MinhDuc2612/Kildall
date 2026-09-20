@@ -2,7 +2,8 @@
 
 Orbi is a local terminal assistant with streaming replies, persistent sessions,
 and scoped memory. Phase 1 uses Gemma 4 26B-A4B UD-IQ3_S with Harrier embeddings.
-Lane A measured 29.3336 tok/s; recall now scores 20/20. See [BENCHMARKS.md](BENCHMARKS.md).
+The latest controlled IQ3 run measured 26.64 tok/s and recall 20/20; the earlier
+29.33 tok/s result used the previous cache configuration. See [BENCHMARKS.md](BENCHMARKS.md).
 
 The Lane A DWQ retest scored Gemma 18/20 and Granite 14/20 on exact tool arguments.
 Gemma still needs retries for two first-pass errors. Phase 2 adds routing decisions
@@ -29,6 +30,15 @@ after two retries**. Historical IQ3 also scored18/20; keep each run and backend 
 Product routing overhead averages **5.057 seconds**, including five cache misses;
 the15 cache hits average **0.888 seconds**. Longer replies can evict the cached
 catalog, so sub-second routing is not guaranteed. B/C execution is unavailable.
+
+The controlled IQ4_XS comparison on 2026-09-20 improved tool arguments to
+**18/20 first-pass, 20/20 post-retry** at **24.00 tok/s**, including a first-pass
+t09 pass. However, recall regressed to **19/20** (recall-18 answered `UNKNOWN`
+despite retrieving Imani Tran), so **IQ3 remains selected**. Abstention and
+product routing stayed 20/20 for both. Their actual routing means were 5.055s
+(IQ3) and 4.998s (IQ4). Both ten-minute runs recorded memory-pressure warnings;
+neither passed the all-normal pressure criterion. No model or prompt changes
+were made after this comparison, and both weights remain on disk.
 
 On this Mac, activate the existing environment and run:
 
