@@ -59,10 +59,42 @@ def controls():
         for forced, lane, model in ((None, expected_lane, expected_model),
                                     ("A", "A", "installed-gemma.gguf"),
                                     ("C", "C", "moonshotai/Kimi-K3")):
-            with patch.object(routing, "classify", side_effect=responses):
+            with patch.object(routing, "classify_catalog", return_value=None), \
+                    patch.object(routing, "classify", side_effect=responses) as classify:
                 decision = routing.decide(settings, "An independent control request", forced_lane=forced)
             assert decision["lane"] == lane and decision["model"] == model
-            assert decision["preferred_model"] == leaf["model"]
+            assert decision["preferred_model"] == (None if forced == "A" else leaf["model"])
+            assert classify.call_count == (0 if forced == "A" else 3)
+        with patch.object(routing, "classify_catalog", return_value=(coarse, leaf, {})), \
+                patch.object(routing, "classify") as fallback:
+            decision = routing.decide(settings, "An independent compact control request")
+            assert decision["lane"] == expected_lane and decision["model"] == expected_model
+            assert decision["mode"] == "catalog_prefix"
+            fallback.assert_not_called()
+    with patch.object(routing, "classify_catalog", return_value=(dict(skill="formal_reasoning", lane="C"), None, {})):
+        decision = routing.decide(settings, "A proof outside the catalog's specific operations")
+        assert decision["lane"] == "C" and decision["skill"] == "unmapped:formal_reasoning"
+        assert decision["model"] == routing.PLAN_DEFAULTS["formal_reasoning"] and decision["source_line"] is None
+    with patch.object(routing, "classify_catalog", return_value=None), patch.object(routing, "classify", side_effect=[
+            (dict(skill="formal_reasoning", lane="C"), {}), (dict(group="d01.s01"), {}),
+            (dict(skill="X", reason="No specific operation covers this scope"), {})]):
+        decision = routing.decide(settings, "An unmatched long proof request")
+        assert decision["lane"] == "C" and decision["skill"] == "unmapped:formal_reasoning"
+        assert decision["mode"] == "hierarchical"
+    # The compact protocol must reject malformed, unfinished, or out-of-catalog outputs.
+    compact_settings = dict(runtime=dict(port=8123, context_size=4096))
+    valid_codes = ("memory_lookup:056", "formal_reasoning:X", "model3d_generation:168")
+    for emitted in valid_codes + ("unknown:001", "text_edit:999", "text_edit:1", "{}"):
+        response = dict(choices=[dict(finish_reason="stop", message=dict(content=emitted))])
+        with patch.object(orbi, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1]), response]):
+            try:
+                routing.classify_catalog(compact_settings, "An independent request")
+                assert emitted in valid_codes
+            except ValueError:
+                assert emitted not in valid_codes
+    with patch.object(orbi, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1] * 4096)]) as http:
+        assert routing.classify_catalog(compact_settings, "A long request preserved intact") is None
+        assert http.call_count == 2
     valid = dict(choices=[dict(finish_reason="stop", message=dict(content='{"group":"known"}'))])
     for response in (valid, dict(choices=[]),
                      dict(choices=[dict(finish_reason="length")]),
@@ -154,7 +186,7 @@ def controls():
     print("PASS: routing persistence, unavailable lanes, deferred jobs, failures, cancellation, crash recovery and scoped inspection.")
 
 
-def live():
+def live(*, stop_runtime=True):
     cases = fixtures()
     wired = subprocess.check_output(["sysctl", "-n", "iogpu.wired_limit_mb"], text=True).strip()
     if wired != "20480":
@@ -194,7 +226,8 @@ def live():
             orbi.atomic_json(directory / "results.json", result)
             print(f"{case['id']}: lane={'PASS' if row['correct'] else 'FAIL'} {row.get('error', '')}", flush=True)
     finally:
-        orbi.ensure_runtime(config, stop=True)
+        if stop_runtime:
+            orbi.ensure_runtime(config, stop=True)
         fixtures()
         result["fixture_unchanged"] = True
         orbi.atomic_json(directory / "results.json", result)

@@ -1104,8 +1104,10 @@ crash recovery and deferred-job persistence.
 | Frozen tools / recorded DWQ MLX backend | **18/20** | **20/20** | 2: t07, t12 | Recorded scores preserved |
 
 Both tool backends also score callable JSON20/20 and coarse routing20/20.
-The installed IQ3 first-pass result is lower than the18/20 stated in the task;
-that earlier result belongs to DWQ. Do not present them as one measurement.
+The installed IQ3 first-pass result here is lower than the18/20 stated in the task.
+The adjacent18/20 run belongs to DWQ, but the older
+`.session/gemma-iq3-nocache-quality.json` also records IQ3 at18/20.
+These are separate measurements; it was incorrect to imply IQ3 never scored18/20.
 IQ3 additionally dropped the final period in t09's exact fact; its single retry
 restored it. Neither backend has a remaining post-retry failure, and no emitted
 argument was repaired in code.
@@ -1145,3 +1147,112 @@ source also retain their before hashes; CLAUDE.md was appended and committed in
 the separate root repository as work progressed. The source count302 versus341,
 missing translation leaf, and15.71s measured routing versus the plan's0.2s estimate
 remain explicit limitations, not silent spec edits.
+
+
+## Routing latency diagnosis and rejected trials — 2026-09-20
+
+A full20-case instrumented repeat of the original implementation measured
+**15.2867s mean**, excluding answer generation. Wired20480; IQ3_S; original
+single-slot4K runtime with `--cache-ram 0`. No model downloads.
+
+| Component | Mean per decision |
+| --- | ---: |
+| Prompt processing, three calls | 11.5010s |
+| Classification generation, three calls | 3.7458s |
+| Template/token-count HTTP preflights | 0.0240s |
+| Construction, import and dispatch | 0.00039s |
+| Remaining HTTP/validation overhead | 0.01563s |
+
+The three prompts average1003.15,1047.15 and456.45 counted tokens; native server
+prompt counts differ slightly with template special tokens. The total native
+processing average is2509.75tokens; generation averages101.45tokens, much of it
+leaf-explanation prose. The complete302-leaf catalog was **not** being sent in
+those prompts: the existing implementation used category,39-group and≤10-leaf
+menus. An audit hook saw the catalog bytecode open only on the first request.
+Configuration read took0.493ms; warm runtime ownership/health checks averaged
+21.404ms. Cold generation+embedding startup took11.907s once, not on every
+classification. Evidence: `.session/routing-latency-20260915/baseline-profile.json`
+and `baseline-summary.json`.
+
+The measured alternative uses one compact catalog prompt, full category names,
+and a short constrained category/leaf result. It does not generate explanatory
+prose: inspection shows the actual classification, category rule, source pick,
+minimum alternative, availability and dispatch rule. Source verification labels
+remain historical claims; leaf matches are explicitly unverified model outputs.
+The unchanged hierarchy handles requests too long to fit the compact menu in4K;
+requests are never silently truncated. Both paths can report an unmatched leaf
+and retain the operational category. Explicit `--lane a` skips classification.
+
+| Trial | Result | Disposition |
+| --- | --- | --- |
+| Compact array, cache0, consecutive routing | category19/20; first22.57s; later19 mean1.008s | Rejected: r07 category miss and no protection against answer-prefix eviction |
+| Native cache256MiB | ~17s decisions; state464.6MiB exceeds cap | Rejected: native cache explicitly skipped the oversized state |
+| Native cache512MiB, one checkpoint | ~18s decisions; restored state but no reusable prefix | Rejected: sliding-window state could not rewind to the changed user suffix |
+| Cache768MiB, three checkpoints, letter codes | category15/20 | Rejected: category letters confused with lane letters |
+| Same cache, full category names | category20/20 and final lanes20/20; all20 mean1.8359s; subsequent19 mean0.9696s | Short-answer interleaving prototype only; first uncached classification remains slow |
+
+Every request in the last prototype was followed by an unrelated generated
+answer on the same slot. That short-answer workload does **not** establish the
+latency of longer product replies. The first full product run exposed repeated
+prefix eviction after longer Lane A answers: mean5.1291s over19 completed
+classifications. It also found a client parser bug: r14 emitted the valid
+`model3d_generation:168`, but the parser rejected digits in category names with
+`ValueError("Invalid catalog classification: 'model3d_generation:168'")`.
+Result19/20; the failed decision is not counted as a measured latency success.
+The parser now accepts digits, has a control test for that category, and a full
+product rerun follows. Raw failed run:
+`.session/routing-7584ca3e995446628d6a39f765157a6b/results.json`.
+
+The768MiB/three-checkpoint experiment observed memory for602.504s:
+peak model RSS12.754GB, pressure levels1(normal) and2(warning).
+This is **not** an all-normal pressure pass. No model throughput or memory
+qualification should be inferred from the short routing prototype.
+Evidence: `cache-memory.json` in the latency directory.
+
+### r17 and prompt-regression findings
+
+r17 is a real over-specific selection, not a demonstrated stale fixture. Its
+adversarial online-matching proof is not covered by the narrow propositional/
+first-order-logic leaf or its QMFOLBench citation. The smaller-model rule applies
+after matching the operation; it does not justify that mismatched downgrade.
+The full-name prototype emits no matching leaf for r17 and retains formal
+reasoning/C. No fixture or source/spec edit was made. Other proposed leaf
+associations are still imperfect (for example text translation associated with
+transcription);20/20 category/lane accuracy is **not**20/20 leaf accuracy.
+
+Old IQ3 first-pass18/20 versus September14 IQ317/20 differs only on t09.
+Routing menus do not enter the tool suite. The tool prompt gained205 shared
+policy tokens and explicit temperature-only sampling was added between those
+historical runs, so that comparison alone does not isolate quantization loss.
+The new same-runtime IQ3/IQ4 comparison will hold prompts and flags constant.
+
+Two attempted exact-copy prompt clarifications were measured and removed:
+
+| Product-policy trial | Recall | Abstention | Tools first-pass | Post-retry |
+| --- | --- | --- | --- | --- |
+| Shared extra scope/tag copy instruction | 19/20: recall-18 UNKNOWN | 20/20 | 18/20 | 20/20 |
+| Extra instruction only with tools enabled | 20/20 | 20/20 | 17/20 | 20/20 |
+
+Neither met the combined requirements. The original shared policy and original
+benchmark prompt handling are restored. Regex diagnostics/retries and all memory
+caps remain unchanged. Raw evidence: latency directory `policy-fix/` and
+`scoped-policy/`; both complete suites retain unchanged frozen fixture hashes.
+
+
+### Corrected product routing gate — 2026-09-20
+
+The full frozen product-path suite now scores **20/20 category and final lane**,
+including r14 after the digit-parser fix and r17 as unmatched formal reasoning/C.
+Actual average routing time is **5.0571s** over all20 requests:15 cached decisions
+average **0.8882s**, while5 require catalog prefill. Longer real Lane A replies
+can evict the prefix, unlike the short interleaved answers in the prototype.
+This is the achieved product result, not a general sub-second claim. Per the
+user's new instruction, freeze the768MiB/three-checkpoint configuration and
+compare quantizations without further latency tuning.
+
+Evidence: `.session/routing-988b48c6691f42ccb1dfbb4a478149e8/results.json` and
+`.session/routing-latency-20260915/product-routing-summary.json`.
+All20 decisions use the single-call path on these short frozen inputs; no B/C
+model executes. Both fixture files are unchanged. The hierarchy and its unmatched
+outcome, forcedA bypass, invalid outputs, failure/cancellation/crash persistence,
+backup restore and project-scoped inspection pass deterministic controls.

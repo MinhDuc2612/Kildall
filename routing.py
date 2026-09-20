@@ -1,6 +1,8 @@
 """Bounded Lane A classification and inspectable, decision-only specialist routing."""
 
 import json
+from functools import lru_cache
+import re
 import time
 
 # Explicit job defaults from Orbimodels.md. Leaf alternatives still take priority.
@@ -51,7 +53,61 @@ def classify(config, system, prompt, properties):
         if "enum" in rule and result[key] not in rule["enum"]:
             raise ValueError(f"Classifier returned unknown {key}: {result[key]}")
     return result, dict(result=result, prompt_tokens=count, response_id=response.get("id"),
+                        timings=response.get("timings", {}),
                         requested_sampling={k: body[k] for k in ("temperature", "top_p", "samplers", "seed")})
+
+
+@lru_cache(maxsize=1)
+def catalog_prompt():
+    from skill_catalog import SKILLS
+
+    policy = '''Classify the requested operation; do not solve it. Output a category name, a colon, then the three-digit leaf number, or X when no leaf fits. No prose.
+Choose a leaf only when its specific operation covers the requested scope. Shared topic/words alone are insufficient. Do not infer a narrow specialty from a generic action such as proving, writing or searching.
+''' + "\n".join(ROUTING_POLICY[1:]) + "\nCategories:\n"
+    policy += "\n".join(f"{key} {value['lane']}: {value['description']}"
+                        for key, value in SKILL_TAXONOMY.items())
+    # Primary labels fit the existing 4K context; full labels/evidence remain in the decision.
+    policy += "\nLeaves:\n" + "\n".join(f"{i:03d} {row['label'].split(' (')[0]}"
+                                       for i, row in enumerate(SKILLS))
+    grammar = ('root ::= (' + ' | '.join(json.dumps(key) for key in SKILL_TAXONOMY)
+               + ') ":" ("X" | ' + ' | '.join(json.dumps(f"{i:03d}") for i in range(len(SKILLS))) + ')')
+    return policy, grammar
+
+
+def classify_catalog(config, prompt):
+    from orbi import json_request, url
+    from skill_catalog import SKILLS
+
+    started = time.monotonic()
+    policy, grammar = catalog_prompt()
+    # Classification has no tools or retrieved memories; answer policies belong to the answer call.
+    messages = [dict(role="system", content=policy), dict(role="user", content=prompt)]
+    endpoint = url(config)
+    rendered = json_request(endpoint + "/apply-template", dict(messages=messages, add_generation_prompt=True))["prompt"]
+    count = len(json_request(endpoint + "/tokenize", dict(content=rendered, add_special=False))["tokens"])
+    if count + 32 > config["runtime"]["context_size"]:
+        return None  # Keep the existing hierarchy for longer requests; never truncate the request.
+    preflight_ms = (time.monotonic() - started) * 1000
+    body = dict(messages=messages, temperature=0, top_p=1, samplers=["temperature"], seed=42,
+                max_tokens=16, stream=False, cache_prompt=True, grammar=grammar)
+    response = json_request(endpoint + "/v1/chat/completions", body, timeout=180)
+    choices = response.get("choices", [])
+    if len(choices) != 1 or choices[0].get("finish_reason") != "stop":
+        raise ValueError("Classifier did not finish one complete decision")
+    emitted = choices[0]["message"].get("content")
+    if not isinstance(emitted, str) or not re.fullmatch(r"[a-z0-9_]+:(?:X|[0-9]{3})", emitted):
+        raise ValueError(f"Invalid catalog classification: {emitted!r}")
+    category, number = emitted.split(":")
+    if category not in SKILL_TAXONOMY or (number != "X" and int(number) >= len(SKILLS)):
+        raise ValueError(f"Unknown catalog classification: {emitted!r}")
+    chosen = None if number == "X" else SKILLS[int(number)]
+    coarse = dict(skill=category, lane=SKILL_TAXONOMY[category]["lane"])
+    trace = dict(result=coarse, leaf=chosen["id"] if chosen else None, emitted=emitted,
+                 prompt_tokens=count, preflight_ms=round(preflight_ms, 3),
+                 elapsed_ms=round((time.monotonic() - started) * 1000, 3),
+                 response_id=response.get("id"), timings=response.get("timings", {}),
+                 requested_sampling={k: body[k] for k in ("temperature", "top_p", "samplers", "seed")})
+    return coarse, chosen, trace
 
 
 def decide(config, prompt, *, forced_lane=None):
@@ -62,30 +118,48 @@ def decide(config, prompt, *, forced_lane=None):
     if forced_lane not in (None, "A", "C"):
         raise ValueError("Only explicit Lane A or job Lane C overrides are supported")
     started = time.monotonic()
-    policy = "\n".join(ROUTING_POLICY) + "\n" + json.dumps(SKILL_TAXONOMY)
-    coarse, first = classify(config, policy, prompt, {
-        "skill": {"type": "string", "enum": list(SKILL_TAXONOMY)},
-        "lane": {"type": "string", "enum": ["A", "B", "C"]}})
-    if coarse["lane"] != SKILL_TAXONOMY[coarse["skill"]]["lane"]:
-        raise ValueError("Classifier skill and lane disagree")
-    # ponytail: hierarchical menus bound the 302-leaf catalog to the existing 4K context;
-    # measure a larger-context single pass before replacing this with a larger prompt.
-    menu = "\n".join(f"{key}: {DOMAINS[value['domain']]} / {value['label']}" for key, value in SUBDOMAINS.items())
-    select = ("Select the most specific skill group for the requested operation, not incidental topics. "
-              "Do not execute the task. Return its group ID. Operational category: " + coarse["skill"])
-    group, second = classify(config, select + "\n" + menu, prompt,
-                             {"group": {"type": "string", "enum": list(SUBDOMAINS)}})
-    leaves = [row for row in SKILLS if row["subdomain"] == group["group"]]
-    leaf_menu = "\n".join(f"{row['id']}: {row['label']}" for row in leaves)
-    leaf, third = classify(config,
-        "Select the most specific matching leaf for the requested operation. Do not solve the task. "
-        "Return its skill ID and a short reason identifying the requested output. Operational category: "
-        + coarse["skill"] + "\n" + leaf_menu, prompt,
-        {"skill": {"type": "string", "enum": [row["id"] for row in leaves]}, "reason": {"type": "string"}})
-    chosen = BY_ID[leaf["skill"]]
+    if forced_lane == "A":
+        return dict(skill="override:lane_a", skill_label="Explicit Lane A request", category="user_override",
+                    lane="A", model=config["lanes"]["a"]["model"].name, installed=True, forced_lane="A",
+                    preferred_model=None, selection="user_override", model_source="installed Lane A configuration",
+                    source_status="user_override", source_line=None, catalog_sha256=SOURCE_SHA256,
+                    reason=["The user forced Lane A; classification was skipped."], classifier=[],
+                    mode="forced", elapsed_ms=round((time.monotonic() - started) * 1000, 3))
+    compact = classify_catalog(config, prompt)
+    if compact is not None:
+        coarse, chosen, first = compact
+        mode, traces = "catalog_prefix", [first]
+        leaf_reason = f"Classifier category: {coarse['skill']}; catalog association: {chosen['label'] if chosen else 'none'}."
+    else:
+        policy = "\n".join(ROUTING_POLICY) + "\n" + json.dumps(SKILL_TAXONOMY)
+        coarse, first = classify(config, policy, prompt, {
+            "skill": {"type": "string", "enum": list(SKILL_TAXONOMY)},
+            "lane": {"type": "string", "enum": ["A", "B", "C"]}})
+        if coarse["lane"] != SKILL_TAXONOMY[coarse["skill"]]["lane"]:
+            raise ValueError("Classifier skill and lane disagree")
+        menu = "\n".join(f"{key}: {DOMAINS[value['domain']]} / {value['label']}" for key, value in SUBDOMAINS.items())
+        select = ("Select the most specific skill group for the requested operation, not incidental topics. "
+                  "Do not execute the task. Return its group ID. Operational category: " + coarse["skill"])
+        group, second = classify(config, select + "\n" + menu, prompt,
+                                 {"group": {"type": "string", "enum": list(SUBDOMAINS)}})
+        leaves = [row for row in SKILLS if row["subdomain"] == group["group"]]
+        leaf_menu = "\n".join(f"{row['id']}: {row['label']}" for row in leaves)
+        leaf, third = classify(config,
+            "Select a leaf only when its specific operation covers the requested scope. Shared topic/words alone "
+            "are insufficient. Do not infer a narrow specialty from a generic action such as proving, writing or "
+            "searching. Return X when no leaf fits. Do not solve the task. "
+            "Return its skill ID and a short reason identifying the requested output. Operational category: "
+            + coarse["skill"] + "\n" + leaf_menu, prompt,
+            {"skill": {"type": "string", "enum": [row["id"] for row in leaves] + ["X"]}, "reason": {"type": "string"}})
+        chosen, leaf_reason = None if leaf["skill"] == "X" else BY_ID[leaf["skill"]], leaf["reason"]
+        mode, traces = "hierarchical", [first, second, third]
+    if chosen is None:
+        chosen = dict(id="unmapped:" + coarse["skill"], label=SKILL_TAXONOMY[coarse["skill"]]["description"],
+                      lane=None, model=None, selection="unpicked", source_status="unmapped", source_line=None,
+                      lane_reason="No catalog leaf specifically covers the requested operation; retain its operational category.")
     lane = "A" if coarse["lane"] == "A" else (chosen["lane"] or coarse["lane"])
     model = chosen["model"]
-    reason = [SKILL_TAXONOMY[coarse["skill"]]["description"], leaf["reason"], chosen["lane_reason"]]
+    reason = [SKILL_TAXONOMY[coarse["skill"]]["description"], leaf_reason, chosen["lane_reason"]]
     model_source = "skill_catalog"
     if coarse["lane"] == "B" and chosen["selection"] != "min_viable":
         lane, model = "B", PLAN_DEFAULTS[coarse["skill"]]
@@ -115,16 +189,18 @@ def decide(config, prompt, *, forced_lane=None):
     return dict(skill=chosen["id"], skill_label=chosen["label"], category=coarse["skill"],
                 lane=lane, model=model, installed=lane == "A", forced_lane=forced_lane,
                 preferred_model=chosen["model"], selection=chosen["selection"],
+                leaf_match_verified=False,
                 model_source=model_source,
                 source_status=chosen["source_status"], source_line=chosen["source_line"],
-                catalog_sha256=SOURCE_SHA256, reason=reason, classifier=[first, second, third],
+                catalog_sha256=SOURCE_SHA256, reason=reason, classifier=traces, mode=mode,
                 elapsed_ms=round((time.monotonic() - started) * 1000, 3))
 
 
 def describe(decision):
     return (f"{decision['skill']} ({decision['skill_label']}) → Lane {decision['lane']} → "
             f"{decision['model'] or 'unassigned model'}. " + " ".join(decision["reason"]) +
-            f" Research status: {decision['source_status']}; selection: {decision['selection']}.")
+            f" Historical source status: {decision['source_status']}; selection: {decision['selection']}. "
+            "The leaf association is an unverified classifier output.")
 
 ROUTING_POLICY = ['Return exactly one JSON object with skill and lane. Choose a skill from skill_taxonomy and the '
  'associated uppercase lane A, B or C. Do not solve the task.',

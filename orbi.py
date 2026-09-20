@@ -157,6 +157,11 @@ def ensure_runtime(config, stop=False):
                         raise RuntimeError("Model or port changed; run orbi --stop before restarting")
                     if json_request(url(config, embedding) + "/health", timeout=2).get("status") != "ok":
                         raise RuntimeError(f"{name} is not healthy")
+                    if not embedding:
+                        command = subprocess.check_output(["ps", "-p", str(state[name]["pid"]), "-o", "command="], text=True)
+                        if any(not re.search(r"(?:^|\s)" + flag + r"\s+" + value + r"(?=\s|$)", command)
+                               for flag, value in (("--cache-ram", "768"), ("--ctx-checkpoints", "3"))):
+                            raise RuntimeError("Lane A runtime settings changed; run orbi --stop before restarting")
                     continue
                 binary = config["runtime"]["server"]
                 if not binary.is_file() or not model.is_file():
@@ -165,14 +170,15 @@ def ensure_runtime(config, stop=False):
                     if probe.connect_ex(("127.0.0.1", port)) == 0:
                         raise RuntimeError(f"Port {port} is occupied by a server Orbi does not own")
                 command = [str(binary), "-m", str(model), "-lm", "mmap", "-ngl", "99",
-                    "--cache-ram", "0", "-fa", "on", "-np", "1", "--offline",
+                    "--cache-ram", "0" if embedding else "768", "-fa", "on", "-np", "1", "--offline",
                     "--host", "127.0.0.1", "--port", str(port), "--no-webui",
                     "--cors-origins", "localhost", "--no-cors-credentials"]
                 if embedding:
                     command += ["--embedding", "--pooling", "last", "--embd-normalize", "2",
                                 "-c", "2048", "-b", "2048", "-ub", "2048"]
                 else:
-                    command += ["-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
+                    # Bounded native prefix cache; three SWA checkpoints allow rewinding the user suffix.
+                    command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
                         "-c", str(config["runtime"]["context_size"]), "-b", "128", "-ub", "128",
                         "--jinja", "--reasoning", "off", "--perf"]
                 environment = dict(os.environ, XDG_CACHE_HOME=str(directory.parent / ".cache"),

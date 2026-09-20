@@ -20,12 +20,15 @@ Regex feedback identifies the failed target and explains when a trailing wildcar
 requires an extra character; emitted arguments are never repaired by code.
 The top three semantic hits remain protected and greedy decoding is verified.
 
-Phase 2 validation on 2026-09-14: routing **19/20** (r17 selects the named smaller
-proof model in B rather than the fixture's C); recall and abstention **20/20**.
+Phase 2 product routing validation on 2026-09-20: **20/20**. r17 has no matching
+specific catalog leaf and retains formal reasoning/C. Recall and abstention were
+**20/20** in the preceding regression run.
 The installed IQ3 model measures tool arguments **17/20 first-pass, 20/20 after
 three retries**. The separate DWQ benchmark retains **18/20 first-pass, 20/20
-after two retries**. The earlier 18/20 figure must not be attributed to IQ3.
-Measured routing overhead averages **15.71 seconds**; B/C execution is unavailable.
+after two retries**. Historical IQ3 also scored18/20; keep each run and backend distinct.
+Product routing overhead averages **5.057 seconds**, including five cache misses;
+the15 cache hits average **0.888 seconds**. Longer replies can evict the cached
+catalog, so sub-second routing is not guaranteed. B/C execution is unavailable.
 
 On this Mac, activate the existing environment and run:
 
@@ -53,7 +56,9 @@ python3.12 -m venv .venv
 Setup downloads and verifies the pinned runtime and two models (about 11.7 GB).
 Do not run setup to enable other lanes: Phase 2 downloads no models.
 Servers start locally on demand; `orbi --stop` releases them. The measured context
-limit is 4,096 tokens. Keep the server prompt cache disabled (`--cache-ram 0`).
+limit is 4,096 tokens. Generation uses a bounded native prefix cache
+(`--cache-ram 768 --ctx-checkpoints 3`); embeddings keep caching disabled.
+After updating from the old runtime flags, run `orbi --stop` before restarting.
 
 Memory uses SQLite WAL, BM25 and real semantic vectors, with hard limits of
 12 items, 4,000 rendered characters and 300 ms. Personal facts are global;
@@ -86,10 +91,12 @@ Run `.venv/bin/python test_memory.py` for deterministic memory checks.
 start the local services with one `orbi` prompt before running the recall test.
 Model files, databases, backups and runtime logs stay out of Git.
 
-`ask` uses the established classifier, then selects a group and a specific leaf
-from the research catalog. Three bounded calls keep the existing 4,096-token
-context; this is not the plan's unmeasured 0.2-second routing claim. Oversized
-requests fail visibly. Legacy `orbi "..."` and `orbi --continue` retain their
+`ask` classifies the operational category and proposed catalog leaf in one call.
+Requests too long for that compact catalog use the existing three-call hierarchy
+within the4,096-token context; requests are never silently shortened. Neither path
+verifies the proposed leaf match, and either can report an unmatched operation.
+`ask --lane a` skips classification. Oversized requests fail visibly.
+Legacy `orbi "..."` and `orbi --continue` retain their
 direct Lane A behavior. `ask --continue` resumes with routing enabled.
 
 The source contains **302 leaves, not 341**. All are represented with stable IDs,
