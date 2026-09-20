@@ -1215,3 +1215,9 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 
 - User confirmed manually restoring the limit; live read verified20480 at20:09. Frozen fixture file hashes and harness SHA280a508d70c077d5603663ed58c92d83851b11500bf08a55c2928f74f367a603 match the completed IQ3 run. Both trees were clean.
 - Started the unchanged offline IQ4 harness sequentially after IQ3 shutdown, using only the existing IQ4_XS GGUF and the same768MiB cache/three-checkpoint flags. No routing/prompt/config edits; production selection remains IQ3 pending all results. Full recall/abstention/tool/product-routing suites and at least600seconds of active pressure observation are running. No new result is claimed yet.
+
+
+## 2026-09-20 — IQ4 partial result: recall regression
+
+- Controlled IQ4 throughput sample24.0015tok/s. Full recall19/20:recall-18 returned UNKNOWN despite the retrieved Imani Tran fact; full answer-removed abstention remains20/20. The original recall harness's17/20 threshold is not the current acceptance rule: the quant comparison requires20/20, so this is a regression.
+- Continue the frozen tool/routing suites and ten-minute active observation unchanged to finish the requested comparison. No adoption or prompt repair; production remains IQ3. Memory pressure has warning samples; final peak/duration/counts pending.
