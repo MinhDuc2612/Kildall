@@ -21,9 +21,9 @@ this file = how it gets built.
 | **Params STORED** | **~9.1 T across 22 models · ~4.84 TB** |
 | **Params RUNNING** | **5–8 GB of RAM.** Every lane streams — nothing loads whole |
 | **Runs on your M4 24 GB?** | ✅ **yes** — see "stored ≠ running" |
-| **Lane A model** | **4 candidates, Phase 1 picks.** Leader: **Qwen3.8-Flash-Next** — native MoE, no conversion, 90 GB of 253 GB free |
+| **Lane A model** | ✅ **Gemma 4 26B-A4B** UD-IQ3_S, `--cache-ram 0` — **29.33 tok/s measured** |
 | **Speed, Lane A** | **19.48 tok/s measured** on this M4 (qwen3:8b, 2026-09-06) |
-| **Speed, Lane C giants** | ⚠️ **~25 s/token — measured, sourced below** |
+| **Speed, Lane C giants** | **~2.2 s/token (Flash tier) to ~17.9 s/token (Kimi K3)** — varies ~8× by active params |
 | **Code lives at** | **`~/Orbi/code`** |
 | **Built by** | **you, via Codex** |
 | **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — drive is 1+ month out** |
@@ -69,7 +69,11 @@ Use the ASR + TTS pair (2.0 GB) for voice instead. Detail in `Orbimodels.md`.
 
 ---
 
-# ⚠️ THE 25 s/TOKEN FIGURE — MEASURED, NOT ASSUMED
+# ⚠️ KIMI K3'S 25 s/TOKEN FIGURE — MEASURED, NOT ASSUMED
+
+**This section is about Kimi K3 only.** It is the slowest giant and the source of the plan's original
+flat figure. **Lane C as a whole runs ~2.2–17.9 s/token depending on active params** — see
+`Orbimodels.md` for the per-model table.
 
 **Source:** the `kimi-k3-in-c` author's own measurements running Kimi K3 (2.78 T), same prompt,
 **byte-identical output at every size** (`sample3/kimik3 hwmini.md` §3):
@@ -102,7 +106,7 @@ from. Never a chat.**
 |---|---|---|---|---|
 | **A — Resident** | 1 router, **MoE or dense-converted-to-MoE**. 4 candidates | 4–90 GB | **>15 tok/s — ⚠️ unmeasured** | chat, edits, routing, driving subagents |
 | **B — Hot-swap** | 14 specialists: ASR, TTS, OCR, embeddings, guard, translation, grounding, image, video, 3D | ~76 GB | **seconds to load** | one task, then released |
-| **C — Giants** | 7 models, Kimi K3 down to DeepSeek-V4-Flash | **~4.75 TB** | ⚠️ **~25 s/token** | hard questions worth waiting for |
+| **C — Giants** | 7 models, Kimi K3 down to DeepSeek-V4-Flash | **~4.75 TB** | **~2.2–17.9 s/token** (see `Orbimodels.md`) | hard questions worth waiting for |
 
 **Rule: Lane A answers unless the task provably needs better.**
 
@@ -122,7 +126,7 @@ file sample 1 still wins** — 56 min-viable alternatives against sample 3's 3, 
 `OrbiOSS.md` says to use sample 1 for per-skill picks.
 
 **Always prefer the min-viable alternative.** It often moves a skill **from Lane C to Lane B** — the
-difference between 25 s/token and instant.
+difference between a Lane C job and an instant answer.
 
 ## What you gave up, on record
 
@@ -142,8 +146,8 @@ quality, at zero training cost.**
 | Phase | What | Needs drive? | Exit test |
 |---|---|---|---|
 | **0** | venv, MLX, baseline | no | ✅ **COMPLETE 2026-09-06.** MLX on GPU, `check.sh` exits 0, commit `d74481c` |
-| **1** | CLI, memory, orbs, **Lane A chosen — apply the model-load procedure first** | no | **20 recall pairs, 17+ correct**, survives delete-and-restore |
-| **2** | Router | no | **18 of 20** requests route to the right lane |
+| **1** | CLI, memory, orbs, Lane A chosen | no | ✅ **COMPLETE.** Recall **20/20**, tools **20/20** post-retry. ⚠️ Lane A quant unresolved — see below |
+| **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
 | **3** | Permissions, content policy | no | refuses a recursive delete **with the system prompt removed** |
 | **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | completes a multi-file change with tests passing |
 | **5** | Voice + media gen | no | speaks, listens, and queues an image job end to end |
@@ -222,7 +226,7 @@ orbi job submit "..."       # force Lane C, come back later
 **The Lane A model classifies** each request into one of the 341 skills in
 `sample1/OrbiLLM/Orbi OSSLLM research.md`, then skill → lane → model. ~0.2 s per request.
 **Always prefer that file's min-viable alternative** — it often moves a skill from Lane C to Lane B,
-which is the difference between 25 s/token and instant.
+which is the difference between a Lane C job and an instant answer.
 
 **Exit:** 20 varied requests route correctly **18+ times**.
 
@@ -232,6 +236,34 @@ which is the difference between 25 s/token and instant.
 learning on top of it. Just record it. **Only 46 of the 302 researched leaves were benchmark-verified**
 — the rest are reasoned defaults, and this log is the only thing that can ever verify them. Start it
 now or start from zero later. See *Beyond the plan* below.
+
+## ⚠️ Open against Phase 1 — Lane A runs 3-bit, the procedure requires 4-bit
+
+**The model-load procedure above requires DWQ 4-bit. Lane A is running UD-IQ3_S — 3-bit.**
+That is below spec, and **4-bit → 3-bit is the step where quantisation damage becomes noticeable.**
+
+Codex's own measurements show the cost:
+
+| Build | Exact args, first pass | Failures |
+|---|---|---|
+| **IQ3_S** — 3-bit, installed | **17/20** | t07, **t09**, t12 |
+| DWQ 4-bit — MLX backend | **18/20** | t07, t12 |
+
+**t09 is the difference, and it is precision, not prompting.** `BENCHMARKS.md` records that *"IQ3
+additionally dropped the final period in t09's exact fact"* — **3-bit lost a character 4-bit kept.**
+
+**The fix is already on disk and costs nothing to try:**
+`models/gemma-4-26b-a4b/gemma-4-26B-A4B-it-UD-IQ4_XS.gguf` — **12.7 GB, downloaded, never benchmarked.**
+
+⚠️ **Do not switch to `models/gemma-4-dwq-4bit/`.** That build is `.safetensors` — **MLX**, a different
+runtime from the llama.cpp server the CLI is built on. **IQ4_XS keeps the runtime and still moves
+3-bit to 4-bit.** DWQ is MLX-only, so the procedure's "DWQ 4-bit" cannot be met on the llama.cpp path;
+IQ4_XS is the closest available.
+
+**Decision rule:** adopt IQ4_XS if exact-argument first-pass improves **and** tok/s stays above 15.
+The extra 2.2 GB of RAM is affordable — Lane A peaked at 12.23 GB against a ~20 GB ceiling.
+
+---
 
 ## Phase 3 — permissions, enforced in code
 
@@ -486,7 +518,7 @@ one minute can thrash at minute six.
 
 # HONEST RISKS
 
-1. **Lane C may not earn its 4.9 TB.** ~25 s/token, worse on an external drive. Phase 6's exit test is
+1. **Lane C may not earn its 4.9 TB.** ~17.9 s/token for Kimi K3, worse on a slow external drive — though the **Flash tier runs at ~2.2 s/token** and is far likelier to pass. Phase 6's exit test is
    designed to kill it.
 2. **No Apple Silicon number exists** for the 2.8 T tier. Phase 6 produces the first.
 3. **Turbo Fieldfare is not an escape hatch.** It proves Apple Silicon expert streaming works, but is
@@ -535,6 +567,32 @@ one minute can thrash at minute six.
 ---
 
 ## Change Log
+
+- **2026-09-20 (v22)** — **Plan brought back in line with the build; it was four facts behind.**
+  The Lane A row still named **Qwen3.8-Flash-Next** as leader from a pre-measurement ranking — it
+  actually **failed at 0.21 tok/s**, and Lane A is **Gemma 4 26B-A4B UD-IQ3_S at 29.33 tok/s**.
+  **Phases 1 and 2 were both complete but unmarked** — Phase 1 at recall 20/20 and tools 20/20
+  post-retry, Phase 2 at routing 19/20, commit `8b815f1`.
+  **Recorded a live contradiction the plan was hiding:** the model-load procedure requires **DWQ
+  4-bit**, but Lane A runs **UD-IQ3_S — 3-bit**, and 4-bit→3-bit is where quantisation damage becomes
+  measurable. Codex's own numbers show it: **IQ3_S 17/20 first-pass against DWQ's 18/20**, and
+  `BENCHMARKS.md` records that *"IQ3 additionally dropped the final period in t09's exact fact"* —
+  **precision loss, not a prompting failure**. The fix is already on disk: **`UD-IQ4_XS.gguf`, 12.7 GB,
+  downloaded and never benchmarked**. Also noted that **DWQ is MLX-only**, so the procedure's literal
+  requirement cannot be met on the llama.cpp path the CLI is built on — IQ4_XS is the closest
+  available, and switching to the `.safetensors` DWQ build would mean changing runtimes.
+  **Phase 2's 15.71 s/decision against the 0.2 s spec is flagged as open** on the phase row.
+
+- **2026-09-20 (v21)** — **Lane C's speed corrected from one flat number to a per-model range.** The
+  plan said *"~25 s/token"* throughout; that is **Kimi K3's** figure applied to all seven giants, and it
+  is wrong by up to **8×**. Token time tracks **active** params, not total: `DeepSeek-V4-Flash` wakes
+  13 B per token against Kimi K3's 104 B. Real range **~2.2 s/token to ~17.9 s/token**, so a 500-token
+  answer is **18 minutes on the Flash tier and 2.5 hours on Kimi K3** — only the two largest are
+  genuinely "submit and walk away". Full per-model table in `Orbimodels.md`. **Kimi K3 stays in the
+  plan** at user instruction; only the install order changed, Flash tier first. Also recorded that
+  **active params are not RAM residency** — Lane A has 4 B active but measured **12.23 GB peak RSS** —
+  and that the Flash tier's combined 15.5 GB active may allow **two giants to co-reside**, which is the
+  precondition for cross-lane speculative decoding (#1).
 
 - **2026-09-12 (v20)** — **"Beyond the plan" taken from 46 to 50** with a new *Efficiency & self-tuning*
   group. These fill genuine gaps rather than padding: **#47 prompt self-optimisation** — the list

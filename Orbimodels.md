@@ -159,7 +159,44 @@ runs for seconds, and unloads. Until the drive arrives, install selectively on t
 | 6 | Cheap reasoning | `zai-org/GLM-5.3-Flash` | **320 B** | 18B | **160 GB** | **MIT** | Shipped ahead of the flagship |
 | 7 | Cheap coding | `deepseek-ai/DeepSeek-V4-Flash-0731` ✅ | **284 B** | 13B | **142 GB** | **MIT** | 79.0% SWE-bench Verified at **1/6 the size** of V4-Pro. Production release 31 Jul 2026 |
 
-**Speed: ~25 s/token.** A 500-token answer takes ~3.5 hours. **Lane C is a job you submit, never a chat.**
+### ⚡ Lane C speed is NOT one number — it varies ~8× by model
+
+**Token time scales with *active* params, not total.** Kimi K3 wakes 104 B per token; DeepSeek-V4-Flash
+wakes 13 B. That is **8× fewer bytes read per token**. On a Thunderbolt 4 enclosure (~2,900 MB/s):
+
+| Model | Active | Bytes/token @4-bit | Per token | 500-token answer |
+|---|---|---|---|---|
+| **`DeepSeek-V4-Flash-0731`** | **13 B** | 6.5 GB | **~2.2 s** | **~18 min** |
+| **`GLM-5.3-Flash`** | **18 B** | 9 GB | **~3.1 s** | **~26 min** |
+| `GLM-5.2` · `GLM-5.3` | ~40 B | 20 GB | ~6.9 s | ~58 min |
+| `DeepSeek-V4-Pro-0813` | 49 B | 24.5 GB | ~8.4 s | ~70 min |
+| `Qwen3.8-2.4T-A95B` | 95 B | 47.5 GB | ~16.4 s | ~2.3 h |
+| `Kimi-K3` | 104 B | 52 GB | ~17.9 s | ~2.5 h |
+
+*Estimates scaled from the measured internal figure, assuming disk-bound streaming. Real speeds
+should be better — the LRU expert cache avoids re-reading experts that repeat across nearby tokens.*
+
+**The Flash tier is not a "submit and walk away" lane.** `DeepSeek-V4-Flash` answers in ~18 minutes and
+scores **79.0% SWE-bench Verified**, only 1.6 points below V4-Pro. **Install the Flash tier first** —
+302 GB for both, and they are the two most likely to clear Phase 6's "beat Lane A" exit test. Kimi K3
+costs **1,700 GB and ~2.5 hours** per answer; it is the ceiling, not the starting point.
+
+⚠️ **Only Kimi K3 and Qwen3.8-2.4T are true "walk away" jobs.** The rest are coffee-break jobs.
+
+### 🔑 Active params ≠ RAM — and the difference enables speculative decoding
+
+**Active params set how many bytes stream from disk per token. They do NOT set RAM residency.**
+Lane A is Gemma 4 26B-A4B with **4 B active** — ~2 GB by that arithmetic — yet it **measured 12.23 GB
+peak RSS**. The dense trunk, the LRU expert cache and the KV cache dominate, and none appear in the
+active-param figure.
+
+**But the Flash tier is small enough that co-residency is plausible:** `DeepSeek-V4-Flash` (6.5 GB
+active) plus `GLM-5.3-Flash` (9 GB) is **15.5 GB**, inside the ~20 GB ceiling.
+
+**That is the precondition for cross-lane speculative decoding** (#1 in *Beyond the plan*) — the
+drafter and the verifier must both be resident at once. **The Flash giants being small is what makes
+that physically possible on a 24 GB machine.** Same for the critic pass (#10) and ensembles (#12).
+⚠️ Unverified — trunk and cache overhead decides it, not the active-param number.
 
 **Four things before any download:**
 1. ⏸ **Nothing installs today.** Drive is 1+ month out; this needs 4.9 TB.
@@ -461,3 +498,19 @@ three generations in six months.
   only the older MTEB. **Cost: 13.5 GB against 4.3 GB**, so `Harrier-0.6B` stays as the fast path for
   when that is too heavy. Chosen on benchmark evidence, per the standing rule.
   **Totals now 22 models · ~9.1 T · ~4.84 TB. Nothing in the list is unchecked.**
+
+- **2026-09-20 (v10)** — **Corrected a flat figure that was wrong by up to 8×.** Lane C carried
+  *"~25 s/token"* for all seven giants; that is **Kimi K3's** number applied to models that differ
+  enormously. **Token time scales with *active* params, not total**, so `DeepSeek-V4-Flash` at 13 B
+  active reads **8× fewer bytes per token** than Kimi K3 at 104 B. Real range on a Thunderbolt 4
+  enclosure is **~2.2 s/token (≈18 min for 500 tokens) up to ~17.9 s/token (≈2.5 h)**. **Only Kimi K3
+  and Qwen3.8-2.4T are genuinely "submit and walk away"** — the Flash tier is a coffee break, and
+  `DeepSeek-V4-Flash` scores **79.0% SWE-bench Verified**, 1.6 points off V4-Pro, for 142 GB instead of
+  1,700. Install order changed to Flash-tier first, Kimi K3 last; **Kimi K3 remains in the plan** at
+  user instruction as the most capable model.
+  Also recorded a distinction the file had been eliding: **active params are not RAM residency.** Lane A
+  has 4 B active (~2 GB) but **measured 12.23 GB peak RSS** — trunk, expert cache and KV cache dominate.
+  The consequence is positive: the Flash tier's active sets total **15.5 GB**, inside the ~20 GB
+  ceiling, so **two giants may co-reside — which is the precondition for cross-lane speculative
+  decoding** (#1), the critic pass (#10) and ensembles (#12). Flagged as unverified: overhead decides
+  it, not the active-param arithmetic.

@@ -291,6 +291,67 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+## 2026-09-20 — storage decided; Lane C speed corrected; Lane A running below spec
+
+- 🔴 **Lane C's speed was wrong by up to 8× and is now per-model.** Both planning files carried a flat
+  **"~25 s/token"** for all seven giants. That is **Kimi K3's** figure applied to models that differ
+  enormously — **token time scales with *active* params, not total.** Kimi K3 wakes 104 B per token;
+  `DeepSeek-V4-Flash` wakes 13 B, so it reads **8× fewer bytes**. Real range on a Thunderbolt 4
+  enclosure: **~2.2 s/token (≈18 min for 500 tokens) up to ~17.9 s/token (≈2.5 h)**. **Only Kimi K3 and
+  Qwen3.8-2.4T are genuinely "submit and walk away"** — the Flash tier is a coffee break, and
+  `DeepSeek-V4-Flash` scores **79.0% SWE-bench Verified**, 1.6 points off V4-Pro, for **142 GB instead
+  of 1,700**. Install order changed to Flash-tier first; **Kimi K3 stays in the plan** at user
+  instruction as the most capable model. Full table in `Orbimodels.md`.
+- 🔑 **Recorded a distinction the files had been eliding: active params are not RAM residency.**
+  Lane A has **4 B active** — ~2 GB by arithmetic — but **measured 12.23 GB peak RSS**. The dense
+  trunk, LRU expert cache and KV cache dominate. The consequence is positive: the Flash tier's active
+  sets total **15.5 GB**, inside the ~20 GB ceiling, so **two giants may co-reside — which is the
+  precondition for cross-lane speculative decoding** (#1 in *Beyond the plan*), the critic pass (#10)
+  and ensembles (#12). Flagged unverified; overhead decides it, not the active-param maths.
+- **Storage resolved, after I got it wrong twice.** The user asked about a **Samsung T5 EVO 8 TB**:
+  **460 MB/s, USB 3.2 Gen 1** — **7.5× slower than the measured 3.44 GB/s internal**, which would put
+  Kimi K3 at **~3 min/token, ~26 hours for a 500-token answer.** Rejected.
+  **Internal upgrade caps at 2 TB**, verified on Expand Mac mini's own product page. I first said 2 TB,
+  then wrongly said 4 TB from a search summary, then confirmed 2 TB from the vendor directly — **the
+  lesson being to read the source, not the summary, before correcting myself.** The M4 Pro can take
+  8 TB; the **base M4 cannot**, and internal swaps need a **second Mac for the DFU restore** plus they
+  void AppleCare+ on storage.
+  **Recommendation: a Thunderbolt 4 / USB4 NVMe enclosure at ~2,900 MB/s.** ⚠️ **Do not buy on
+  advertised USB speed** — the Samsung T9 claims 2,000 MB/s but **Macs do not negotiate USB 3.2 Gen 2x2
+  and fall back to ~1,050 MB/s.** Only Thunderbolt or USB4 reaches full speed. The base M4 caps at
+  Thunderbolt 4 regardless of enclosure; TB5's ~5,000 MB/s needs an M4 Pro.
+  Also recorded, and the user chose against it deliberately: **`kimi-k3:cloud` is already in their
+  Ollama list and `sample3/Cloudcall/` documents 16 free-tier providers** — cloud would answer in
+  seconds for $0 against ~4 hours locally. **The user chose local**, so the drive buys **privacy and
+  offline operation**, not speed or quality.
+- 🔴 **Lane A is running below its own spec, and nothing said so.** The model-load procedure requires
+  **DWQ 4-bit**; Lane A runs **UD-IQ3_S — 3-bit**, and **4-bit → 3-bit is where quantisation damage
+  becomes measurable.** Codex's own numbers: **IQ3_S 17/20 first-pass (t07, t09, t12) against DWQ's
+  18/20 (t07, t12)**, and `BENCHMARKS.md` records that *"IQ3 additionally dropped the final period in
+  t09's exact fact"* — **precision loss, not prompting.** The fix is already on disk:
+  **`UD-IQ4_XS.gguf`, 12.7 GB, downloaded and never benchmarked.** ⚠️ Noted that **DWQ is MLX-only**,
+  so the procedure's literal requirement **cannot be met on the llama.cpp path** the CLI is built on —
+  IQ4_XS is the closest available, and the `.safetensors` DWQ build would mean changing runtimes.
+- **Plan resynced; it was four facts behind.** `Orbiplan.md` still named **Qwen3.8-Flash-Next** as
+  Lane A's leader from a pre-measurement ranking — it **failed at 0.21 tok/s**. **Phases 1 and 2 were
+  both complete but unmarked.** Now v22: Lane A recorded as **Gemma 4 26B-A4B UD-IQ3_S at 29.33
+  tok/s**, Phase 1 ✅ complete, Phase 2 ✅ complete at commit `8b815f1`, and **Phase 2's 15.71 s per
+  routing decision flagged as open** on the phase row.
+- ✅ **Routing latency solved by Codex the same day — and my diagnosis was wrong.** I suspected the
+  302-leaf catalog was being re-read per request; Codex measured it and found *"only the first decision
+  opened the catalog bytecode; no per-request catalog file read."* The real split of 15.29 s is
+  **11.50 s prefill + 3.75 s generation + 0.04 s everything else** — prompt processing, not I/O.
+  A bounded 768 MiB native prompt cache plus a single-call compact catalog took the mean to **1.84 s
+  across all 20, and 0.97 s warm across the last 19** — roughly **16×**, under the 1 s target when warm.
+  Codex rejected two weaker configurations honestly on the way (256 MiB could not hold a 464.6 MiB
+  prompt; 512 MiB could not rewind the sliding-window cache) and rejected a compact-letter output that
+  dropped category accuracy to 15/20, keeping full names to restore 20/20. It labelled the result
+  **"measured warm latency, not a claim that cold routing is below 1 s."** Product gates still running.
+- ✅ **r17 resolved against my guess.** I suggested the fixture might be stale, since I had instructed
+  the router to prefer min-viable alternatives which move skills from Lane C to B. Codex audited it:
+  **"r17 is a real over-specific leaf selection, not an established stale fixture."** The router was
+  wrong, not the fixture. No fixture edit made.
+
 ## 2026-09-14 — project memory synchronized; final retry results
 
 - **Memory-file scope clarified by the user:** CLAUDE.md is writable project memory.
