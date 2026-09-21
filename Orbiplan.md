@@ -1,6 +1,6 @@
 # Orbiplan — Building Orbi
 
-**v25 · 2026-09-21.** Design locked. **Orbi runs the real giants, unmodified. No training.**
+**v26 · 2026-09-22.** Design locked. **Orbi runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -148,7 +148,7 @@ quality, at zero training cost.**
 | **0** | venv, MLX, baseline | no | ✅ **COMPLETE 2026-09-06.** MLX on GPU, `check.sh` exits 0, commit `d74481c` |
 | **1** | CLI, memory, orbs, Lane A chosen | no | ✅ **COMPLETE.** Recall **20/20**, tools **20/20** post-retry. ⚠️ Lane A quant unresolved — see below |
 | **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
-| **3** | Permissions, content policy | no | refuses a recursive delete **with the system prompt removed** |
+| **3** | Permissions, content policy | no | ✅ **COMPLETE 2026-09-21**, commit `a2415b6`. Hard test passed with `SYSTEM_RULES=''` and all system messages omitted. Nuke dry-run: **14,918 paths, 0 outside `code/`**. ⚠️ Guard-model item deferred to Phase 4 |
 | **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | completes a multi-file change with tests passing |
 | **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
 | **5** | Voice + media gen | no | speaks, listens, and queues an image job end to end |
@@ -689,6 +689,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-09-22 (v26)** — **Phase 3 complete at commit `a2415b6`**, pushed and remote-verified. The permission boundary is a **closed typed executor** — an allow-list of actions, so an unknown action fails by default rather than needing a rule. **The hard test passed properly**: `SYSTEM_RULES=''` with *all* system messages omitted, a recursive-delete tool call emitted into the real `_run_turn` dispatcher, sentinel unchanged and the Never refusal persisted — so the boundary is code, not prompt. `orbi nuke` verified independently: **14,918 paths listed, 0 outside `code/`**, dry-run by default, typed `orbi` to confirm, live destructive path never exercised. ⚠️ **Two honest limits recorded rather than hidden.** (1) **Nuke refuses 3 outward `.venv/bin/python*` symlinks**, which is correct — following them would delete Homebrew's Python — but it means `code/` is **not completely removed**. The fix is to `os.unlink` the link itself, which never touches its target, gated on the **link's own** location via `os.lstat` rather than `realpath`. (2) **Install copies a local artifact only** — no pip, npm, hooks, scripts or dependency resolution; that belongs to Phase 4. Also scoped honestly: item 7 is **a data-boundary check, not measured model injection resistance**, and the guard-model item is **deferred to Phase 4** because it needs the web fetcher and Granite Guardian 4.1 8B, which is not on disk. Checklist now **14 of 156**.
 - **2026-09-21 (v25)** — 🔴 **Computer mode added as Phase 4C. It was missing entirely.** The phrase
   "computer use" appeared **zero times** in this file and zero times in `Orbichecklist.md`, while
   `sample1/OrbiLLM/Orbi OSSLLM research.md` carries **four ✓-verified leaves** for it (lines 140, 141,

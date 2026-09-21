@@ -10,7 +10,7 @@
 | | |
 |---|---|
 | **Items** | **156** |
-| **Done now** | **4** of 156 |
+| **Done now** | **14** of 156 |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -137,14 +137,14 @@
 
 ## 12. Permissions — P0 *(Phase 3)*
 
-- [ ] **Auto** tier: read, `ls`, `git status` — runs, logged
-- [ ] **Confirm** tier: write, edit, commit, install — asks, shows the exact diff
-- [ ] **Never** tier: refused in code
-- [ ] **Refuses a recursive delete with the system prompt removed entirely**
-- [ ] Permissive to you — no refusals on your own machine
-- [ ] Normally-aligned model, permissive prompt, **not abliterated**
-- [ ] Fetched web text is treated as data, never instructions
-- [ ] Guard model flags an injected page without obeying it
+- [x] **Auto** tier: read, `ls`, `git status` — runs, logged
+- [x] **Confirm** tier: write, edit, commit, install — asks, shows the exact diff
+- [x] **Never** tier: refused in code
+- [x] **Refuses a recursive delete with the system prompt removed entirely**
+- [x] Permissive to you — no refusals on your own machine
+- [x] Normally-aligned model, permissive prompt, **not abliterated**
+- [x] Fetched web text is treated as data, never instructions
+- [ ] ⏸ Guard model flags an injected page without obeying it — **deferred to Phase 4**: needs the web fetcher (Group 13) and Granite Guardian 4.1 8B, which is not on disk
 
 ## 13. Web and cloud — P1 *(Phase 4)*
 
@@ -236,10 +236,14 @@
       Qwen3-Reranker-4B, Harrier-27B embeddings; Qwen3-VL-235B dropped
 - [ ] ⚠️ **Only Lane A goes on the internal disk** (it streams every request, needs the measured
       3.44 GB/s). **Lanes B and C go external.** Internal free: **93.3 GB, ~155 GB after emptying Trash**
-- [ ] `orbi nuke`, dry-run by default, must type `orbi` to confirm
-- [ ] **`orbi nuke` deletes `~/Orbi/code/` and nothing else** — allow-list, not a deny-list
-- [ ] **Dry-run lists only paths under `~/Orbi/code/`** — if it lists anything else, the guard is wrong
-- [ ] `orbi nuke` cannot touch `Researchhub/`, the planning `.md` files, `Logo.png` or `.obsidian/`
+- [x] `orbi nuke`, dry-run by default, must type `orbi` to confirm
+- [ ] ⚠️ **`orbi nuke` deletes `~/Orbi/code/` and nothing else** — allow-list, not a deny-list.
+      **Safety verified 2026-09-22: 14,918 paths listed, 0 outside `code/`.** Not fully ticked:
+      3 outward `.venv/bin/python*` symlinks are refused, so `code/` is not completely removed.
+      Fix: `os.unlink` the link itself (never touches the target), gated on the *link's own*
+      location via `os.lstat`, not `realpath`
+- [x] **Dry-run lists only paths under `~/Orbi/code/`** — if it lists anything else, the guard is wrong
+- [x] `orbi nuke` cannot touch `Researchhub/`, the planning `.md` files, `Logo.png` or `.obsidian/`
 - [ ] `code/` excluded from Obsidian indexing (Settings → Files & Links → Excluded files)
 - [ ] `pip install -e ~/Orbi/code`, Python pinned `<3.13`
 - [ ] Multi-session safe — SQLite WAL plus `busy_timeout`

@@ -293,6 +293,42 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+## 2026-09-22 — Phase 3 complete and independently verified; checklist ticked
+
+- **Phase 3 passed all 10 scoped items at code commit `a2415b6`**, pushed, remote SHA matches local,
+  both trees clean. Root repo committed at `79068ff` — the four planning-file changes from the
+  computer-mode session were committed by Codex, not reverted.
+- **Verified independently rather than accepted from the report**, per the standing rule about agent
+  results: `check.sh` exits 0 (Python 3.12.13, MLX GPU, wired **20480**, 113.09 GB free, 03:00 backup
+  verified); `git ls-remote` confirms the push; and **`orbi nuke` dry-run listed 14,918 paths with
+  0 outside `code/`**, which is the decisive safety property.
+- 🔑 **The permission boundary is a closed typed executor** — an allow-list of actions, so an unknown
+  action fails by default instead of needing its own rule. **The hard test was done properly:**
+  `SYSTEM_RULES=''` with *all* system messages omitted, a recursive-delete tool call emitted into the
+  real `_run_turn` dispatcher, sentinel unchanged, Never refusal persisted. That is the test that
+  proves the boundary is code and not prompt, and it passed.
+- ⚠️ **Two limits, both disclosed by Codex rather than hidden.** (1) **Nuke refuses three outward
+  `.venv/bin/python*` symlinks.** Refusing is correct — following `python3.12 ->
+  /opt/homebrew/opt/python@3.12/...` would delete Homebrew's Python — **but it means `code/` is not
+  completely removed**, and the checklist says nuke deletes it and nothing else. **Fix: `os.unlink`
+  the link itself, which never touches the target, gated on the *link's own* location via `os.lstat`
+  rather than `realpath`.** Recorded as a partial tick, not a pass. (2) **Install copies a local
+  artifact only** — no pip, npm, package hooks, scripts or dependency resolution. Safe here; the real
+  installer belongs to Phase 4.
+- **Honest scoping kept in the record.** Item 7 is stated as *"a data-boundary check, not measured
+  model injection resistance"*, and item 9 as *"live destructive path never exercised"*. Neither was
+  dressed up as more than it is. The guard-model item is **deferred to Phase 4** — it needs the web
+  fetcher (Group 13) and Granite Guardian 4.1 8B, which is not on disk.
+- **Item 10 held:** the computer-use placeholder guard fails closed on named event APIs, AppleScript,
+  screen capture and Python input APIs, **including obfuscated and interpreter command forms**. It is
+  lifted by Phase 4C, not before.
+- **Bookkeeping done in this session, since the planning files are read-only to Codex.**
+  `Orbichecklist.md`: 14 items ticked, **14 of 156** — Group 12's eight passing items, three nuke
+  items, with the fourth left partially ticked for the symlink gap and the guard-model item marked
+  deferred. `Orbiplan.md` → **v26**, Phase 3 row marked complete with its commit and the nuke result.
+- **Next is Phase 4, the agent layer** — files, shell, git, skills, hooks, subagents, MCP, web. It is
+  the largest phase and carries both the deferred guard-model item and the GBNF grammar requirement.
+
 ## 2026-09-21 — computer mode: research file created, added to the plan as Phase 4C
 
 - 🔴 **Computer mode was missing from the plan entirely, despite four benchmarked leaves.** The user
