@@ -40,6 +40,11 @@ product routing stayed 20/20 for both. Their actual routing means were 5.055s
 neither passed the all-normal pressure criterion. No model or prompt changes
 were made after this comparison, and both weights remain on disk.
 
+The recall-only rerun on 2026-09-21 removed the project-path confound:
+**IQ3 20/20, IQ4 19/20**, with all 20 complete requests and effective greedy
+parameters identical. IQ4 again answered `UNKNOWN` on recall-18 despite retrieving
+Imani Tran second. This confirms the measured recall regression; IQ3 stays selected.
+
 On this Mac, activate the existing environment and run:
 
 ```sh

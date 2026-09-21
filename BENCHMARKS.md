@@ -1378,3 +1378,44 @@ Re-registered the existing 03:00 backup job using that command; subsequent
 126.15GB free, backup registration verified. Logs: `final-health.log` and
 `final-health-restored.log` in the comparison directory. This health pass does
 not override either benchmark's memory-pressure failure or IQ4's recall miss.
+
+### Controlled fixed-path recall-only rerun — 2026-09-21
+
+**Branch 2: keep IQ3_S.** The earlier directory confound is removed. The full
+frozen recall suite produces the following result under identical inputs:
+
+| Quant | Recall | Misses | Retrieved or answering failure? |
+| --- | ---: | --- | --- |
+| UD-IQ3_S | 20/20 | None; recall-18 answers `Imani Tran` | None |
+| UD-IQ4_XS | 19/20 | recall-18 answers `UNKNOWN` | Answering: Imani Tran is retrieved second |
+
+Both use the exact same project paths under
+`/Users/minhduc/Orbi/code/.session/recall/20260921T000000-00000000/`:
+`project-aurora` and `project-borealis`. The unchanged frozen `test_recall.main()`
+runs twice, with only its own directory-generation clock/UUID references held
+constant. The first test directory is archived before recreating the same path
+for IQ4. Both models start in fresh servers and answer cases 01–20 in the same
+order. All 20 complete native request objects and effective sampling parameters
+are exactly equal across quants, without path normalization. Each IQ4 request
+input is checked against IQ3 before inference; the final recorded native bodies
+are also checked. The harness's legacy ≥17 threshold/exit 0 is not a 20/20 claim.
+
+Both runtime commands match the prior frozen comparison except model filename:
+one slot, context 4096, mmap, Flash Attention, Q8 K/V,
+`--cache-ram 768 --ctx-checkpoints 3`. Wired limit 20480 was confirmed before
+each quant and after both. Prompts, system rules, fixtures, caps and router
+configuration are unchanged. All caps/scope/restore checks pass; worst retrieval
+42.080ms (IQ3) and 46.169ms (IQ4). No tool, speed, routing, abstention or ten-minute
+soak suite was rerun. Previously observed pressure warnings are a shared issue,
+not a tiebreaker; RSS did not enter this verdict.
+
+Both frozen SHAs were verified unchanged before and after:
+
+- Recall: `888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d`.
+- Routing/tools: `fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d`.
+
+`orbi.toml` remains on IQ3_S. IQ4's previously measured tool gain and 24.00 tok/s
+still stand, but the fixed-path recall result selects the user's second branch.
+Evidence: `.session/recall-fixed-20260921/` contains the verified harness,
+protocol, fixed fixture, per-quant raw results/requests/runtime commands,
+archived test databases, shutdown records, summary and final verification.
