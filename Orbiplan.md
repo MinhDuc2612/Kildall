@@ -295,6 +295,19 @@ unlikely — the difference between an agent that mostly works and one that does
 ⚠️ **Hard-cap separate processes from free RAM and refuse to exceed it.** At ~5 GB each you get about
 three before the machine is gone.
 
+🔑 **Shared mode needs continuous batching.** Without it agents queue strictly — agent 2 waits for
+agent 1's *entire* answer, so "shared" means **serialised, not concurrent**. Continuous batching exists
+for exactly this case: N requests against one model, arriving at different times with different
+lengths, none blocking the others.
+
+llama.cpp exposes it via `-np <slots>`. **Size slots by the RAM each slot's KV cache needs, not by how
+many agents you want** — every slot carries its own cache. **Measure p99 latency, not throughput:**
+batching raises total tokens/second while making any *single* answer slower, and Lane A also serves
+the interactive path where one slow answer is felt immediately.
+
+*Not needed before Phase 4.* Lanes A, B and C serve one request at a time, and batching does nothing
+for a single sequential user.
+
 **Cloud policy:** Orbi uses cloud **when necessary, without asking**. It rotates the **16 free-tier
 providers in `sample3/Cloudcall/`** in order, and when all are exhausted **falls back to local and says
 so**. **It never spends money** — the budget cap stays at 0.
@@ -492,14 +505,45 @@ sudo sysctl iogpu.wired_limit_mb=20480             # ✅ done — but RESETS ON 
 ## Every load — the standard flag set
 
 ```bash
-llama-server -m <model>   -lm mmap \                    # NOT --no-mmap, which is deprecated
-  -fa on \                      # flash attention — confirm it actually took
-  -ctk q8_0 -ctv q8_0 \         # quantise the KV cache
-  -c 32768                      # cap context; the cache outgrows the model past ~100K
+llama-server -m <model> \
+  -lm mmap \                            # NOT --no-mmap, which is deprecated
+  -fa on \                              # flash attention — confirm it actually took
+  -ctk q8_0 -ctv q8_0 \                 # quantise the KV cache (memory, not speed)
+  --cache-ram 768 --ctx-checkpoints 3 \ # bounded prompt cache — see below
+  -c 32768                              # cap context; cache outgrows the model past ~100K
 ```
 
+### 🔑 The bounded prompt cache — the biggest measured speed win in the project
+
+**Routing went from 15.29 s to ~0.97 s warm — roughly 16×** — and it came from caching the prompt
+prefix, not from any model change. Measured 2026-09-20.
+
+**The sizing is not arbitrary. Smaller values were tested and failed:**
+
+| Setting | Result |
+|---|---|
+| `--cache-ram 0` | full prefill every request — the original **11.50 s** of that 15.29 s |
+| 256 MiB | ❌ could not hold a 464.6 MiB prompt plus checkpoints |
+| 512 MiB, 1 checkpoint | ❌ saved state but **could not rewind the sliding-window cache** to a differing user suffix, so full prefill remained |
+| **768 MiB, 3 checkpoints** | ✅ **reuses the prefix even after an interleaved answer** |
+
+⚠️ **Honest limits.** ~0.97 s is **warm** latency over 19 of 20 cases. The **full product mean is
+5.06 s** including 5 cache misses; hits average 0.89 s. **A long generated answer can evict the
+prefix.** Never quote 0.97 s as the product number.
+
 **Never:**
-- ❌ **Speculative decoding in llama.cpp on Metal** — a **loss**, −11% to −28%. MLX only.
+- ❌ **Speculative decoding in llama.cpp on Metal** — a **loss**, −11% to −28% **even at 100% draft
+  acceptance**. Each draft step launches its own Metal kernel and the dispatch overhead eats the gain.
+  MLX only.
+  - ⚠️ **This includes DFlash 2, and the question comes up often — here is the answer.** DFlash 2 is
+    real: merged into llama.cpp main, **1.84× measured tok/s with byte-identical output**. It does
+    **not** apply to Lane A, for three independent reasons, all from `sample3/dflash2 hwmini.md`:
+    **(1) no Gemma drafter exists** — drafters are model-specific and the only published ones are
+    `incoai/Qwen3.8-27B-DFlash2` and `z-lab/Qwen3.8-27B-DFlash2`; **(2)** that file's own verdict for
+    this machine is *"runs on your M4 24 GB? only via MLX — NOT llama.cpp"*, and Lane A runs llama.cpp;
+    **(3)** the one model it supports is **Qwen3.8-27B, already rejected as dense** — projected
+    ~5.8 tok/s here, so even 1.84× lands at ~10.7, under the 15 bar.
+    **Revisit if** a Gemma 4 26B-A4B drafter is published, **or** Lane A ever moves to MLX.
 - ❌ **The Neural Engine.** Settled dead end for token generation.
 - ❌ **`--no-mmap`.** Deprecated.
 
@@ -567,6 +611,37 @@ one minute can thrash at minute six.
 ---
 
 ## Change Log
+
+- **2026-09-21 (v24)** — **Two techniques added after the user checked the plan against an external
+  inference-speed article.** **(1) The bounded prompt cache was missing from the plan entirely** — the
+  phrase appeared **zero times** — despite being **the biggest measured speed win in the project**,
+  taking routing from 15.29 s to **~0.97 s warm, roughly 16×**. It lived only in `BENCHMARKS.md` and
+  `CLAUDE.md`, so a session rebuilding from the spec would have lost it. Now in the model-load
+  procedure with its flags (`--cache-ram 768 --ctx-checkpoints 3`), **the two smaller configurations
+  that were tested and failed** — 256 MiB could not hold a 464.6 MiB prompt, and 512 MiB with one
+  checkpoint could not rewind the sliding-window cache — plus the honest limits: **the product mean is
+  5.06 s including cache misses, not 0.97 s**, and a long answer can evict the prefix. A stray
+  line-break lost from an earlier edit in that same code block was repaired at the same time.
+  **(2) Continuous batching added to Phase 4, tied to shared-mode subagents.** Correctly absent for
+  Lanes A/B/C, which serve one request at a time — but **shared mode is exactly what it exists for**,
+  and without it "shared" means *serialised*: agent 2 waits for agent 1's entire answer. Recorded with
+  `-np <slots>`, the warning to **size slots by KV-cache RAM rather than desired agent count**, and the
+  requirement to **measure p99 rather than throughput**, since batching speeds the aggregate while
+  slowing any single answer. Verified already present: **KV-cache quantisation** and **quantisation**.
+  **vLLM correctly excluded** — CUDA-oriented, not viable on Metal.
+
+- **2026-09-21 (v23)** — **Recorded why DFlash 2 is excluded, after the user asked.** It appeared
+  **zero times** in all three planning files, and the blanket "no speculative decoding on Metal" rule
+  would have made Codex reject it without explanation. DFlash 2 is genuinely real — merged into
+  llama.cpp main, **1.84× measured tok/s, byte-identical output** — so its absence needed a reason,
+  not silence. Three independent ones, all from `sample3/dflash2 hwmini.md`: **no Gemma drafter
+  exists** (drafters are model-specific; only Qwen3.8-27B ones are published), that file's own verdict
+  that on this machine it runs **"only via MLX — NOT llama.cpp"** while Lane A runs llama.cpp, and the
+  fact that its one supported model **Qwen3.8-27B was already rejected as dense** at a projected
+  ~5.8 tok/s — even 1.84× leaves it under the 15 bar. Also strengthened the Metal rule with the
+  research's actual mechanism: the loss holds **even at 100% draft acceptance**, because each draft
+  step launches its own Metal kernel. **Revisit conditions written in**: a Gemma drafter appearing, or
+  Lane A moving to MLX.
 
 - **2026-09-20 (v22)** — **Plan brought back in line with the build; it was four facts behind.**
   The Lane A row still named **Qwen3.8-Flash-Next** as leader from a pre-measurement ranking — it

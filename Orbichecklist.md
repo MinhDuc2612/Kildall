@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **139** |
-| **Done now** | **3** of 139 |
+| **Items** | **142** |
+| **Done now** | **4** of 142 |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -119,6 +119,10 @@
 - [ ] **Shared mode** — one loaded model, interleaved contexts, near-zero extra RAM
 - [ ] **Separate-process mode** — true parallelism, opt-in per task
 - [ ] **Hard cap on separate processes, derived from free RAM**
+- [ ] 🔑 **Continuous batching for shared mode** — `-np <slots>`. Without it "shared" means serialised:
+      agent 2 waits for agent 1's whole answer. Size slots by KV-cache RAM, not agent count
+- [ ] **p99 latency measured, not just throughput** — batching speeds the aggregate and slows any
+      single answer, and Lane A also serves the interactive path
 - [ ] Refuse to spawn when RAM would be exceeded
 - [ ] Subagent results return to the parent
 - [ ] A subagent cannot spawn another subagent
@@ -188,7 +192,9 @@
 - [ ] ⚠️ **`check.sh` warns when the wired limit has reset** — it resets on every reboot
 - [ ] Every model quantised **DWQ 4-bit**, not plain 4-bit (same size, 6-bit quality)
 - [ ] DWQ build verified to load correctly before any benchmark
-- [ ] KV cache quantised on every load — `-ctk q8_0 -ctv q8_0`
+- [ ] KV cache quantised on every load — `-ctk q8_0 -ctv q8_0` (memory, not speed)
+- [x] ✅ **Bounded prompt cache** — `--cache-ram 768 --ctx-checkpoints 3`. Took routing 15.29 s → ~0.97 s
+      warm. 256 MiB and 512 MiB were tested and failed; do not shrink it
 - [ ] `-fa on` set **and confirmed to have taken effect**
 - [ ] `-lm mmap` used; **`--no-mmap` never** (deprecated)
 - [ ] Context capped (default 32K) — the KV cache outgrows the model past ~100K tokens
@@ -262,7 +268,7 @@ what it broke.
   §16 Lane C **parked** — no drive for 1+ month. Now **120 items**.
 
 - **2026-09-05 (v1)** — Created because done-test #2 requires a real feature checklist to exist.
-  **139 items across 18 groups**, each tagged **P0** (unusable without), **P1** (needed for Claude Code
+  **142 items across 18 groups**, each tagged **P0** (unusable without), **P1** (needed for Claude Code
   parity) or **P2** (the "and more"), and each mapped to the phase that delivers it. Records the three
   agreed done-tests and the order they run in: P0 → P1 → the hard task → P2 → the week with no Claude
   Code. Carries forward the decisions made today — push-to-talk voice with no always-on mic, media

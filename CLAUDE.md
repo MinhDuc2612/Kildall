@@ -291,6 +291,81 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+## 2026-09-21 — prompt cache and continuous batching added to the plan
+
+- 🔴 **The bounded prompt cache was missing from the plan entirely** — the phrase appeared **zero
+  times** in `Orbiplan.md` — despite being **the biggest measured speed win in the project**, taking
+  routing from **15.29 s to ~0.97 s warm, roughly 16×**. It existed only in `BENCHMARKS.md` and this
+  file, so **any future session rebuilding from the spec would have lost it.** Now written into the
+  model-load procedure with its flags (`--cache-ram 768 --ctx-checkpoints 3`), **the two smaller
+  configurations that were tested and failed** — 256 MiB could not hold a 464.6 MiB prompt, and
+  512 MiB with one checkpoint saved state but **could not rewind the sliding-window cache** to a
+  differing user suffix — and the honest limits: **the full product mean is 5.06 s including 5 cache
+  misses, not 0.97 s**, and a long generated answer can evict the prefix. A stray line break lost from
+  an earlier edit in that same code block was repaired at the same time.
+- 🔑 **Continuous batching added to Phase 4, tied to shared-mode subagents.** It was correctly absent
+  for Lanes A, B and C, which serve one request at a time — batching does nothing for a single
+  sequential user. **But shared mode is precisely the case it exists for**, and without it "shared"
+  means **serialised**: agent 2 waits for agent 1's *entire* answer. Recorded with `-np <slots>`, the
+  warning to **size slots by the RAM each slot's KV cache needs rather than by desired agent count**,
+  and the requirement to **measure p99 latency rather than throughput** — batching raises aggregate
+  tokens/second while making any single answer slower, and Lane A also serves the interactive path.
+- **Both found by checking the plan against an external inference-speed article** the user supplied.
+  Medium returned 403 to direct fetch, so the comparison ran off search summaries — stated at the time
+  rather than implied. Verified already present: **KV-cache quantisation** (`-ctk q8_0 -ctv q8_0`, live
+  at `code/orbi.py:181`) and **quantisation** generally (14 mentions). **vLLM correctly excluded** —
+  CUDA-oriented and not viable on Metal.
+- **Corrected an implicit assumption in the question "what pace with KV cache and DFlash 2".**
+  Neither adds speed: **KV-cache quantisation is a memory technique**, halving the cache so long
+  contexts do not outgrow the model, and it is already counted in the measured figure; **DFlash 2 does
+  not apply** (no Gemma drafter, MLX-only on this machine). **There is no stacked gain to collect.**
+- ⚠️ **Also corrected: 26.64 tok/s is a ceiling, not a floor.** Phase 1 measured **29.33**; the router's
+  cache configuration already cost **9%** with no model change. Wall-clock is dominated by routing —
+  **5.06 s product mean** — not by generation. And memory pressure is already in warning at 96/121
+  samples, before Phases 3–5 add components sharing the same 24 GB. **The real floor is the gate:
+  >15 tok/s.**
+- **Checklist now 142 items**, with the prompt cache marked done and two new Phase 4 items for
+  continuous batching and p99 measurement. `Orbiplan.md` is **v24**.
+
+## 2026-09-21 — quant comparison confounded; DFlash 2 exclusion recorded
+
+- **The IQ4_XS comparison is Phase 1 work, not Phase 2.** Phase 2 (the router) completed at commit
+  `8b815f1`. Lane A's quantisation has been Phase 1's last open item throughout.
+- **IQ4_XS met both adopt conditions but was blocked by an uncontrolled variable.**
+  Measured: **exact arguments 17/20 → 18/20 with t09 passing first-pass**, tok/s **26.64 → 24.00**
+  (still well over the 15 bar), routing unchanged at 20/20, latency 5.055 → 4.998 s. The only thing
+  against it was **recall 20/20 → 19/20**. But Codex flagged the reason that result cannot be trusted:
+  *"Generated project paths differed between recall runs, so the miss cannot be attributed solely to
+  quantization."* **Two variables changed at once.** A controlled recall-only re-run was commissioned,
+  with a third decision branch written in explicitly: **if both quants score 19/20, IQ3's original
+  20/20 was the lucky run, not IQ4 being worse** — a branch that would otherwise be misread as "no
+  improvement, keep IQ3". `orbi.toml` stays on IQ3 until that settles.
+- ⚠️ **The RSS column in that comparison is misleading and should not drive the decision.**
+  13.09 GB against 3.97 GB suggests IQ4 uses a third of the memory — for a *larger* file. Codex's own
+  footnote resolves it: **device-wide GPU peaks were 14.21 vs 16.57 GB, so IQ4 actually uses more.**
+- ⚠️ **Neither quant passed the all-normal memory-pressure criterion** — 96/121 and 73/121 warning
+  samples, neither reaching critical. **This is a shared problem, not a tiebreaker: Lane A runs close
+  to the memory ceiling on either build**, which matters in Phase 3 when more components share RAM.
+- **Recorded why DFlash 2 is excluded, after the user asked.** It appeared **zero times** in all three
+  planning files, and the blanket "no speculative decoding on Metal" rule would have made Codex reject
+  it with no reason given. DFlash 2 is real — merged into llama.cpp main, **1.84× measured tok/s with
+  byte-identical output** — so its absence needed justification. Three independent reasons, all from
+  `sample3/dflash2 hwmini.md`: **no Gemma drafter exists** (drafters are model-specific; only
+  `incoai/Qwen3.8-27B-DFlash2` and `z-lab/Qwen3.8-27B-DFlash2` are published), that file's own verdict
+  that on this machine it runs **"only via MLX — NOT llama.cpp"** while Lane A runs llama.cpp, and the
+  fact that its one supported model **Qwen3.8-27B was already rejected as dense** at ~5.8 tok/s — even
+  1.84× lands at ~10.7, under the bar. The Metal rule was also strengthened with the research's actual
+  mechanism: **the loss holds even at 100% draft acceptance**, because each draft step launches its own
+  Metal kernel. **Revisit conditions written in**: a Gemma drafter being published, or Lane A moving to
+  MLX — the latter matters because **the DWQ 4-bit build already on disk is MLX**.
+- **Confirmed KV-cache quantisation is already in force, not pending.** `-ctk q8_0 -ctv q8_0` is in the
+  model-load procedure (`Orbiplan.md:497`), the checklist (item 191), and **live in the server command
+  at `code/orbi.py:181`** — so the measured 26.64 tok/s already includes it. Recorded the distinction
+  the question implied: **KV-cache quantisation is a memory technique, not a speed one.** It halves the
+  cache so long contexts do not outgrow the model; it does not raise tok/s. Combined with DFlash 2
+  being unavailable, **there is no stacked speed gain to collect — Lane A's pace stays ~26.64 tok/s.**
+  The only remaining levers are a smaller active-parameter model, or moving to MLX.
+
 ## 2026-09-20 — storage decided; Lane C speed corrected; Lane A running below spec
 
 - 🔴 **Lane C's speed was wrong by up to 8× and is now per-model.** Both planning files carried a flat
