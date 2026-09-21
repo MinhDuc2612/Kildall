@@ -257,7 +257,16 @@ def initialize(path):
                 kind TEXT NOT NULL, skill TEXT, lane TEXT, model TEXT,
                 succeeded INTEGER CHECK(succeeded IN (0,1) OR succeeded IS NULL),
                 status TEXT NOT NULL, decision TEXT, error TEXT, created REAL NOT NULL, updated REAL NOT NULL);
+            CREATE TABLE IF NOT EXISTS orbi_permissions(id TEXT PRIMARY KEY, task TEXT,
+                project TEXT NOT NULL, operation TEXT NOT NULL, arguments TEXT NOT NULL,
+                tier TEXT NOT NULL, status TEXT NOT NULL, preview TEXT, reason TEXT,
+                pid INTEGER NOT NULL, owner_start TEXT NOT NULL, created REAL NOT NULL, updated REAL NOT NULL);
         """)
+        for row in db.execute("SELECT id,pid,owner_start FROM orbi_permissions "
+                              "WHERE status IN ('checking','waiting','running')").fetchall():
+            if process_start(row["pid"]) != row["owner_start"]:
+                db.execute("UPDATE orbi_permissions SET status='interrupted',reason=?,updated=? WHERE id=?",
+                           ("Process ended; action outcome must be inspected", time.time(), row["id"]))
         for row in db.execute("SELECT id,pid,owner_start FROM orbi_tasks WHERE outcome IS NULL").fetchall():
             if process_start(row["pid"]) != row["owner_start"]:
                 db.execute("UPDATE orbi_tasks SET state='stalled',outcome='crashed',updated=? WHERE id=?",
@@ -502,38 +511,43 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
             task.set("tool")
             call = reply["tool_calls"][0]
             function = call["function"]["name"]
-            args = strict_json(call["function"]["arguments"])
-            if not isinstance(args, dict):
-                raise ValueError("Tool arguments must be an object")
-            if pending_copy and function != "remember":
-                raise ValueError("Verbatim retry must correct the rejected remember call")
-            if function == "remember":
-                if set(args) != {"text", "scope", "tier"} or args["tier"] not in ("L1", "L2", "L3"):
-                    raise ValueError("Invalid remember arguments")
-                issues = copy_issues(prompt, function, args)
-                if issues:
-                    if copy_retry_used:
-                        raise ValueError("Verbatim copy still differs after one retry")
-                    feedback = {"role": "tool", "tool_call_id": call["id"],
-                                "content": retry_feedback(issues)}
-                    task.message(feedback)
-                    current.append(feedback)
-                    copy_retry_used = pending_copy = True
-                    continue
-                pending_copy = False
-                item = memory.add(args["text"], scope=args["scope"],
-                    project=project if args["scope"] == "project" else None, tier=args["tier"])
-                result = dict(saved=item)
-            elif function == "recall":
-                if set(args) != {"query", "scope"}:
-                    raise ValueError("Invalid recall arguments")
-                recalled = memory.retrieve(args["query"], project=project, scope=args["scope"])
-                memory_text = recalled["text"]
-                # Replace one bounded block; never accumulate multiple 4,000-character tool results.
-                result = dict(items=len(recalled["items"]), context="Memory block replaced",
-                              truncated=recalled["truncated"])
-            else:
-                raise ValueError(f"Unknown tool: {function}")
+            from permissions import authorize, decision, execute
+            with decision(task.path, project, function, call["function"]["arguments"], task.id) as permission:
+                args = strict_json(call["function"]["arguments"])
+                if not isinstance(args, dict):
+                    raise ValueError("Tool arguments must be an object")
+                if function in ("remember", "recall"):
+                    authorize(permission, "Auto")
+                if pending_copy and function != "remember":
+                    raise ValueError("Verbatim retry must correct the rejected remember call")
+                if function == "remember":
+                    if set(args) != {"text", "scope", "tier"} or args["tier"] not in ("L1", "L2", "L3"):
+                        raise ValueError("Invalid remember arguments")
+                    issues = copy_issues(prompt, function, args)
+                    if issues:
+                        if copy_retry_used:
+                            raise ValueError("Verbatim copy still differs after one retry")
+                        feedback = {"role": "tool", "tool_call_id": call["id"],
+                                    "content": retry_feedback(issues)}
+                        task.message(feedback)
+                        current.append(feedback)
+                        permission["update"](status="rejected", reason="Verbatim argument requires correction")
+                        copy_retry_used = pending_copy = True
+                        continue
+                    pending_copy = False
+                    item = memory.add(args["text"], scope=args["scope"],
+                        project=project if args["scope"] == "project" else None, tier=args["tier"])
+                    result = dict(saved=item)
+                elif function == "recall":
+                    if set(args) != {"query", "scope"}:
+                        raise ValueError("Invalid recall arguments")
+                    recalled = memory.retrieve(args["query"], project=project, scope=args["scope"])
+                    memory_text = recalled["text"]
+                    # Replace one bounded block; never accumulate multiple 4,000-character tool results.
+                    result = dict(items=len(recalled["items"]), context="Memory block replaced",
+                                  truncated=recalled["truncated"])
+                else:
+                    result = execute(function, args, permission, project)
             tool = {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(result)}
             task.message(tool)
             current.append(tool)
@@ -593,6 +607,8 @@ def schedule_backups(config):
 
 def main():
     argv = sys.argv[1:]
+    if argv[:1] in (["tool"], ["permissions"], ["nuke"]):
+        return permission_main(argv)
     route_mode = None
     if argv[:1] == ["ask"]:
         route_mode, argv = "auto", argv[1:]
@@ -696,6 +712,49 @@ def main():
     except BrokenPipeError:
         os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
         return 141
+    except (OSError, ValueError, RuntimeError, sqlite3.Error, subprocess.SubprocessError) as error:
+        print(f"orbi: {error}", file=sys.stderr)
+        return 1
+
+
+def permission_main(argv):
+    from permissions import nuke, run_action
+    parser = argparse.ArgumentParser(description="Phase 3 guarded actions (no model inference)")
+    if argv[0] == "nuke":
+        parser.add_argument("--delete", action="store_true", help="Requires typing orbi in the controlling terminal")
+    elif argv[0] == "tool":
+        parser.add_argument("operation", choices=None)
+        parser.add_argument("arguments", help="JSON object; relative paths use the current directory")
+    else:
+        parser.add_argument("id", nargs="?", help="Inspect one decision, or list this project's decisions")
+    args = parser.parse_args(argv[1:])
+    os.umask(0o077)
+    try:
+        if argv[0] == "nuke":
+            nuke(delete=args.delete)
+            return 0
+        path = settings()["paths"]["db_path"]
+        initialize(path)
+        project = str(Path.cwd().resolve())
+        if argv[0] == "tool":
+            with activity(path):
+                result = run_action(path, project, args.operation, args.arguments)
+        else:
+            with database(path) as db:
+                rows = db.execute("SELECT * FROM orbi_permissions WHERE project=? "
+                                  "AND (? IS NULL OR id=?) ORDER BY created DESC LIMIT 100",
+                                  (project, args.id, args.id)).fetchall()
+            if args.id and not rows:
+                raise ValueError("No such permission decision in this project")
+            result = [dict(row) for row in rows]
+            for row in result:
+                for key in ("arguments", "preview"):
+                    row[key] = strict_json(row[key]) if row[key] else None
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return 0
+    except KeyboardInterrupt:
+        print("Cancelled.", file=sys.stderr)
+        return 130
     except (OSError, ValueError, RuntimeError, sqlite3.Error, subprocess.SubprocessError) as error:
         print(f"orbi: {error}", file=sys.stderr)
         return 1

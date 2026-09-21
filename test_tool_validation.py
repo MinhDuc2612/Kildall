@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import io
 import json
 import subprocess
+import tempfile
 
 from tool_validation import copy_issues, regex_issues, retry_feedback, verbatim_sources
 
@@ -24,16 +25,20 @@ def cli_checks():
         memory = Mock()
         memory.retrieve.return_value = dict(text='')
         memory.add.return_value = 1
-        task = Mock()
-        with patch.object(orbi, 'Task', return_value=task), patch.object(orbi, 'history', return_value=[]), \
+        with tempfile.TemporaryDirectory(dir=orbi.ROOT / '.session') as directory, \
+                patch.object(orbi, 'history', return_value=[]), \
                 patch.object(orbi, 'ensure_runtime'), patch.object(orbi, 'fit_messages', return_value=[]), \
                 patch.object(orbi, 'stream_reply', side_effect=replies), redirect_stdout(io.StringIO()):
-            try:
-                orbi._run_turn(dict(paths=dict(db_path=Path('unused.db'))), memory, 'session', str(Path.cwd()), prompt)
-            except ValueError as error:
-                assert not succeeds and 'Verbatim' in str(error)
-            else:
-                assert succeeds
+            path = Path(directory) / 'audit.sqlite3'
+            orbi.initialize(path)
+            task = Mock(path=path, id='test-task')
+            with patch.object(orbi, 'Task', return_value=task):
+                try:
+                    orbi._run_turn(dict(paths=dict(db_path=path)), memory, 'session', str(Path.cwd()), prompt)
+                except ValueError as error:
+                    assert not succeeds and 'Verbatim' in str(error)
+                else:
+                    assert succeeds
         if succeeds:
             assert memory.add.call_args_list[0].args[0] == source and memory.add.call_count == 2
         else:

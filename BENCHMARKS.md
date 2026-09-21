@@ -1419,3 +1419,147 @@ still stand, but the fixed-path recall result selects the user's second branch.
 Evidence: `.session/recall-fixed-20260921/` contains the verified harness,
 protocol, fixed fixture, per-quant raw results/requests/runtime commands,
 archived test databases, shutdown records, summary and final verification.
+
+## Phase 3 permissions — implementation and controls, 2026-09-21
+
+The permission boundary is enforced in Python, with a closed typed executor and
+an explicit `orbi tool NAME JSON` CLI. Existing model schemas, `SYSTEM_RULES`,
+per-turn prompt, routing/catalog, IQ3 model and frozen server flags are unchanged.
+No model downloads, weight edits, quantization comparisons or Phase 4 execution
+were performed. `orbi.toml` remains on the normally aligned instruction model;
+no content/topic refusal filter was added. Memory tools retain their existing
+behavior and now receive decision rows.
+
+| Phase 3 item | Control result |
+| --- | --- |
+| 1 Auto | Read/list/Git status execute and log; absent/denied directory reads fail visibly; Git status does not refresh the index |
+| 2 Confirm | Write/edit/local-artifact install/staged commit show exact changes before terminal approval; decline, absent terminal and changed target fail |
+| 3 Never | Closed action set rejects recursive delete, sudo, force-push, arbitrary interpreters, unknown actions and out-of-root writes |
+| 4 Hard test | **PASS:** `SYSTEM_RULES=''`, all system messages omitted, recursive-delete tool emitted into the real `_run_turn` dispatcher; sentinel unchanged, Never refusal persisted |
+| 5 Permissive | Permission decisions depend on capability/path, not topic; arbitrary textual fixture content can be written with approval |
+| 6 Normal model | Original instruction-model config and prompt retained; no abliterated model or weight modification |
+| 7 Web data | Injected fixture stays an inert `untrusted_web` value and dispatches no action; this is a data-boundary check, not measured model injection resistance |
+| 8 Audit | SQLite `orbi_permissions` records outcomes, previews and reasons; same-project inspection and interrupted-decision recovery pass |
+| 9 Nuke | Hardcoded single root, default dry-run, exact terminal word, realpath checks and throwaway deletion pass; live destructive path never exercised |
+| 10 Computer guard | Named event, AppleScript, screen-capture and Python input APIs fail closed, as do obfuscated/interpreter command forms |
+
+The install operation is deliberately limited to copying an existing local
+artifact with an exact byte preview. It does not run pip/npm, package hooks,
+scripts, dependency resolution or binaries. Text previews include complete
+before/after strings as escaped JSON; binary previews carry base64 rather than
+a hash-only approximation. Commit uses a snapshot of the approved index and an
+atomic comparison against the reviewed parent; executable Git helpers are
+disabled. Git operations and mutation targets are scoped to code/. Existing
+local branches are supported; linked Git metadata/common directories are refused.
+These limits preserve the Phase 4 agent-layer boundary.
+
+The initial live nuke dry-run exited 0 and listed **14,814** candidates; every
+listed candidate's realpath was under `/Users/minhduc/Orbi/code`. It rejected
+**3 outward symlinks** and excluded their ancestors from deletion candidates.
+On this live tree, destructive nuke therefore refuses until those links are
+resolved. This is an explicit guard result, not a claim that live deletion was
+tested or could currently succeed. Only temporary trees were actually deleted.
+The audit database and all SQLite sidecars are checked before initialization;
+refusals cannot first write through an outward database symlink. Nuke emits its
+final audit to stdout because successful deletion intentionally erases its DB.
+
+### Failed intermediate checks, preserved
+
+- `permissions-run1.log`: test harness accidentally mocked the shared subprocess
+  module and blocked the legitimate audit-owner `ps` lookup. Isolated that mock.
+- `permissions-run2.log`: `/usr/bin/git` exited **69**, Xcode licence unaccepted.
+  Used the existing fixed `/opt/homebrew/bin/git` (**2.55.0**); no sudo/system change.
+- `permissions-run3.log`: the test verification helper inherited intentionally
+  hostile `GIT_DIR`. Isolated the helper while retaining the hostile executor test.
+- Original validator unit harness failed with `TypeError` because its mock Task
+  had no concrete SQLite path. Adapted only temporary DB/mock setup in
+  `test_tool_validation.py`; original cases, assertions and scoring are retained.
+  Frozen `bench_cases.json`, `test_recall.py`, `test_cli.py` and `test_routing.py`
+  are unchanged.
+- A real PTY check failed with `io.UnsupportedOperation: File or stream is not
+  seekable` for `/dev/tty` in `r+` mode. Separate read/write handles fixed the
+  actual confirmation path. A permanent real-PTY check now verifies that `yes`
+  cannot substitute for nuke's `orbi` confirmation.
+- Independent source review found case-insensitive `.GIT` protection, Git
+  `commondir` redirection, incomplete submodule diffs, symbolic ref redirection
+  and nuke audit-path prevalidation gaps. Fixed before regression measurement;
+  focused path/metadata controls cover the escapes. No destructive exploit was
+  run against the live vault.
+
+The corrected permission suite passes **14 groups**. Existing deterministic
+routing, CLI/control, source-copy/regex, benchmark evaluator, memory and health
+controls pass. Evidence lives in `.session/phase3-20260921/`, including per-run
+logs, `permissions-results.json` and the live `nuke-dry-run.json`.
+
+### Explicit deferrals
+
+- The computer-use Never guard is a **deliberate Phase 3 placeholder, not a
+  content/policy decision**. Phase 4C replaces it with tree-first routing and
+  per-action permission checks. No computer mode was built.
+- The four inert catalog leaves `d02.s05.l01`, `d02.s05.l02`, `d04.s05.l04` and
+  `d04.s05.l05` remain unchanged. Phase 4C will measure and correct their
+  preferred picks; Lane B is not installed.
+- Guard-model injected-page detection is deferred to Phase 4: the Group 13 web
+  fetcher is not built and Granite Guardian 4.1 8B is not on disk. No download.
+- Group 9 hooks and the general agent layer remain Phase 4 work. Enforcement in
+  this phase is direct code, not hooks or a model instruction.
+
+The live no-drop model/CLI regression results follow below.
+
+### Live regression results and runner correction — 2026-09-22
+
+The combined live runner preserved these completed scores:
+
+| Gate | Result |
+| --- | ---: |
+| Recall | 20/20 |
+| Answer-removed abstention | 20/20 |
+| Coarse benchmark routing | 20/20 |
+| Real product category / final lane | 20/20 / 20/20 |
+| Callable JSON | 20/20 |
+| Exact tool arguments, first-pass | 17/20 |
+| Exact tool arguments, post-retry | 20/20 |
+
+First-pass misses remain **t07/t09/t12**, one successful retry each. Recall uses
+the same fixed project paths as the accepted IQ3 baseline; all 20 complete native
+request objects are exactly equal, without path normalization. Retrieval, scope,
+and delete/restore checks pass. Full server commands equal the frozen prior IQ3
+commands. Both frozen hashes and wired20480 were verified before/after every
+stage. These are accuracy regressions, not a new throughput or memory-pressure
+qualification; the accepted warning-pressure and routing-latency limits stand.
+
+The combined runner **exited 1**, not a pass: its isolated service registry still
+owned ports8123/8124 when unchanged `test_cli.main` used the normal registry.
+CLI startup correctly refused a server it did not own, before generating an
+answer. The runner's finally block stopped its own servers and verified empty
+state. This orchestration failure is retained in `regressions.log` and
+`regressions/shutdown.json`. The unchanged CLI suite is rerun separately under
+its own registry; completed earlier scores are not discarded or relabelled.
+
+The separate unchanged CLI suite **exited 0 with all 18 checks passing**.
+Its real remember/recall calls each produced an Auto/done permission row.
+The installed CLI was also checked from `/tmp`: Auto read, Never recursive-delete
+refusal, real terminal Confirm write, and project-scoped inspection all passed.
+One final evidence-inspection helper initially used host `python3` and failed
+with missing numpy; rerunning under `.venv/bin/python` passed, with no product
+change. The helper failure is retained in `additional-failed-checks.json`.
+
+**Final exit audit: PASS.** All 10 Phase 3 items are covered by the scoped
+implementation and 14 adversarial control groups; no-drop live scores are as
+listed above, all 18 CLI checks pass, and `./check.sh` **exits 0** with Python
+3.12.13, MLX GPU, wired20480 and the verified03:00 backup. The final nuke dry-run
+exits0 with **14,899 candidates**, all realpath-contained in code/, and the same
+3 outward symlinks rejected. Destructive live-vault testing remains unperformed.
+All read-only planning/research files match the preserved root commit. Runtime
+servers owned by these checks were stopped cleanly.
+
+Final evidence: `.session/phase3-20260921/final-verification.json`,
+`regressions/{recall,abstention,quality,routing}.json`, `cli-final.json`,
+`live-tool-audit.json`, `installed-cli.json`, `final-health.log`, and
+`nuke-final.json`. The failed combined runner remains **exit1**; the final audit
+independently verifies its completed stages plus the corrected standalone CLI
+run. Frozen canonical recall SHA
+`888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d`
+and bench SHA
+`fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d`
+are unchanged. Product Python sources were unchanged throughout measurement.

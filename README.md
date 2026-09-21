@@ -31,6 +31,11 @@ Product routing overhead averages **5.057 seconds**, including five cache misses
 the15 cache hits average **0.888 seconds**. Longer replies can evict the cached
 catalog, so sub-second routing is not guaranteed. B/C execution is unavailable.
 
+Phase 3 permissions validated on 2026-09-22: prompt-independent refusals,
+terminal-confirmed diffs and a scoped nuke dry-run. Recall, abstention, routing,
+JSON/tool scores and all 18 CLI controls retain their baseline; `check.sh` exits 0.
+See the permission commands and current installation limits below.
+
 The controlled IQ4_XS comparison on 2026-09-20 improved tool arguments to
 **18/20 first-pass, 20/20 post-retry** at **24.00 tok/s**, including a first-pass
 t09 pass. However, recall regressed to **19/20** (recall-18 answered `UNKNOWN`
@@ -150,3 +155,56 @@ classifier's category accuracy.
 Python is pinned to `>=3.12,<3.13`; `requirements.lock` pins the packages.
 See [BASELINE.md](BASELINE.md) for the recorded measurements and
 [../Orbiplan.md](../Orbiplan.md) for the local project plan (kept outside this repository).
+
+## Phase 3 permissions
+
+Explicit actions run through a closed executor, without starting a model:
+
+```sh
+orbi tool read '{"path":"README.md"}'
+orbi tool ls '{"path":"."}'
+orbi tool git_status '{"path":"."}'
+orbi tool write '{"path":"note.txt","content":"Hello\n"}'
+orbi tool edit '{"path":"note.txt","old":"Hello","new":"Welcome"}'
+orbi tool install '{"source":"artifact.bin","path":"installed.bin"}'
+orbi tool commit '{"path":".","message":"Commit the reviewed staged changes"}'
+orbi permissions
+orbi permissions DECISION_ID
+orbi nuke
+```
+
+Read/list/status are Auto. Write/edit/commit/install require the exact preview
+and `yes` from the controlling terminal; piped input cannot approve them.
+Text previews include complete before/after strings, preserving missing final
+newlines and escaping control characters; binary artifacts use exact base64.
+Install copies one existing local artifact, without executing it. Package
+managers, build hooks and arbitrary shell/interpreter execution are unavailable.
+Commit applies the already-staged diff on an existing local branch; it disables
+Git hooks, fsmonitor, signing and maintenance. Linked Git worktrees are unsupported.
+The `shell` action only recognizes `cat PATH`, `ls [PATH]` and `git status`;
+all other forms are refused, including recursive delete, sudo and force-push.
+
+Writes and Git operations are scoped to the hardcoded `~/Orbi/code/` root.
+Realpath containment and descriptor-based file operations reject escapes; parent
+directories must already exist. The permission check has no content/topic filter.
+Existing memory tools retain their behavior and now receive permission audit rows.
+Model-facing tool schemas, prompts and routing remain unchanged for this phase.
+
+`orbi_permissions` follows the routing log pattern, including rejected,
+declined, failed, cancelled and interrupted decisions. Inspection is project
+scoped. `web_data` accepts a `text` field and returns inert untrusted data;
+there is no web fetcher or claim of model-level injection resistance yet.
+All computer input and screen-capture actions are refused until Phase 4C replaces
+this temporary guard with its tree-first routing and per-action tier checks.
+
+`orbi nuke` is a dry-run. Deletion additionally requires `--delete` and typing
+exactly `orbi` in the controlling terminal. Outward symlinks are excluded from
+its candidate list and block deletion entirely. The current virtual environment
+has three such links, so this installation cannot be nuked while they remain.
+No root override exists. Nuke validates its audit database before opening it;
+its final audit is emitted to stdout because successful deletion removes the
+local database too. Destructive tests run only against temporary trees.
+
+Run `.venv/bin/python test_permissions.py` for the Phase 3 adversarial controls,
+including an empty `SYSTEM_RULES`, symlink escapes, real PTY confirmation,
+computer-action refusals and throwaway-tree deletion.
