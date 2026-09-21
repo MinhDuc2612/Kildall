@@ -71,7 +71,7 @@ Everything under `/Users/minhduc/Orbi`. Nothing else belongs to this project.
 |---|---|---|
 | `Orbiplan.md` | 48 KB | **The plan. Read it first.** Scope, three lanes, 9 build phases, the model-load procedure, risks, and **50 post-plan improvements** |
 | `Orbimodels.md` | 32 KB | **The model list.** 22 models, ~9.1 T params, ~4.84 TB — numbers that sum. Lane A candidates, the dense→MoE conversion section, **plus the cross-family version audit** |
-| `Orbichecklist.md` | 11 KB | **Definition of done.** **139 items across 18 groups**, P0/P1/P2, plus the three done-tests |
+| `Orbichecklist.md` | 11 KB | **Definition of done.** **156 items across 19 groups**, P0/P1/P2, plus the three done-tests |
 | `CLAUDE.md` | this file | Project guide, standing rules, change log |
 | `Logo.png` | 1.0 MB | Brand mark |
 | `code/` | empty | **Orbi's source code lives here.** `pip install -e ~/Orbi/code` |
@@ -122,6 +122,7 @@ their answers can be compared, not blended.
 | **Model registry, real HF paths, params one skill needs** | ⭐ `sample3/OrbiOSS.md` (2,582 lines) | 1,074 leaves · 12 domains · 42-model registry. Broader than sample 1, but thinner per pick |
 | **How fast the giants actually are** | ⭐ `sample3/kimik3 hwmini.md` | **Source of the ~25 s/token figure** in `Orbiplan.md`. Measured table, not an estimate |
 | **Can two models be merged?** | ⭐ `sample3/LLMmerge.md` (309 lines) | **Verdict: impossible at weight level.** Shapes and tokenizers do not match |
+| **Control the Mac or a browser** | ⭐ `sample3/Orbicomputer.md` | **Computer mode.** Two layers, the verified tool table, and why every published injection defence fails |
 | **Agent memory design** | ⭐ `sample3/LLMDB.md` (280 lines) | SQLite L0–L3, BM25 + vector, hard caps of 12 items / 4,000 chars / 300 ms |
 | **Hardware for one specific model** | ⭐ `sample3/qwen38-27b · mach1 · dflash2 hwmini.md` | One file per model. Sample 1 has older twins — prefer sample 3 |
 | **Free cloud LLM APIs** | ⭐ `sample3/Cloudcall/` (22 files) | 16 providers, browser-verified |
@@ -151,6 +152,7 @@ their answers can be compared, not blended.
 | `OrbiOSS.md` | 2,582 | 1,074 skills · 12 domains · 42-model registry |
 | `LLMmerge.md` | 309 | Cross-family merging — impossible at weight level |
 | `LLMDB.md` | 280 | Agent memory design |
+| **`Orbicomputer.md`** | — | ⭐ **Computer mode.** Accessibility tree vs pixel vision, the tool landscape verified live, and the prompt-injection findings that govern Phase 4C |
 | `kimik3 hwmini.md` · `qwen38-27b hwmini.md` · `mach1 hwmini.md` · `dflash2 hwmini.md` | — | Per-model hardware minimisation |
 | `OrbitoolOSS.md` | — | ⚠️ Tool replacements — **sample only, redo during build** |
 | `texthuman.md` · `uncensoredcontent.md` · `deepresearch.md` | — | Watched-reel research |
@@ -290,6 +292,65 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 ---
 
 # Change Log
+
+## 2026-09-21 — computer mode: research file created, added to the plan as Phase 4C
+
+- 🔴 **Computer mode was missing from the plan entirely, despite four benchmarked leaves.** The user
+  asked whether the Phase 3 prompt covered it. It did not — and checking found **"computer use"
+  appears zero times in `Orbiplan.md` and zero times in `Orbichecklist.md`**, while
+  `sample1/OrbiLLM/Orbi OSSLLM research.md` carries **four ✓-verified leaves** (lines 140, 141, 269,
+  270) and `Orbimodels.md` assigns Qwen3.8-27B to it. **The same structural gap `UHWmini.md` had
+  before 2026-09-11: real benchmarked research, no phase that builds it, no item that tests it.**
+  Also found that sample 3's only computer-use claim, `OrbiOSS.md` line 257, points at
+  **Qwen3-VL-235B — a model dropped from the project on 2026-09-06.**
+- **Created `Researchhub/sample3/Orbicomputer.md`.** Added **Phase 4C** to `Orbiplan.md` (now **v25**)
+  and **Group 13C**, 14 items, to `Orbichecklist.md` — **156 items across 19 groups** now.
+  **Phases 5–8 deliberately not renumbered**, to keep every existing cross-reference valid. Also
+  corrected a stale count in this file: it still said 139 items / 18 groups.
+- 🔑 **The architecture question the user drove to, in two exchanges: does one layer contain the
+  other? No — neither does.** Layer A reads the macOS accessibility tree (`AXUIElement`); layer B
+  reads pixels. **A is blind to canvas apps, games, remote desktops and images — a hard wall, not a
+  quality gap. B sees all of them at roughly 70% and cannot say what it clicked.** So the build is
+  **A then B**: try the tree, fall to pixels only when it comes back empty, and log which path ran.
+  **Layer A costs 0 GB and needs no vision model, because `AXUIElement` is text and Lane A already
+  reads text.** The user chose both, staged.
+- 🔴 **The governing finding is security, not capability.** Measured prompt-injection success reaches
+  **51% against computer-use agents and 100% against browser-use agents** over a 306-case benchmark.
+  **System-prompt defences do not measurably reduce attack success**, and model fine-tuning plus a
+  framework defence layer plus prompt instructions **is still insufficient** — the root cause is
+  architectural, **no trust boundary between user instructions and page content**, so a better model
+  does not fix it. Computer mode is therefore **opt-in, attended, never default**, with every action
+  clearing the Phase 3 tiers **before** the input event is synthesised.
+  ⚠️ **Corrected my own earlier framing to the user: the accessibility tree is auditable but still
+  injectable** — a page hides instructions in `aria-label` and Playwright's snapshot passes them
+  through faithfully. A's real advantage is that Orbi can *check what it is about to click*, not that
+  it is safe. Screenshots are equally exposed, via OCR of text invisible to humans.
+- 🔑 **Layer B does not want a big model, which contradicts the current model list.** Scaffold beats
+  scale here: a **Qwen 3B with a simplified prompt scored ~50% on Showdown-Clicks against ~20% for
+  Qwen 72B**, and small fine-tuned grounders reach **70–80%** where large general models manage ~20%.
+  **`BrowserVLM` is 0.54 B and ships GGUF with a llama.cpp fork.** So **the 27B-dense and 122B
+  computer-use picks are the wrong shape** and `Orbimodels.md` needs re-checking before CU-3.
+  ⚠️ Also recorded: computer-use leaderboard rows are **system scores, not model scores** — OSWorld's
+  own page says rankings reflect *"submitted system setups (model plus tools and policy)"* — and
+  **every ScreenSpot-Pro score is vendor self-reported with no independent audit.**
+- **Tools verified live against the GitHub and Hugging Face APIs, not search summaries:**
+  **`playwright-mcp`** (Apache-2.0, 37,435★) for the browser, **`openclaw/Peekaboo`** (MIT, 5,193★,
+  pushed 2026-09-21) for macOS. 🔴 **`comet-mcp` rejected even though it prompted the whole phase** —
+  it is a **delegation bridge to Perplexity Comet, a proprietary cloud browser**, with no local
+  fallback, and **last shipped 2026-01-13, eight months stale.** 🔴 **`CursorTouch/macOS-use` rejected
+  — no licence file at all**, and it is a different repo from `CursorTouch/macOS-MCP` (MIT, 185★).
+  ⚠️ **`macOS26/Agent` reports `NOASSERTION`** — licence unresolved.
+- ⚠️ **CU-0 is a real go/no-go, not a formality.** Whether Lane A's **4 B active** params can drive an
+  accessibility tree at all is **unmeasured**, and there is a direct counter-signal: **BrowserOS
+  officially excludes local models from Agent Mode**, its own docs saying they are not capable enough.
+- ⚠️ **The `/deep-research` pass lost its verification phase: 30 of 105 agents completed, 75 failed on
+  `You've hit your session limit`.** Per this project's standing rule about quota-exhausted research,
+  the extracted claims were **not merged as fact**. §2's table was re-verified by hand against live
+  APIs; §3 and §4 are explicitly labelled unverified in the file's own §7, with the exact re-checks
+  listed. **Nothing was laundered into a verified-looking claim.**
+- **Phase 3 prompt for Codex was written before this** and already carried a placeholder Never-tier
+  guard for computer use, so a fresh Codex session cannot reach it by accident. That guard stays until
+  Phase 4C is built.
 
 ## 2026-09-21 — prompt cache and continuous batching added to the plan
 

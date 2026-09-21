@@ -1,6 +1,6 @@
 # Orbiplan — Building Orbi
 
-**v4 · 2026-09-05.** Design locked. **Orbi runs the real giants, unmodified. No training.**
+**v25 · 2026-09-21.** Design locked. **Orbi runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -150,6 +150,7 @@ quality, at zero training cost.**
 | **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
 | **3** | Permissions, content policy | no | refuses a recursive delete **with the system prompt removed** |
 | **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | completes a multi-file change with tests passing |
+| **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
 | **5** | Voice + media gen | no | speaks, listens, and queues an image job end to end |
 | **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
 | **7** | Improvement loop | no | one month unattended finds one upgrade you accept |
@@ -311,6 +312,82 @@ for a single sequential user.
 **Cloud policy:** Orbi uses cloud **when necessary, without asking**. It rotates the **16 free-tier
 providers in `sample3/Cloudcall/`** in order, and when all are exhausted **falls back to local and says
 so**. **It never spends money** — the budget cap stays at 0.
+
+## Phase 4C — computer mode *(opt-in, attended, never default)*
+
+**Full research: `Researchhub/sample3/Orbicomputer.md`.** Read it before building — its §4 decides
+the shape of this phase.
+
+**Two layers, not one choice. Build A first; A costs nothing.**
+
+| Layer | How it sees the screen | Vision model | Extra RAM | Knows what it is clicking |
+|---|---|---|---|---|
+| **A — accessibility tree** | `AXUIElement` — a structured tree of every UI element | **no** | **0 GB** | **yes, before acting** |
+| **B — pixel vision** | screenshot → click coordinates | yes | ~4–8 GB | **no** |
+
+**macOS hands you a structured tree of every button, field and menu. That is text, and Lane A already
+reads text.** Layer B exists only for the blind spots — canvas apps, games, remote desktop windows,
+custom-drawn UIs, images.
+
+```
+try the accessibility tree
+   ↓ empty or unusable?
+fall through to pixel vision, LOG it, and force Confirm
+```
+
+🔴 **This phase is governed by a security finding, not a capability one.** Measured prompt-injection
+success against computer-use agents reaches **51%, and 100% against browser-use agents**.
+**System-prompt defences do not measurably help, and layered defences are still insufficient** —
+the root cause is architectural: the prompt is built with **no trust boundary between the user's
+instructions and page content.** A better model does not fix it.
+
+⚠️ **The accessibility tree is auditable but still injectable** — a page can hide instructions in
+`aria-label` attributes that the snapshot passes faithfully to the model. Layer A's real advantage is
+that Orbi can **check what it is about to click**, not that it is safe.
+
+**Seven non-negotiables:**
+
+1. **Opt-in, off by default.** Not a capability Orbi has until asked.
+2. **Never unattended.** Autonomous GUI control is indefensible at today's injection rates.
+3. **Every action clears the Phase 3 tiers *before* the event is synthesised**, never after.
+4. **Screen and page content is data, never instructions** — the Phase 3 rule extended to the
+   accessibility tree and to OCR'd screenshots. Both are proven injection surfaces.
+5. **Application allow-list.** Orbi drives only apps the user named.
+6. **The pixel path always requires Confirm.** It cannot name its target.
+7. **Log every action** with its path, target element and outcome.
+
+**Tools — verified 2026-09-21, not from search summaries:**
+
+| Need | Use | Why |
+|---|---|---|
+| Browser | **`microsoft/playwright-mcp`** | Apache-2.0, 37,435★, accessibility snapshot not screenshots |
+| macOS apps | **`openclaw/Peekaboo`** | MIT, 5,193★, pushed 2026-09-21, hybrid a11y + capture |
+| Lighter macOS | `CursorTouch/macOS-MCP` | MIT, 185★, AX API + AppleScript, no VLM |
+
+🔴 **Rejected: `hanzili/comet-mcp`**, despite being the example that prompted this phase. It is a
+**delegation bridge to Perplexity Comet, a proprietary cloud browser** — every action runs on
+Perplexity's hosted AI, with no local fallback. It also **last shipped 2026-01-13**. The delegation
+*pattern* is worth studying; the implementation violates local-first and never-spend.
+🔴 **Also rejected: `CursorTouch/macOS-use` — no licence file at all.** Not the same repo as
+`macOS-MCP`. ⚠️ **`macOS26/Agent` reports `NOASSERTION`** — resolve its licence before considering it.
+
+**Sub-phases:**
+
+| | What | Depends on |
+|---|---|---|
+| **CU-0** | **Measure first — the go/no-go.** Can Lane A's **4 B active** params drive an accessibility tree at all? ⚠️ Unknown, and **BrowserOS excludes local models from agent mode entirely**, one practitioner putting the tool-calling floor above 7 B | Phase 3 |
+| **CU-1** | Layer A for macOS — AX tree, Phase 3 tiers, app allow-list, logging | CU-0 |
+| **CU-2** | Layer A for the browser — `playwright-mcp` accessibility snapshot | CU-1 |
+| **CU-3** | Layer B — fallback grounder, Confirm-gated | CU-2 + RAM that does not exist yet |
+
+🔑 **Layer B does not want a big model.** Scaffold beats scale here: a **Qwen 3B with a better prompt
+scored ~50% on Showdown-Clicks against ~20% for Qwen 72B**, and small fine-tuned grounders hit
+**70–80%** where large general models manage **~20%**. **`BrowserVLM` is 0.54 B and ships GGUF with a
+llama.cpp fork.** ⚠️ So the **27B dense and 122B computer-use picks in the model list are the wrong
+shape** — and `Orbimodels.md` should be re-checked against `Orbicomputer.md` §3 before CU-3.
+
+⚠️ **CU-3's precondition is unmet.** Lane A alone already runs **96 of 121 memory-pressure samples in
+warning**. A resident vision model is not affordable today.
 
 ## Phase 5 — voice and media
 
@@ -612,6 +689,36 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-09-21 (v25)** — 🔴 **Computer mode added as Phase 4C. It was missing entirely.** The phrase
+  "computer use" appeared **zero times** in this file and zero times in `Orbichecklist.md`, while
+  `sample1/OrbiLLM/Orbi OSSLLM research.md` carries **four ✓-verified leaves** for it (lines 140, 141,
+  269, 270) and `Orbimodels.md` assigns Qwen3.8-27B to it. **The same structural gap `UHWmini.md` had
+  before v21: real benchmarked research with no phase that builds it and no item that tests it.**
+  New research file: **`Researchhub/sample3/Orbicomputer.md`**. Checklist **Group 13C**, 14 items,
+  taking the list to **156 items across 19 groups**. Phases 5–8 deliberately **not** renumbered.
+  🔑 **The phase is governed by a security finding, not a capability one.** Measured prompt-injection
+  success reaches **51% against computer-use agents and 100% against browser-use agents**;
+  **system-prompt defences do not measurably help** and layered defences are still insufficient,
+  because the root cause is architectural — **no trust boundary between user instructions and page
+  content**. So computer mode is **opt-in, attended, never default**, and every action clears the
+  Phase 3 tiers *before* the input event is synthesised. ⚠️ **The accessibility tree is auditable but
+  still injectable** — pages hide instructions in `aria-label` that the snapshot passes through.
+  **Two layers, A then B:** the macOS accessibility tree costs **0 GB and no vision model** because
+  `AXUIElement` is text and Lane A already reads text; pixel vision is a **fallback only**, for canvas
+  apps, games, remote desktops and images. 🔑 **Layer B does not want a big model** — a **Qwen 3B with
+  a better prompt scored ~50% on Showdown-Clicks against ~20% for Qwen 72B**, and small fine-tuned
+  grounders reach **70–80%** where large general models manage ~20%, so **the 27B-dense and 122B picks
+  in the model list are the wrong shape** and `BrowserVLM` at **0.54 B with GGUF and a llama.cpp fork**
+  is the right one. Tools verified live against the GitHub API, not search summaries:
+  **`playwright-mcp`** (Apache-2.0, 37,435★) for the browser and **`openclaw/Peekaboo`** (MIT, 5,193★)
+  for macOS. 🔴 **`comet-mcp` rejected despite prompting the whole phase** — it delegates to
+  **Perplexity Comet, a proprietary cloud browser**, with no local fallback, and last shipped
+  **2026-01-13**. 🔴 **`CursorTouch/macOS-use` rejected — no licence file at all.**
+  ⚠️ **CU-0 is a genuine go/no-go:** whether Lane A's **4 B active** params can drive a GUI is
+  **unmeasured**, and **BrowserOS excludes local models from agent mode entirely**. ⚠️ The research
+  pass behind the file **lost its verification phase to a session limit (75 of 105 agents failed)**,
+  so §2's table was hand-verified and §3/§4 are labelled unverified rather than merged as fact —
+  per this project's own standing rule about quota-exhausted research.
 - **2026-09-21 (v24)** — **Two techniques added after the user checked the plan against an external
   inference-speed article.** **(1) The bounded prompt cache was missing from the plan entirely** — the
   phrase appeared **zero times** — despite being **the biggest measured speed win in the project**,

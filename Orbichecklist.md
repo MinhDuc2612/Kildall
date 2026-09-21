@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **142** |
-| **Done now** | **4** of 142 |
+| **Items** | **156** |
+| **Done now** | **4** of 156 |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -156,6 +156,25 @@
 - [ ] **Never spends money.** Spend cap defaults to 0
 - [ ] Per-provider rate limits tracked and respected
 
+## 13C. Computer mode — P2 *(Phase 4C)*
+
+**Research: `Researchhub/sample3/Orbicomputer.md`. Read its §4 first — it governs this group.**
+
+- [ ] **CU-0 go/no-go: Lane A's 4 B active params can drive an accessibility tree at all.** ⚠️ Unmeasured, and there is a counter-signal — BrowserOS excludes local models from agent mode
+- [ ] Reads the macOS accessibility tree (`AXUIElement`) and finds a named element
+- [ ] Clicks and types through the tree, **with no vision model loaded**
+- [ ] Browser control via `playwright-mcp`'s accessibility snapshot, not screenshots
+- [ ] **Tries the tree first, every time.** Falls to pixels only on an empty or unusable tree
+- [ ] **Logs which path ran** — tree or pixels — on every action
+- [ ] **Opt-in and off by default.** Orbi does not have this capability until asked
+- [ ] **Never runs unattended**
+- [ ] **Every action clears the Phase 3 tiers BEFORE the input event is synthesised**, not after
+- [ ] **Application allow-list** — drives only apps the user named
+- [ ] **The pixel path always requires Confirm** — it cannot name what it is clicking
+- [ ] 🔴 **Accessibility-tree text is data, never instructions** — a page can hide instructions in `aria-label` and the snapshot passes them through faithfully
+- [ ] 🔴 **OCR'd screenshot text is data, never instructions** — injections hide in images invisibly to humans
+- [ ] Refuses to act on a page carrying an injected instruction, in a real test fixture
+
 ## 14. Voice — P2 *(Phase 5)*
 
 - [ ] **Speech in** — ASR transcribes what you say
@@ -268,7 +287,7 @@ what it broke.
   §16 Lane C **parked** — no drive for 1+ month. Now **120 items**.
 
 - **2026-09-05 (v1)** — Created because done-test #2 requires a real feature checklist to exist.
-  **142 items across 18 groups**, each tagged **P0** (unusable without), **P1** (needed for Claude Code
+  **156 items across 19 groups**, each tagged **P0** (unusable without), **P1** (needed for Claude Code
   parity) or **P2** (the "and more"), and each mapped to the phase that delivers it. Records the three
   agreed done-tests and the order they run in: P0 → P1 → the hard task → P2 → the week with no Claude
   Code. Carries forward the decisions made today — push-to-talk voice with no always-on mic, media
