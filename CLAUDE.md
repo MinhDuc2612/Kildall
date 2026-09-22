@@ -293,6 +293,44 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+## 2026-09-22 — improvement #51 added: hardware auto-fit and auto-expand
+
+- **`Orbiplan.md` → v27, improvements list 50 → 51.** #51 **absorbs #5**, generalising auto-quant
+  search into quant + lane + batch + context + which models to install at all.
+- **Why it earned a slot: Orbi runs on exactly one computer.** Every figure in the plan — 26.637
+  tok/s, 96/121 pressure warnings, 5.06 s routing, the 120 GB/s ceiling — is a property of this Mac
+  mini, and **none of it is read from the machine at setup.** The reading half already exists
+  (`sample3/uhwmini-setup.sh` audits, `check.sh` reports); nothing acts on it.
+- 🔑 **Two things were already there and unnamed.** **Lane assignment is a hardware function** —
+  `active_bytes` vs usable RAM decides A/B/C — it is just hardcoded. And **`skill_catalog.py` already
+  stores an *original* and a *preferred* pick per leaf**, which is exactly the small-machine /
+  big-machine axis. ⚠️ But it is thin: **13 leaves have a named alternative** (56 in sample 1's
+  research), so roughly 250 of 302 have nothing to expand into.
+- 🔴 **The governing rule, and the reason the two halves are not symmetric: shrink on arithmetic,
+  grow only on evidence.** Fitting downward is safe because RAM is physics. **Expanding upward
+  without #13 would automate unverified upgrades** — only **46 of 302 leaves are benchmark-verified**,
+  so on a bigger machine Orbi would reach for a "better" pick that is a reasoned default for ~256
+  leaves, and could end up slower *and* worse with no way to detect it.
+- 🔴 **Second trap recorded: bigger ≠ faster.** A 32 GB base M4 is still **120 GB/s**. Extra capacity
+  promotes models up lanes but accelerates nothing already resident; only the M4 Pro's 273 GB/s does.
+  🔑 A model promoted **C → B is free quality** — identical weights, no longer read off a disk 41×
+  slower than RAM.
+- ⚠️ **Third trap, already paid for in this project: active params are not residency.** Lane A is
+  **4 B active — ~2 GB by arithmetic — but 12.23 GB measured RSS**, a **6× error**. A pure-arithmetic
+  auto-fit would assign models to lanes they cannot live in. So the design is **propose, then
+  verify**: compute candidates, run a short gate, adopt what passes, fall through on failure — the
+  Phase 1 Lane A loop, automated.
+- **Prior art checked before claiming novelty.** Per-model auto-fit is commodity — **Ollama picks
+  quantization from available memory on pull and handles GPU offload; LM Studio and LocalClaw do
+  similar.** What was not found is the library-level version: taking 22 models and assigning each a
+  residency lane from the machine's specs. ⚠️ **Two searches is not proof of absence** — sample 2
+  once declared Apple Silicon expert streaming nonexistent and sample 3 found two projects doing it.
+- **Also checked, same session:** local model routing is a recognised 2026 pattern, not a new idea —
+  `adam10890/local-model-router` (a llama.cpp fleet router), `Odd-C/agent-model-router`, AnythingLLM's
+  Model Router and LLMRouter all exist. **Orbi's unclaimed parts are the ratio (~4.84 TB against
+  24 GB), the 302-leaf granularity, lanes as a residency architecture, and the evidence layer** —
+  not routing itself. ⚠️ Those repos are unverified search results; stars and licences were not checked.
+
 ## 2026-09-22 — Phase 3 complete and independently verified; checklist ticked
 
 - **Phase 3 passed all 10 scoped items at code commit `a2415b6`**, pushed, remote SHA matches local,
@@ -1470,3 +1508,10 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 - Final Phase3 exit audit PASS:10 scoped items/14 adversarial groups; unchanged recall20/20, abstention20/20, product routing20/20 category/lane, callableJSON20/20, tools17/20 first-pass/20/20 post-retry, CLI18/18; ./check.sh exits0. Final nuke dry-run exits0:14,899 candidates all realpath-contained in code,3 outward links rejected (live deletion would refuse). No live destructive test. Planning/research byte-identical to preserved roota10a9a7; frozen hashes unchanged; model servers stopped. BENCHMARKS records all failed trials and scoped install/Phase4/4C deferrals. Preparing code commit/push and independent remote SHA verification.
 
 - Phase3 code commita2415b66f22daac796ff90acfcdc6b16cd8801df pushed to origin/main. Independently verified the exact remote SHA using git ls-remote; code tree clean. Final-verification.json records matching local/remote hashes. All requested scoped exit gates pass; failed trials remain documented. Install means local artifact copy; current nuke deletion is blocked by3 outward symlinks. General agent/web/guard/hooks remain Phase4; all computer mode and catalog corrections remain Phase4C. Root repo is not pushed; this memory checkpoint is committed locally next.
+
+## 2026-09-22 — Phase4.1 started: GBNF first, files and shell only
+
+- Verified clean root5be9ac0 and codea2415b6 before this memory edit. Read current Groups5/6 (10 file +6 shell items), GBNF requirement, existing Phase3 executor and prior lessons. Frozen fixture hashes/config recorded in code/.session/phase4.1-20260922/before.json; wired20480 verified. Studying exact b10809 grammar path before any new tool surface. Reusing security-review and independent read-only shell-confinement review. No later slice, computer mode, catalog/model/routing/prompt/server-flag changes.
+
+- Baseline tool measurement completed: routing 20/20, callable 20/20, first-pass 17/20, post-retry 20/20 (three retries). Report wrapper exited 1 because atomic_json compared regex-example tuples against JSON-decoded lists; recovered the complete serialized report, cross-checked every total and frozen hash, and preserved the failure log. Evidence: code/.session/phase4.1-20260922/tools-before.json.
+- Exact pinned llama.cpp source confirms Gemma 4 native tool GBNF ignores parameter schemas and chat rejects custom grammar with tools. Phase4.1 will render the unchanged chat template then use native completion with strict schema-derived GBNF. No server flags or benchmark prompts changed.
