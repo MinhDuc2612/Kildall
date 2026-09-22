@@ -33,11 +33,16 @@ def guard_path(candidate, root=CODE_ROOT):
 
 
 @contextmanager
-def parent_fd(path, root=CODE_ROOT):
+def parent_fd(path, root=CODE_ROOT, *, allow_leaf_symlink=False):
     """Anchor mutation to existing, nonsymlink directories; never follow a swapped parent."""
-    guard_path(path, root)
+    root = Path(root).absolute()
+    candidate = Path(os.path.expanduser(os.fspath(path)))
+    guard_path(candidate.parent if allow_leaf_symlink else candidate, root)
     path = Path(os.path.abspath(os.path.expanduser(os.fspath(path))))
-    parts = path.relative_to(root).parts
+    try:
+        parts = path.relative_to(root).parts
+    except ValueError as error:
+        raise PermissionError("Entry itself is outside the allowed root") from error
     if not parts:
         raise PermissionError("This action cannot replace the allowed root")
     fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
@@ -298,32 +303,46 @@ def run_action(db_path, project, operation, raw_args, task=None):
 
 
 def nuke_manifest(root=CODE_ROOT):
-    """Postorder candidates, excluding outward links and every ancestor they block."""
+    """Postorder entries; a symlink is an entry to unlink, never a directory to visit."""
     root = Path(root).absolute()
     guard_path(root, root)
-    paths, rejected = [], 0
+    paths = []
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 
-    def visit(path):
-        nonlocal rejected
-        try:
-            guard_path(path, root)
-        except PermissionError:
-            rejected += 1
-            return False
-        info = path.lstat()
-        allowed = True
-        if stat.S_ISDIR(info.st_mode):
-            with os.scandir(path) as entries:
-                children = sorted((Path(e.path) for e in entries))
-            for child in children:
-                if not visit(child):
-                    allowed = False
-        if allowed:
-            paths.append((str(path), info.st_dev, info.st_ino, info.st_mode))
-        return allowed
+    def visit(path, fd):
+        guard_path(path, root)
+        info = os.fstat(fd)
+        with os.scandir(fd) as entries:
+            names = sorted(entry.name for entry in entries)
+        for name in names:
+            child = path / name
+            # Validate the entry's own location and its parent, not a symlink's target.
+            if not child.is_absolute() or not child.is_relative_to(root):
+                raise PermissionError("Deletion entry is outside the allowed root")
+            guard_path(child.parent, root)
+            item = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            if stat.S_ISDIR(item.st_mode):
+                guard_path(child, root)
+                nested = os.open(name, flags, dir_fd=fd)
+                try:
+                    opened = os.fstat(nested)
+                    if (opened.st_dev, opened.st_ino) != (item.st_dev, item.st_ino):
+                        raise RuntimeError("Deletion directory changed while scanning")
+                    visit(child, nested)
+                finally:
+                    os.close(nested)
+            else:
+                if not stat.S_ISLNK(item.st_mode):
+                    guard_path(child, root)
+                paths.append((str(child), item.st_dev, item.st_ino, item.st_mode))
+        paths.append((str(path), info.st_dev, info.st_ino, info.st_mode))
 
-    visit(root)
-    return paths, rejected
+    fd = os.open(root, flags)
+    try:
+        visit(root, fd)
+    finally:
+        os.close(fd)
+    return paths, 0
 
 
 def _delete_tree(root, manifest):
@@ -331,17 +350,21 @@ def _delete_tree(root, manifest):
     root = Path(root).absolute()
     fresh, rejected = nuke_manifest(root)
     if rejected or fresh != manifest:
-        raise PermissionError("Deletion tree changed or contains outward symlinks")
+        raise PermissionError("Deletion tree changed or contains an unsafe path")
     for name, dev, ino, mode in manifest:
         path = Path(name)
-        guard_path(path, root)
         if path == root:
-            info = path.lstat()
-            if (info.st_dev, info.st_ino, info.st_mode) != (dev, ino, mode):
-                raise RuntimeError("Deletion root changed")
-            path.rmdir()
+            guard_path(root, root)
+            fd = os.open(root.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            try:
+                info = os.stat(root.name, dir_fd=fd, follow_symlinks=False)
+                if (info.st_dev, info.st_ino, info.st_mode) != (dev, ino, mode):
+                    raise RuntimeError("Deletion root changed")
+                os.rmdir(root.name, dir_fd=fd)
+            finally:
+                os.close(fd)
         else:
-            with parent_fd(path, root) as (fd, leaf):
+            with parent_fd(path, root, allow_leaf_symlink=stat.S_ISLNK(mode)) as (fd, leaf):
                 info = os.stat(leaf, dir_fd=fd, follow_symlinks=False)
                 if (info.st_dev, info.st_ino, info.st_mode) != (dev, ino, mode):
                     raise RuntimeError("Deletion candidate changed")
