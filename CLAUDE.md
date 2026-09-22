@@ -293,6 +293,51 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+## 2026-09-22 — MLX fork closed, and the real reason found: r17 is over-matching, not ambiguity
+
+- **Codex closed the MLX fork on branch 3 and applied my rule correctly.** But the rule — *"any gate
+  drops, fork closed"* — was written to stop rationalisation, and it treats a 19/20 on the project's
+  single most unstable fixture identically to a real regression. So the closure was re-examined on
+  r17 alone, which is all that failed.
+- 🔑 **r17 is a genuine MLX error, not fixture ambiguity. The fork stays closed on stronger grounds.**
+  The request is *"prove or refute… adversarial online matching with delayed arrivals… give a tight
+  competitive bound."* MLX selected leaf **`d01.s01.l02`, "propositional & first-order logic proof
+  construction"** (pick Qwen3.5-27B, `min_viable`), which routes to **B**. **A competitive bound for
+  an online matching algorithm is not a first-order logic proof** — the earlier independent audit
+  already established that *"the first-order-logic leaf / QMFOLBench evidence does not establish
+  adversarial online-matching competitive proofs."* **MLX matched on the word "prove."**
+- 🔴 **That is the exact error the leaf prompt forbids in its own words:** *"Select a leaf only when
+  its specific operation covers the requested scope. Shared topic/words alone are insufficient. Do
+  not infer a narrow specialty from a generic action such as proving, writing or searching."*
+  **llama.cpp passes r17 by correctly returning "X" — no leaf fits — and falling back to the
+  category's lane, C.** MLX over-matched instead of escaping.
+- 🔑 **Why this is the worst place to have a weakness:** the whole 302-leaf architecture depends on
+  the no-match escape working, because **only 46 of 302 leaves are benchmark-verified**. Over-matching
+  sends work to a confidently wrong specialist. ⚠️ **Limit: n=1.** MLX scored category 20/20, so its
+  classification is sound; only the leaf step differed, on one case. "MLX over-matches" is a
+  hypothesis, not a measured property — **and the specific revisit test is the "X" escape, not overall
+  routing accuracy.**
+- ⚠️ **Results worth keeping even with the fork closed — MLX won on four axes of five.**
+  Generation **33.08 tok/s (+24.2%)**, and **sustained 31.09 mean over 115 requests** (min 29.40,
+  max 33.69). Cold model load **5.95 s against 11.9 s**. Tools **18/20 first-pass against IQ3's
+  17/20**. Recall, abstention, category and callable JSON all 20/20. Prefill slightly worse at
+  **81.8 against ~87**.
+- 🔑 **The largest finding was one nobody was looking for: memory pressure.**
+  **llama.cpp IQ3 soak: 25 normal / 96 warning. MLX soak: 119 normal / 1 warning / 0 critical.**
+  That is the pressure problem cited all session as a risk for Phases 3–5 and as the blocker on
+  Phase 4C's resident vision model, nearly eliminated. ⚠️ **Not causally proven** — MLX runs
+  in-process while llama.cpp runs a server, and OS conditions were not controlled. But 96 against 1
+  is not noise, and it should be re-tested if Lane A residency ever becomes the binding constraint.
+- **Q1 answered yes, Q2 answered no.** Cross-request prefix caching exists via `LRUPromptCache` with
+  byte/count bounds, though the stock sequential server needs explicit budget integration. There is
+  **no general tool-schema decoder** — only a `logits_processors` token-mask hook.
+  ⚠️ **But Codex found the same gap on llama.cpp while starting Phase 4.1:** *"Gemma 4 native tool
+  GBNF ignores parameter schemas and chat rejects custom grammar with tools."* **Grammar work is
+  custom on both runtimes**, so Q2 is a weaker argument for staying than it first appeared.
+- **Nothing migrated.** Production config, model, prompts, flags, fixtures and routing are unchanged;
+  both frozen SHAs verified; runtimes stopped; `check.sh` exits 0. Phase 4.1 remains paused with
+  `permissions.py` and `tool_grammar.py` uncommitted at the pause point.
+
 ## 2026-09-22 — improvement #51 added: hardware auto-fit and auto-expand
 
 - **`Orbiplan.md` → v27, improvements list 50 → 51.** #51 **absorbs #5**, generalising auto-quant
@@ -1515,3 +1560,27 @@ them predate two reorganisations: files described as `Research docs/<file>.md` o
 
 - Baseline tool measurement completed: routing 20/20, callable 20/20, first-pass 17/20, post-retry 20/20 (three retries). Report wrapper exited 1 because atomic_json compared regex-example tuples against JSON-decoded lists; recovered the complete serialized report, cross-checked every total and frozen hash, and preserved the failure log. Evidence: code/.session/phase4.1-20260922/tools-before.json.
 - Exact pinned llama.cpp source confirms Gemma 4 native tool GBNF ignores parameter schemas and chat rejects custom grammar with tools. Phase4.1 will render the unchanged chat template then use native completion with strict schema-derived GBNF. No server flags or benchmark prompts changed.
+
+## 2026-09-22 — MLX side measurement, Phase 4.1 paused
+
+- Started the requested installed-source-only capability audit before inference. Root was clean at1831320. Preserved pre-existing unfinished Phase4.1 permissions.py changes and tool_grammar.py; no production source/config edits belong to this side task. Evidence and frozen hashes: code/.session/mlx-probe-20260922/.
+- Installed mlx-lm0.31.3 / mlx0.32.2. Wired20480 verified; no llama-server process or listener on8123/8124. Both frozen fixture SHAs match. Installed source/doc snapshots saved with SHA256; no models, packages, or source downloads. Initial audit-evidence assertion failed on JSON integer-port-key normalization; corrected the comparison and reverified source hashes before inference; setup-failure.json retained.
+
+- Stage0 complete before inference: Q1 has actual prefix reuse, checkpoint entries, disk persistence and explicit byte/count bounds through LRUPromptCache; stock server byte flag has a sequential-path caveat. Q2 has the logits_processors token-mask hook and existing finite routing trie, but no installed general tool-schema/grammar decoder. Full source citations in code/.session/mlx-probe-20260922/stage0.md; BENCHMARKS.md updated. Proceeding to Stage1 only using the unchanged adapter and existing DWQ artifact.
+
+- Stage1 launched: existing benchmark_mlx.py speed, existing models/gemma-4-dwq-4bit, offline mode, fresh process; generation, native prefill and model load timings will be reported separately. All source/config/fixture hashes rechecked, wired20480, no llama process/listener before loading. No cache tuning, server or production changes.
+
+- Stage1 complete: generation33.084742tok/s (+24.2% vs26.637), prefill81.823570tok/s (246 tokens), process-cold load5.946821s. Exit0; frozen files unchanged. Stage2 now authorized by the speed rule; launching600s continuous-load observation using the unchanged soak function.
+
+- MLX600s soak process exited cleanly; result {"critical": 0, "device_wide_peak_gpu_allocated_bytes": 15820144640, "device_wide_peak_gpu_in_use_bytes": 15077687296, "duration_s": 606.2826194999798, "errors": [], "exit_code": 1, "legacy_all_normal_gate_passed": false, "mlx_allocator_peak_bytes": 14347518680, "normal": 119, "other": {}, "peak_sampled_rss_bytes": 4561453056, "process_lifetime_peak_rss_bytes": 9380331520, "warning": 1}. Raw logs/results retained. Starting frozen quality measurements sequentially; generation runtime is MLX only.
+
+- MLX side probe: Stage2 quality started. Frozen recall/abstention inputs replay accepted Harrier retrieval byte-for-byte to avoid co-loading llama.cpp. Existing scorers and fixture files unchanged. Product catalog routing uses a measurement-only finite token-trie transport for its unchanged grammar; no production edits.
+
+- MLX side probe: Frozen tool/coarse-routing suite completed: {"passed": true, "routing_score": 20, "tool_accepted": 20, "tool_exact": 18, "tool_post_retry_exact": 20, "tool_retries": 2, "tool_validity": 20}
+
+- MLX side probe: Frozen answer measurements complete: recall 20/20; abstention 20/20.
+
+- MLX side probe: Product routing completed: {"category": 20, "lane": 19}
+
+- MLX side probe COMPLETE: branch3, fork closed. Generation33.084742tok/s, prefill81.823570tok/s, load5.946821s; recall20, abstention20, coarse routing20, callable20, tools18first/20retry. Product routing category20 but final lane19: r17 formal_reasoning:001 selects catalog leafd01.s01.l02 ->B instead of expectedC. Quality exit1 preserved; no tuning. Soak606.283s:119normal/1warning/0critical, strict all-normal gate exit1. Detailed separate RSS/device-wide GPU/allocator peaks in BENCHMARKS.md and code/.session/mlx-probe-20260922/final-summary.json.
+- Final source/config/read-only-document and both fixture hashes unchanged; MLX/llama runtime processes and ports8123/8124 absent. check.sh exit0, wired20480, backup03:00 verified. No migration, model/download, source/config, prompt, flag, fixture or routing change in this side task. Phase4.1 remains paused; prior partial files preserved.
