@@ -10,8 +10,8 @@ Replaces the soft "~26 models, ~4.9 TB" in `Orbiplan.md`. **Every number here su
 | | |
 |---|---|
 | **Models** | **22** |
-| **Params STORED** | **~9.1 T** |
-| **Disk at 4-bit** | **~4.84 TB** of the 8 TB drive |
+| **Params STORED** | **~9.87 T** |
+| **Disk at 4-bit** | **~5.23 TB** of the 8 TB drive |
 | **Held in RAM at once** | **~5–8 GB** — Lane A streams its experts; only ~3 GB of it is ever active |
 | **Fits the M4 24 GB?** | ✅ **yes**, with one caveat — see the RAM ceiling warning |
 
@@ -158,6 +158,7 @@ runs for seconds, and unloads. Until the drive arrives, install selectively on t
 | 5 | Tool calling | `zai-org/GLM-5.3` | **744 B** | ~40B | **372 GB** | Custom *GLM-5.3* | **#2 tool calling (35.4).** 200K ctx |
 | 6 | Cheap reasoning | `zai-org/GLM-5.3-Flash` | **320 B** | 18B | **160 GB** | **MIT** | Shipped ahead of the flagship |
 | 7 | Cheap coding | `deepseek-ai/DeepSeek-V4-Flash-0731` ✅ | **284 B** | 13B | **142 GB** | **MIT** | 79.0% SWE-bench Verified at **1/6 the size** of V4-Pro. Production release 31 Jul 2026 |
+| 8 | ⚠️ **Reasoning + tools** | `tencent/Hy4-preview` ⚠️ **PREVIEW** | **770 B** | **49B** | **385 GB** | **Apache-2.0** | **SWE-Bench Pro 65.7 · GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1.** 256 routed + 1 shared expert, top-8/token, 78 layers, 1M ctx, text-only. Ships a **built-in MTP layer** for speculative decoding. 🔴 **No GGUF or MLX — vLLM/SGLang on 8 GPUs. Cannot run on Metal today.** Released 2026-08-28 |
 
 ### ⚡ Lane C speed is NOT one number — it varies ~8× by model
 
@@ -170,6 +171,7 @@ wakes 13 B. That is **8× fewer bytes read per token**. On a Thunderbolt 4 enclo
 | **`GLM-5.3-Flash`** | **18 B** | 9 GB | **~3.1 s** | **~26 min** |
 | `GLM-5.2` · `GLM-5.3` | ~40 B | 20 GB | ~6.9 s | ~58 min |
 | `DeepSeek-V4-Pro-0813` | 49 B | 24.5 GB | ~8.4 s | ~70 min |
+| `Hy4-preview` ⚠️ | 49 B | 24.5 GB | ~8.4 s | ~70 min |
 | `Qwen3.8-2.4T-A95B` | 95 B | 47.5 GB | ~16.4 s | ~2.3 h |
 | `Kimi-K3` | 104 B | 52 GB | ~17.9 s | ~2.5 h |
 
@@ -206,7 +208,7 @@ that physically possible on a 24 GB machine.** Same for the critic pass (#10) an
 
 **Every model here is MoE** — that is what makes 4.9 TB run in ~8 GB of RAM. Only ~2–4% wakes per token.
 
-**Lane C subtotal: 7 models · ~8,901 B params (~8.9 T) · ~4,750 GB (~4.75 TB).**
+**Lane C subtotal: 8 models · ~9,671 B params (~9.67 T) · ~5,135 GB (~5.14 TB).**
 
 ---
 
@@ -217,9 +219,9 @@ that physically possible on a 24 GB machine.** Same for the critic pass (#10) an
 | A — resident | 1 | **27 B → MoE** | **~17 GB** |
 | B — specialists | **14** | ~149 B | ~76 GB |
 | C — giants | **7** | ~8,901 B | ~4,750 GB |
-| **TOTAL** | **22** | **~9.1 T** | **~4.84 TB** |
+| **TOTAL** | **23** | **~9.87 T** | **~5.23 TB** |
 
-**Of the 8 TB drive: ~4.84 TB used, ~3.16 TB free.** Comfortable.
+**Of the 8 TB drive: ~5.23 TB used, ~2.77 TB free.** Still comfortable.
 **Only Lane A belongs on the internal disk** — it streams every request, so it needs the measured 3.44 GB/s. **Lanes B and C go external.** Until the drive arrives, install Lane B selectively. — everything else lives external.
 
 ---
@@ -296,6 +298,7 @@ here is exactly what is confirmed current and what was replaced. **As of 2026-09
 | `Qwen3.8-2.4T-A95B` | 2026-08-12 | |
 | `GLM-5.3` | **2026-08-28** | ⚠️ **Newer than GLM-5.2**, but custom licence vs 5.2's MIT. Both kept deliberately |
 | `GLM-5.3-Flash` | 2026-08-26 | |
+| **`Hy4-preview`** | **2026-08-28** | ⚠️ **Preview.** Apache-2.0, 770B/49B active. **Blocked on Metal — no GGUF/MLX** |
 | `Kimi K3` | 2026-07-27 | |
 | `GLM-5.2` | 2026-06-13 | Kept for its **MIT licence** and best-in-class math, despite 5.3 existing |
 

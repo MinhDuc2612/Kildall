@@ -70,7 +70,7 @@ Everything under `/Users/minhduc/Orbi`. Nothing else belongs to this project.
 | Item | Size | What it is |
 |---|---|---|
 | `Orbiplan.md` | 48 KB | **The plan. Read it first.** Scope, three lanes, 9 build phases, the model-load procedure, risks, and **50 post-plan improvements** |
-| `Orbimodels.md` | 32 KB | **The model list.** 22 models, ~9.1 T params, ~4.84 TB — numbers that sum. Lane A candidates, the dense→MoE conversion section, **plus the cross-family version audit** |
+| `Orbimodels.md` | 32 KB | **The model list.** 23 models, ~9.87 T params, ~5.23 TB — numbers that sum. Lane A candidates, the dense→MoE conversion section, **plus the cross-family version audit** |
 | `Orbichecklist.md` | 11 KB | **Definition of done.** **156 items across 19 groups**, P0/P1/P2, plus the three done-tests |
 | `CLAUDE.md` | this file | Project guide, standing rules, change log |
 | `Logo.png` | 1.0 MB | Brand mark |
@@ -292,6 +292,50 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 ---
 
 # Change Log
+
+## 2026-09-23 — Hy4-preview added to Lane C; Phase 4.1 complete and verified
+
+- **`tencent/Hy4-preview` added as Lane C model 8.** Library now **23 models · ~9.87 T · ~5.23 TB**,
+  leaving 2.77 TB free on the 8 TB drive. `Orbimodels.md` totals, Lane C table, speed table, subtotal
+  and release-date table all updated; `Orbiplan.md` → **v28**.
+- **Facts, verified against the HuggingFace card and the Tencent GitHub repo, not a summary:**
+  **770 B total / 49 B active**, MoE with 256 routed + 1 shared expert, top-8 per token, 78 layers,
+  1M context, **text-only**, **Apache-2.0**, released **2026-08-28**. Claimed: **SWE-Bench Pro 65.7 ·
+  GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1**. Ships FP8 alongside BF16, plus a built-in
+  **MTP layer** and Gated DeepSeek Sparse Attention.
+- 🔑 **Lane C by arithmetic, not preference.** 49 B active × 0.5 bytes = **24.5 GB per token** against
+  ~20 GB usable RAM, so it cannot be resident: **~8.4 s/token on Thunderbolt 4, ~70 min for 500
+  tokens.** It lands in the **same tier as `DeepSeek-V4-Pro-0813`** — also 49 B active, also ~8.4 s —
+  **but at 385 GB against 800 GB, less than half the disk for the same speed.**
+- 🔴 **Blocked on runtime, not merit: no GGUF, no MLX.** BF16 safetensors plus FP8, deployed via
+  vLLM or SGLang across **8 GPUs, tensor-parallel 8** — CUDA-oriented. **It cannot run on Metal
+  today.** Same wall that made candidate 2 *unsupported/unmeasured*. ⚠️ It is also a **preview**, and
+  the standing precedent is Wan 3.0, held as a Phase 5 decision *because it is beta*.
+  **Revisit when a GGUF conversion appears, or if Lane C moves off llama.cpp.**
+- ⚠️ **Recorded explicitly so nobody makes the comparison later: its 65.7 is SWE-Bench *Pro*, while
+  Kimi K3's 76.8/93.4 are SWE-bench *Verified*.** Different, harder benchmark. Ranking them against
+  each other would be a real error.
+- 🔑 **The MTP layer is the part worth remembering** — a model shipping its own draft head bears
+  directly on improvement **#1, cross-lane speculative decoding**, the plan's "biggest unlock."
+  Recorded as a revisit note only: Metal speculative decoding already measured as a loss **even at
+  100% draft acceptance**.
+- **No impact on any finished phase.** Lane C is Phase 6 and **parked** — the drive is not bought.
+  Nothing in Phases 0-3 or 4.1 reads `Orbimodels.md` at runtime, and `skill_catalog.py` was not
+  touched, so the router's behaviour is unchanged.
+- **Phase 4.1 completed and independently verified earlier the same day**, code `32de78d`, remote SHA
+  matching, both trees clean. 16/16 file and shell items; recall, abstention, routing and callable
+  JSON 20/20; CLI 18/18; `check.sh` exits 0.
+  🔑 **GBNF did what I predicted and Codex reported it straight: tools 17/20 → 17/20 first-pass.**
+  Its own words — *"grammar does not repair them"*, *"fixes structural stalls, not semantic copying."*
+  The first attempt was **worse** (callable 11/20, exact 10/20) because canonical property ordering
+  burned the 256-token budget on whitespace; fixed with unordered subset states, failure retained.
+  ⚠️ Two diagnostic JSON envelopes were accidentally overwritten; raw stdout and the full failed-suite
+  result survive, and corrected copies are labelled as such.
+- 🔴 **Decision recorded against Codex's own recap, which proposed chasing the string errors next.**
+  t07/t09/t12 have now survived **four** separate attacks — prompt tuning (traded recall), IQ4_XS
+  (fixed t09, broke recall 20→19), DWQ/MLX (18/20, broke routing r17), and GBNF (no effect). **All
+  three pass post-retry and the gate is green.** Next is **slice 4.2, git and skills**, not three
+  fixture cases.
 
 ## 2026-09-22 — MLX fork closed, and the real reason found: r17 is over-matching, not ambiguity
 
