@@ -241,20 +241,10 @@ def main():
         (tree/'inward-link').symlink_to(tree/'dir/file')
         (tree/'outward-link').symlink_to(outside)
         manifest,rejected=p.nuke_manifest(tree)
-        assert rejected==1 and all(p.guard_path(row[0],tree) for row in manifest)
-        try:
-            p._delete_tree(tree,manifest)
-        except PermissionError:
-            pass
-        else:
-            raise AssertionError('Outward link must block deletion')
-        assert (tree/'dir/file').exists()
-        (tree/'outward-link').unlink()
-        manifest,rejected=p.nuke_manifest(tree)
-        assert not rejected
+        assert rejected==0 and all(Path(row[0]).is_relative_to(tree) for row in manifest)
         p._delete_tree(tree,manifest)
         assert not tree.exists() and outside.exists()
-        passed('Real nuke deletion only in throwaway tree; outward links block, inward links never followed')
+        passed('Real nuke deletion only in throwaway tree; outward and inward links unlinked, never followed')
 
         for suffix in ('', '-wal', '-shm', '-journal'):
             candidate=inner / ('orbi.db'+suffix)

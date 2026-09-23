@@ -83,8 +83,9 @@ After updating from the old runtime flags, run `orbi --stop` before restarting.
 Memory uses SQLite WAL, BM25 and real semantic vectors, with hard limits of
 12 items, 4,000 rendered characters and 300 ms. Personal facts are global;
 project facts and sessions use the current directory. Ask Orbi to remember a
-fact, or start a new prompt in a project to retrieve its context. Phase 1 tools
-are `remember` and `recall`; other lanes and general file/shell tools come later.
+fact, or start a new prompt in a project to retrieve its context. Memory tools
+are `remember` and `recall`. Phase4.1 adds file readers, approved write/edit and
+confined commands; other model lanes remain unavailable.
 For explicitly delimited exact facts, `remember` checks the source before saving,
 retries a mismatch once with a diff, then fails if the copied text still differs.
 This check recognizes explicit source delimiters, not arbitrary natural-language wording.
@@ -156,7 +157,7 @@ Python is pinned to `>=3.12,<3.13`; `requirements.lock` pins the packages.
 See [BASELINE.md](BASELINE.md) for the recorded measurements and
 [../Orbiplan.md](../Orbiplan.md) for the local project plan (kept outside this repository).
 
-## Phase 3 permissions
+## Permissions and Phase4.1 tools
 
 Explicit actions run through a closed executor, without starting a model:
 
@@ -181,14 +182,37 @@ Install copies one existing local artifact, without executing it. Package
 managers, build hooks and arbitrary shell/interpreter execution are unavailable.
 Commit applies the already-staged diff on an existing local branch; it disables
 Git hooks, fsmonitor, signing and maintenance. Linked Git worktrees are unsupported.
-The `shell` action only recognizes `cat PATH`, `ls [PATH]` and `git status`;
-all other forms are refused, including recursive delete, sudo and force-push.
+`run_command` supports `echo`, `printf`, `true`, `false`, `sleep`, `ls`, `cat`,
+`wc`, `pwd` and `cd`, with optional `timeout` (1–3600 seconds) and `background`.
+`cd` persists per project. `shell_job` takes an `id` to inspect a background
+result; jobs survive their calling CLI. Output is bounded and explicitly marks
+truncation; non-UTF8 output includes base64. The `shell` alias retains its old
+read/list/status forms and also uses the same closed command executor.
+No shell syntax, interpreter or arbitrary executable is evaluated. A native
+macOS sandbox denies writes, network and child execution. Recursive delete,
+sudo, force-push and computer control remain refused in code.
+
+File tools are `read_file` (numbered UTF-8), `read_bytes` (offset/length,
+base64), `glob_files` (path/pattern), `grep_files` (path/regex pattern/optional
+file_type), `read_pdf` (text pages) and `read_image` (decoded dimensions and
+macOS Vision OCR). Image scene understanding and scanned-PDF OCR are unavailable.
+Reads are bounded and report truncation; denied or failed reads are errors.
+
+```sh
+orbi tool read_file '{"path":"README.md","start_line":1,"max_lines":20}'
+orbi tool run_command '{"command":"sleep 5","timeout":10,"background":true}'
+orbi tool shell_job '{"id":"JOB_ID"}'
+```
 
 Writes and Git operations are scoped to the hardcoded `~/Orbi/code/` root.
 Realpath containment and descriptor-based file operations reject escapes; parent
 directories must already exist. The permission check has no content/topic filter.
 Existing memory tools retain their behavior and now receive permission audit rows.
-Model-facing tool schemas, prompts and routing remain unchanged for this phase.
+Every model tool call uses schema-derived GBNF on native completion after the
+unchanged Gemma chat template is rendered. Unsupported schemas and incomplete
+calls fail closed. Grammar enforces structure, not exact string content.
+The measured frozen suite remains17/20 first-pass and20/20 after retry. Routing,
+the X no-match fallback and existing memory-tool schemas remain unchanged.
 
 `orbi_permissions` follows the routing log pattern, including rejected,
 declined, failed, cancelled and interrupted decisions. Inspection is project
@@ -198,9 +222,9 @@ All computer input and screen-capture actions are refused until Phase 4C replace
 this temporary guard with its tree-first routing and per-action tier checks.
 
 `orbi nuke` is a dry-run. Deletion additionally requires `--delete` and typing
-exactly `orbi` in the controlling terminal. Outward symlinks are excluded from
-its candidate list and block deletion entirely. The current virtual environment
-has three such links, so this installation cannot be nuked while they remain.
+exactly `orbi` in the controlling terminal. Symlinks inside the root are listed
+and unlinked as entries, including the three outward Python links; their targets
+are never followed or deleted. The live dry-run lists zero paths outside code/.
 No root override exists. Nuke validates its audit database before opening it;
 its final audit is emitted to stdout because successful deletion removes the
 local database too. Destructive tests run only against temporary trees.
@@ -208,3 +232,7 @@ local database too. Destructive tests run only against temporary trees.
 Run `.venv/bin/python test_permissions.py` for the Phase 3 adversarial controls,
 including an empty `SYSTEM_RULES`, symlink escapes, real PTY confirmation,
 computer-action refusals and throwaway-tree deletion.
+
+Phase4.1 checks: `test_phase41.py`, `test_tool_grammar.py`, `test_tool_runtime.py`,
+`test_shell_lifecycle.py`, `test_image_reader.py` and `test_nuke.py`. Detailed
+results and retained failures are in [BENCHMARKS.md](BENCHMARKS.md).

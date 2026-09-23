@@ -58,6 +58,10 @@ TOOLS = [
          "scope": {"type": "string", "enum": ["global", "project", "both"]}},
          "required": ["query", "scope"], "additionalProperties": False}}},
 ]
+from file_tools import TOOLS as FILE_TOOLS
+from shell_tools import TOOLS as SHELL_TOOLS
+TOOLS += FILE_TOOLS + SHELL_TOOLS
+
 
 
 def strict_json(text):
@@ -382,66 +386,30 @@ def fit_messages(config, system, memory_text, previous, current):
 
 
 def stream_reply(config, messages, task):
+    from tool_runtime import chat
     body = dict(messages=messages, tools=TOOLS, tool_choice="auto", parallel_tool_calls=False,
                 temperature=0, top_p=1, samplers=["temperature"], seed=42,
                 max_tokens=512, stream=True, cache_prompt=False)
-    request = urllib.request.Request(url(config) + "/v1/chat/completions",
-        json.dumps(body).encode(), {"Content-Type": "application/json"})
     message = {"role": "assistant", "content": ""}
     message_id = task.message(message)
-    calls, finished, last_save = {}, None, time.monotonic()
+    last_save = time.monotonic()
     task.set("waiting")
+
+    def content(text):
+        nonlocal last_save
+        task.set("thinking")
+        message["content"] += text
+        print(text, end="", flush=True)
+        if time.monotonic() - last_save >= .1:
+            task.message(message, message_id)
+            last_save = time.monotonic()
+
     try:
-        with _OPENER.open(request, timeout=180) as response:
-            for raw in response:
-                if len(raw) > 1_000_000:
-                    raise ValueError("Oversized stream event")
-                if not raw.startswith(b"data:"):
-                    continue
-                data = raw[5:].strip()
-                if data == b"[DONE]":
-                    if finished not in ("stop", "length", "tool_calls"):
-                        raise RuntimeError("Stream ended without a valid finish reason")
-                    break
-                event = strict_json(data)
-                if "error" in event:
-                    raise RuntimeError(str(event["error"]))
-                if not event.get("choices"):
-                    continue
-                choice = event["choices"][0]
-                finished = choice.get("finish_reason") or finished
-                delta = choice.get("delta", {})
-                task.set("thinking")
-                text = delta.get("content") or ""
-                if not isinstance(text, str):
-                    raise ValueError("Invalid streamed content")
-                if text:
-                    message["content"] += text
-                    print(text, end="", flush=True)
-                for part in delta.get("tool_calls", []):
-                    index = part["index"]
-                    if type(index) is not int or not 0 <= index < 8:
-                        raise ValueError("Invalid tool-call index")
-                    call = calls.setdefault(index, {"id": "", "type": "function",
-                                                   "function": {"name": "", "arguments": ""}})
-                    if part.get("id"):
-                        call["id"] = part["id"]
-                    for key in ("name", "arguments"):
-                        call["function"][key] += part.get("function", {}).get(key, "")
-                if time.monotonic() - last_save >= .1:
-                    task.message(message, message_id)
-                    last_save = time.monotonic()
-            else:
-                raise RuntimeError("Connection closed before the stream completed")
-        if calls:
-            if finished != "tool_calls" or set(calls) != {0} or not calls[0]["id"]:
-                raise ValueError("Expected exactly one complete tool call")
-            message["tool_calls"] = [calls[0]]
-        elif finished == "tool_calls":
-            raise ValueError("Missing tool call")
+        response = chat(url(config), body, on_text=content)
+        message.update(response["choices"][0]["message"])
         return message
     finally:
-        # Includes the final buffered text on Ctrl-C, broken pipes and transport failures.
+        # Includes buffered text on Ctrl-C, broken pipes and transport failures.
         task.message(message, message_id)
 
 
@@ -462,8 +430,8 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
         "say when a requested fact is absent. Personal facts apply globally; project facts apply only here. "
         "Use remember when asked to retain a fact: L1 for individual facts, L2 for project context, "
         "L3 for stable personal preferences. Preserve exact wording and punctuation. "
-        "Use recall if the current memory block lacks needed information. Do not claim to run shell "
-        "commands or edit files: Phase 1 provides memory tools only."
+        "Use recall if the current memory block lacks needed information. "
+        "Use the available tools for files and confined commands; report their actual results."
     )
     try:
         previous = history(config["paths"]["db_path"], session)
@@ -719,7 +687,7 @@ def main():
 
 def permission_main(argv):
     from permissions import nuke, run_action
-    parser = argparse.ArgumentParser(description="Phase 3 guarded actions (no model inference)")
+    parser = argparse.ArgumentParser(description="Guarded typed actions (no model inference)")
     if argv[0] == "nuke":
         parser.add_argument("--delete", action="store_true", help="Requires typing orbi in the controlling terminal")
     elif argv[0] == "tool":
@@ -751,6 +719,9 @@ def permission_main(argv):
                 for key in ("arguments", "preview"):
                     row[key] = strict_json(row[key]) if row[key] else None
         print(json.dumps(result, ensure_ascii=True, indent=2))
+        if argv[0] == "tool" and isinstance(result, dict) and result.get("exit_code") is not None:
+            code = result["exit_code"]
+            return code if code >= 0 else 128 - code
         return 0
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)

@@ -29,6 +29,9 @@ def chat(url, messages, **options):
     body = dict(messages=system_messages(messages), temperature=0, top_p=1, samplers=["temperature"], seed=42, max_tokens=256,
                 cache_prompt=False, stream=False)
     body.update(options)
+    if body.get("tools"):
+        from tool_runtime import chat as constrained_chat
+        return constrained_chat(url, body)
     request = urllib.request.Request(
         url + "/v1/chat/completions", json.dumps(body).encode(),
         {"Content-Type": "application/json"})

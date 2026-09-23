@@ -1,8 +1,10 @@
 """Schema-constrained Gemma 4 native calls for llama.cpp b10809.
 
-Generation uses schema property order; parsing accepts any order. Unsupported
+Generation and parsing accept any property order without duplicate keys. Unsupported
 schema constraints fail closed. Native strings are raw (including backslashes),
 so their delimiter cannot itself be represented inside a string.
+Unbounded integers generate at most 100 digits. Unbounded numbers generate at most 100 integer/fractional digits and exponent
+magnitude 99, keeping all generated decimals finite without repairing values.
 """
 
 import json
@@ -52,7 +54,12 @@ def _fixed_range(low, high):
 def _unsigned_range(low, high):
     if high is None:
         size = len(str(low))
-        return f"({_fixed_range(str(low), '9' * size)}) | [1-9] [0-9]{{{size},}}"
+        if size > 100:
+            raise ValueError("Integer bounds exceed the 100-digit generation limit")
+        first = f"({_fixed_range(str(low), '9' * size)})"
+        return first if size == 100 else first + f" | [1-9] [0-9]{{{size},99}}"
+    if len(str(high)) > 100:
+        raise ValueError("Integer bounds exceed the 100-digit generation limit")
     pieces = []
     for size in range(len(str(low)), len(str(high)) + 1):
         first = max(low, 0 if size == 1 else 10 ** (size - 1))
@@ -67,7 +74,7 @@ def _integer_bounds(schema):
         if key not in schema:
             continue
         value = schema[key]
-        if type(value) not in (int, float) or not math.isfinite(value):
+        if type(value) not in (int, float) or (type(value) is float and not math.isfinite(value)):
             raise ValueError(f"Invalid {key}")
         if key == "minimum":
             low = math.ceil(value) if low is None else max(low, math.ceil(value))
@@ -122,7 +129,8 @@ class _Compiler:
             raise ValueError("Schema must be an object")
         kind = schema.get("type")
         if isinstance(kind, list):
-            if len(kind) != 2 or kind.count("null") != 1 or len(set(kind)) != 2:
+            if (len(kind) != 2 or any(not isinstance(t, str) for t in kind)
+                    or kind.count("null") != 1 or len(set(kind)) != 2):
                 raise ValueError("Only nullable type unions are supported")
             branch = dict(schema, type=next(t for t in kind if t != "null"))
             if "enum" in schema:
@@ -136,7 +144,7 @@ class _Compiler:
             "string": set(), "boolean": set(), "null": set(), "number": set(),
             "integer": {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"},
         }
-        if kind not in supported:
+        if not isinstance(kind, str) or kind not in supported:
             raise ValueError(f"Unsupported schema type: {kind!r}")
         unknown = set(schema) - supported[kind] - _METADATA - {"type", "enum"}
         if unknown:
@@ -155,19 +163,28 @@ class _Compiler:
             if any(not isinstance(k, str) for k in required) or len(required) != len(set(required)) or set(required) - properties.keys():
                 raise ValueError("Invalid required property names")
             children = [(key, self.schema(value)) for key, value in properties.items()]
-            tails = {False: self.add('"}"'), True: self.add('"}"')}
-            for key, child in reversed(children):
-                next_tails = {}
-                for previous in (False, True):
-                    field = f'{_literal(",") + " ws " if previous else ""}{_literal(key)} ws ":" ws {child} ws {tails[True]}'
-                    if key not in required:
-                        field += f" | {tails[previous]}"
-                    next_tails[previous] = self.add(field)
-                tails = next_tails
-            return self.add(f'"{{" ws {tails[False]}')
+            # ponytail: subset states cap objects at 10 keys; larger schemas need a different compiler.
+            if len(children) > 10:
+                raise ValueError("Native object schemas support at most 10 properties")
+            states = {}
+            required_bits = sum(1 << i for i, (key, _) in enumerate(children) if key in required)
+            def state(mask):
+                if mask in states:
+                    return states[mask]
+                name = self.add('"}"')
+                states[mask] = name
+                choices = ['"}"'] if mask & required_bits == required_bits else []
+                for i, (key, child) in enumerate(children):
+                    if not mask & (1 << i):
+                        prefix = '"," ws ' if mask else ''
+                        choices.append(f'{prefix}{_literal(key)} ws ":" ws {child} ws {state(mask | (1 << i))}')
+                self.rules[name] = " | ".join(choices)
+                return name
+            return self.add(f'"{{" ws {state(0)}')
         if kind == "array":
             low, high = schema.get("minItems", 0), schema.get("maxItems")
-            if type(low) is not int or low < 0 or (high is not None and (type(high) is not int or high < low)):
+            if (type(low) is not int or low < 0
+                    or ("maxItems" in schema and (type(high) is not int or high < low))):
                 raise ValueError("Invalid array length bounds")
             item = self.schema(schema.get("items"))
             if high == 0:
@@ -179,7 +196,7 @@ class _Compiler:
             return self.add(f'"[" ws {sequence} "]"')
         expression = {
             "string": "native-string", "boolean": '"true" | "false"', "null": '"null"',
-            "number": r'"-"? ("0" | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [+-]? [0-9]+)?',
+            "number": r'"-"? ("0" | [1-9] [0-9]{0,99}) ("." [0-9]{1,100})? ([eE] [+-]? [0-9]{1,2})?',
         }.get(kind)
         return self.add(_integer_rule(schema) if kind == "integer" else expression)
 

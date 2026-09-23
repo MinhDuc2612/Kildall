@@ -1,4 +1,4 @@
-"""Phase 3: closed action boundary. No shell, package hooks, or computer execution."""
+"""Closed typed action boundary; all tools share one permission path."""
 
 from contextlib import contextmanager
 import base64
@@ -133,7 +133,7 @@ def terminal_confirm(preview, word="yes"):
 def decision(db_path, project, operation, arguments, task=None):
     from orbi import database, process_start
     ident = uuid.uuid4().hex
-    row = dict(id=ident, tier="Never", status="checking", preview=None, reason=None)
+    row = dict(id=ident, db_path=db_path, tier="Never", status="checking", preview=None, reason=None)
 
     def update(**values):
         row.update(values)
@@ -156,7 +156,7 @@ def decision(db_path, project, operation, arguments, task=None):
         update(status="declined" if row["status"] == "declined" else status, reason=str(error))
         raise
     else:
-        if row["status"] not in ("rejected", "authorized"):
+        if row["status"] not in ("rejected", "authorized", "done", "failed", "timed_out", "background", "interrupted"):
             update(status="done")
 
 
@@ -223,7 +223,7 @@ def staged(repo):
 
 
 def execute(operation, args, record, project):
-    """The only executable Phase 3 operations; unknown names and command forms fail closed."""
+    """The sole permission boundary; unknown names and command forms fail closed."""
     if operation == "shell":
         fields(args, "command")
         parts = shlex.split(args["command"])
@@ -234,7 +234,21 @@ def execute(operation, args, record, project):
         elif len(parts) == 2 and parts[0] == "cat":
             operation, args = "read", {"path": parts[1]}
         else:
-            raise PermissionError("Command is outside the closed Phase 3 action set; " + COMPUTER_REASON)
+            operation = "run_command"
+    import file_tools
+    import shell_tools
+    from tool_grammar import validate_arguments
+    definition = next((tool['function'] for tool in file_tools.TOOLS + shell_tools.TOOLS
+                       if tool['function']['name'] == operation), None)
+    if definition:
+        validate_arguments(definition['parameters'], args)
+    if operation in ('run_command', 'shell_job'):
+        return shell_tools.execute(operation, args, record, project)
+    if operation in file_tools.READS:
+        authorize(record, 'Auto')
+        return file_tools.execute(operation, args, project)
+    if operation in ('write', 'edit'):
+        args = dict(args, path=str(file_tools.path_for(args['path'], project)))
     if operation in ("read", "ls"):
         fields(args, "path")
         path = Path(os.path.expanduser(args["path"]))
@@ -292,7 +306,7 @@ def execute(operation, args, record, project):
         authorize(record, "Auto")
         # A data-only value: never parse its contents as actions, roles, or approval.
         return {"source": "untrusted_web", "text": args["text"]}
-    raise PermissionError("Action is not executable in Phase 3; " + COMPUTER_REASON)
+    raise PermissionError("Action is outside the closed executor; " + COMPUTER_REASON)
 
 
 def run_action(db_path, project, operation, raw_args, task=None):
@@ -320,7 +334,7 @@ def nuke_manifest(root=CODE_ROOT):
             if not child.is_absolute() or not child.is_relative_to(root):
                 raise PermissionError("Deletion entry is outside the allowed root")
             guard_path(child.parent, root)
-            item = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            item = os.lstat(name, dir_fd=fd)
             if stat.S_ISDIR(item.st_mode):
                 guard_path(child, root)
                 nested = os.open(name, flags, dir_fd=fd)
@@ -357,7 +371,7 @@ def _delete_tree(root, manifest):
             guard_path(root, root)
             fd = os.open(root.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
             try:
-                info = os.stat(root.name, dir_fd=fd, follow_symlinks=False)
+                info = os.lstat(root.name, dir_fd=fd)
                 if (info.st_dev, info.st_ino, info.st_mode) != (dev, ino, mode):
                     raise RuntimeError("Deletion root changed")
                 os.rmdir(root.name, dir_fd=fd)
@@ -365,7 +379,7 @@ def _delete_tree(root, manifest):
                 os.close(fd)
         else:
             with parent_fd(path, root, allow_leaf_symlink=stat.S_ISLNK(mode)) as (fd, leaf):
-                info = os.stat(leaf, dir_fd=fd, follow_symlinks=False)
+                info = os.lstat(leaf, dir_fd=fd)
                 if (info.st_dev, info.st_ino, info.st_mode) != (dev, ino, mode):
                     raise RuntimeError("Deletion candidate changed")
                 (os.rmdir if stat.S_ISDIR(mode) else os.unlink)(leaf, dir_fd=fd)
@@ -400,7 +414,7 @@ def nuke(*, delete=False):
             return report
         if rejected:
             record["update"](tier="Never")
-            raise PermissionError("Nuke refused: outward symlinks must be resolved before deletion")
+            raise PermissionError("Nuke refused: scan contains unsafe paths")
         record["update"](status="waiting")
         if not terminal_confirm(report, "orbi"):
             record["update"](status="declined")
