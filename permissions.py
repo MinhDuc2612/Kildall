@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shlex
 import stat
 import subprocess
@@ -130,10 +131,11 @@ def terminal_confirm(preview, word="yes"):
 
 
 @contextmanager
-def decision(db_path, project, operation, arguments, task=None):
+def decision(db_path, project, operation, arguments, task=None, *, requested=()):
     from orbi import database, process_start
     ident = uuid.uuid4().hex
-    row = dict(id=ident, db_path=db_path, tier="Never", status="checking", preview=None, reason=None)
+    row = dict(id=ident, db_path=db_path, task=task, requested=frozenset(requested),
+               tier="Never", status="checking", preview=None, reason=None)
 
     def update(**values):
         row.update(values)
@@ -161,6 +163,8 @@ def decision(db_path, project, operation, arguments, task=None):
 
 
 def authorize(record, tier, preview=None):
+    if tier == 'Confirm' and record['requested'] & {'commit', 'push', 'pr'}:
+        preview = dict(preview or {}, user_requested=sorted(record['requested']))
     record["update"](tier=tier, status="waiting" if tier == "Confirm" else "running", preview=preview)
     if tier == "Confirm":
         if not terminal_confirm(preview):
@@ -187,6 +191,20 @@ def git_repository(value):
             guard_path(path)
             if path.is_symlink():
                 raise PermissionError("Symlinked Git metadata is not supported")
+            if not (path.is_file() or path.is_dir()):
+                raise PermissionError("Git metadata must be regular files or directories")
+            if path.is_file() and path.stat().st_nlink != 1:
+                raise PermissionError("Hard-linked Git metadata is not supported")
+    if (directory / "objects/info/alternates").exists():
+        raise PermissionError("Redirected Git object stores are not supported")
+    # Do not interpret includes or allow repo text to register executable helpers.
+    config = subprocess.run(["/opt/homebrew/bin/git", "config", "--file", str(directory / "config"),
+        "--no-includes", "--null", "--list"], env={"PATH": "/usr/bin:/bin"},
+        capture_output=True, check=True, timeout=10).stdout
+    safe = re.compile(r"(?:core\.(?:repositoryformatversion|filemode|bare|logallrefupdates|ignorecase|precomposeunicode|hookspath|fsmonitor|untrackedcache|attributesfile)|user\.(?:name|email)|commit\.gpgsign|diff\.external|gc\.auto|maintenance\.auto|remote\.[^.]+\.(?:url|fetch)|branch\..+\.(?:remote|merge))$")
+    for entry in config.split(b"\0"):
+        if entry and not safe.fullmatch(entry.split(b"\n", 1)[0].decode()):
+            raise PermissionError("Unsupported Git configuration key: " + entry.split(b"\n", 1)[0].decode())
     return repo
 
 
@@ -194,13 +212,15 @@ def git(repo, *args, index=None):
     # Fixed builtin operations only; no user argv, aliases, shell, hooks, filters or signing.
     env = dict(PATH="/usr/bin:/bin", HOME=str(Path.home()), LANG="C", GIT_CONFIG_NOSYSTEM="1",
                GIT_CONFIG_GLOBAL="/dev/null", GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0",
-               GIT_DIR=str(repo / ".git"), GIT_WORK_TREE=str(repo))
+               GIT_DIR=str(repo / ".git"), GIT_WORK_TREE=str(repo), GIT_NO_LAZY_FETCH="1",
+               GIT_NO_REPLACE_OBJECTS="1", GIT_ATTR_NOSYSTEM="1", GIT_PAGER="cat")
     if index:
         env["GIT_INDEX_FILE"] = str(index)
     result = subprocess.run(["/opt/homebrew/bin/git", "-c", "core.hooksPath=/dev/null",
         "-c", "core.fsmonitor=false", "-c", "core.untrackedCache=false", "-c", "core.attributesFile=/dev/null",
-        "-c", "commit.gpgSign=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false", *args],
-        cwd=repo, env=env, capture_output=True, check=True)
+        "-c", "commit.gpgSign=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false",
+        "-c", "core.bare=false", "-c", "submodule.recurse=false", *args],
+        cwd=repo, env=env, capture_output=True, check=True, timeout=120)
     return result.stdout
 
 
@@ -237,11 +257,23 @@ def execute(operation, args, record, project):
             operation = "run_command"
     import file_tools
     import shell_tools
+    import git_tools
+    import instruction_skills
     from tool_grammar import validate_arguments
-    definition = next((tool['function'] for tool in file_tools.TOOLS + shell_tools.TOOLS
+    definition = next((tool['function'] for tool in file_tools.TOOLS + shell_tools.TOOLS + git_tools.TOOLS + [instruction_skills.TOOL]
                        if tool['function']['name'] == operation), None)
     if definition:
         validate_arguments(definition['parameters'], args)
+    if operation in git_tools.NAMES:
+        return git_tools.execute(operation, args, record, project)
+    if operation in ('skills', 'load_skill'):
+        if operation == 'skills':
+            fields(args)
+        from orbi import TOOLS
+        authorize(record, 'Auto')
+        available = {t['function']['name'] for t in TOOLS}
+        return (instruction_skills.discover(project, available) if operation == 'skills' else
+                instruction_skills.load(args['name'], project, available))
     if operation in ('run_command', 'shell_job'):
         return shell_tools.execute(operation, args, record, project)
     if operation in file_tools.READS:
@@ -283,6 +315,8 @@ def execute(operation, args, record, project):
         replace_file(path, before, content)
         return {"path": str(path), "sha256": hashlib.sha256(content).hexdigest()}
     if operation == "commit":
+        if 'commit' not in record['requested']:
+            raise PermissionError("Commit requires explicit user intent")
         fields(args, "path", "message")
         repo = git_repository(args["path"])
         before = staged(repo)
@@ -311,7 +345,9 @@ def execute(operation, args, record, project):
 
 def run_action(db_path, project, operation, raw_args, task=None):
     from orbi import strict_json
-    with decision(db_path, project, operation, raw_args, task) as record:
+    # This entry point is a direct user CLI action, never a model/skill dispatch.
+    requested = (operation.removeprefix('git_'),) if task is None else ()
+    with decision(db_path, project, operation, raw_args, task, requested=requested) as record:
         args = strict_json(raw_args) if isinstance(raw_args, str) else raw_args
         return execute(operation, args, record, project)
 

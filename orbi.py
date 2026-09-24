@@ -60,7 +60,10 @@ TOOLS = [
 ]
 from file_tools import TOOLS as FILE_TOOLS
 from shell_tools import TOOLS as SHELL_TOOLS
-TOOLS += FILE_TOOLS + SHELL_TOOLS
+from git_tools import TOOLS as GIT_TOOLS
+from instruction_skills import TOOL as SKILL_TOOL
+BASE_TOOLS = TOOLS + FILE_TOOLS + SHELL_TOOLS
+TOOLS = BASE_TOOLS + GIT_TOOLS + [SKILL_TOOL]
 
 
 
@@ -366,14 +369,15 @@ def history(path, session):
     return groups
 
 
-def fit_messages(config, system, memory_text, previous, current):
+def fit_messages(config, system, memory_text, previous, current, *, tools=None):
+    tools = BASE_TOOLS if tools is None else tools
     previous = list(previous)
     while True:
         messages = [{"role": "system", "content": system + "\n\n<memory>\n" + memory_text + "\n</memory>"}]
         messages += [message for turn in previous for message in turn] + current
         messages = system_messages(messages)
         prompt = json_request(url(config) + "/apply-template", {
-            "messages": messages, "tools": TOOLS, "add_generation_prompt": True})["prompt"]
+            "messages": messages, "tools": tools, "add_generation_prompt": True})["prompt"]
         count = len(json_request(url(config) + "/tokenize", {"content": prompt, "add_special": False})["tokens"])
         if count + 512 + 32 <= config["runtime"]["context_size"]:
             return messages
@@ -385,9 +389,9 @@ def fit_messages(config, system, memory_text, previous, current):
             raise ValueError("This request exceeds the 4,096-token context; shorten it")
 
 
-def stream_reply(config, messages, task):
+def stream_reply(config, messages, task, *, tools=None):
     from tool_runtime import chat
-    body = dict(messages=messages, tools=TOOLS, tool_choice="auto", parallel_tool_calls=False,
+    body = dict(messages=messages, tools=BASE_TOOLS if tools is None else tools, tool_choice="auto", parallel_tool_calls=False,
                 temperature=0, top_p=1, samplers=["temperature"], seed=42,
                 max_tokens=512, stream=True, cache_prompt=False)
     message = {"role": "assistant", "content": ""}
@@ -413,13 +417,17 @@ def stream_reply(config, messages, task):
         task.message(message, message_id)
 
 
-def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False):
+def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=()):
     with activity(config["paths"]["db_path"]):
-        return _run_turn(config, memory, session, project, prompt, route_mode=route_mode, explain=explain)
+        return _run_turn(config, memory, session, project, prompt, route_mode=route_mode, explain=explain,
+                         git_intent=git_intent, skills=skills)
 
 
-def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False):
+def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=()):
     task = Task(config["paths"]["db_path"], session)
+    # Extra schemas change model behavior even on unrelated requests. Keep the
+    # established surface until the user explicitly requests a Git/skill task.
+    tool_options = {'tools': TOOLS} if git_intent or skills else {}
     current = [{"role": "user", "content": prompt}]
     outcome, answer = "error", []
     copy_retry_used, pending_copy = False, False
@@ -464,12 +472,18 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 print(text, flush=True)
                 outcome = "deferred" if route_mode == "job" else "not_installed"
                 return 0 if route_mode == "job" else 3
+        for name in skills:
+            from permissions import run_action
+            pack = run_action(task.path, project, 'load_skill', {'name': name}, task.id)
+            message = dict(role='user', content='Requested instruction skill:\n' + json.dumps(pack))
+            current.append(message)
+            task.message(message)
         ensure_runtime(config)
         recalled = memory.retrieve(prompt, project=project)
         memory_text = recalled["text"]
         for _ in range(8):
-            messages = fit_messages(config, system, memory_text, previous, current)
-            reply = stream_reply(config, messages, task)
+            messages = fit_messages(config, system, memory_text, previous, current, **tool_options)
+            reply = stream_reply(config, messages, task, **tool_options)
             current.append(reply)
             answer.append(reply["content"])
             if not reply.get("tool_calls"):
@@ -480,7 +494,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
             call = reply["tool_calls"][0]
             function = call["function"]["name"]
             from permissions import authorize, decision, execute
-            with decision(task.path, project, function, call["function"]["arguments"], task.id) as permission:
+            with decision(task.path, project, function, call["function"]["arguments"], task.id, requested=git_intent) as permission:
                 args = strict_json(call["function"]["arguments"])
                 if not isinstance(args, dict):
                     raise ValueError("Tool arguments must be an object")
@@ -575,7 +589,7 @@ def schedule_backups(config):
 
 def main():
     argv = sys.argv[1:]
-    if argv[:1] in (["tool"], ["permissions"], ["nuke"]):
+    if argv[:1] in (["tool"], ["permissions"], ["nuke"], ["skills"]):
         return permission_main(argv)
     route_mode = None
     if argv[:1] == ["ask"]:
@@ -585,6 +599,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", nargs="*")
     parser.add_argument("--continue", dest="resume", action="store_true")
+    parser.add_argument('--git', choices=['tools', 'commit', 'push', 'pr'], action='append', default=[],
+                        help='Enable Git/skill tools for this prompt; commit/push/pr also declare intent, still requiring confirmation')
+    parser.add_argument('--skill', action='append', default=[], help='Load a named instruction pack for this prompt')
     if route_mode is not None:
         parser.add_argument("--explain", action="store_true", help="Print the recorded routing reason to stderr")
     if route_mode == "auto":
@@ -637,6 +654,8 @@ def main():
             return 0
         prompt = " ".join(args.prompt)
         interactive = sys.stdin.isatty() and not prompt
+        if interactive and (args.git or args.skill):
+            raise ValueError('--git and --skill require a one-shot prompt')
         if route_mode == "job":
             interactive = False
         if not sys.stdin.isatty():
@@ -672,7 +691,7 @@ def main():
                              explain=getattr(args, "explain", False))
         else:
             return run_turn(config, memory, session, project, prompt, route_mode=route_mode,
-                            explain=getattr(args, "explain", False))
+                            explain=getattr(args, "explain", False), git_intent=args.git, skills=args.skill)
         return 0
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)
@@ -693,6 +712,8 @@ def permission_main(argv):
     elif argv[0] == "tool":
         parser.add_argument("operation", choices=None)
         parser.add_argument("arguments", help="JSON object; relative paths use the current directory")
+    elif argv[0] == 'skills':
+        pass
     else:
         parser.add_argument("id", nargs="?", help="Inspect one decision, or list this project's decisions")
     args = parser.parse_args(argv[1:])
@@ -707,6 +728,9 @@ def permission_main(argv):
         if argv[0] == "tool":
             with activity(path):
                 result = run_action(path, project, args.operation, args.arguments)
+        elif argv[0] == 'skills':
+            with activity(path):
+                result = run_action(path, project, 'skills', {})
         else:
             with database(path) as db:
                 rows = db.execute("SELECT * FROM orbi_permissions WHERE project=? "

@@ -3,7 +3,7 @@ name = "orbi"
 version = "0.1.0"
 description = "Local terminal assistant with bounded project memory"
 requires-python = ">=3.12,<3.13"
-dependencies = ["mlx-lm==0.31.3", "numpy==2.5.2"]
+dependencies = ["mlx-lm==0.31.3", "numpy==2.5.2", "PyYAML==6.0.3"]
 
 [project.scripts]
 orbi = "orbi:main"
@@ -13,4 +13,4 @@ requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["orbi", "memory", "tool_validation", "routing", "skill_catalog", "permissions", "tool_grammar", "tool_runtime", "file_tools", "shell_tools", "image_reader"]
+py-modules = ["orbi", "memory", "tool_validation", "routing", "skill_catalog", "permissions", "tool_grammar", "tool_runtime", "file_tools", "shell_tools", "image_reader", "git_tools", "instruction_skills"]

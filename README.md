@@ -214,6 +214,50 @@ calls fail closed. Grammar enforces structure, not exact string content.
 The measured frozen suite remains17/20 first-pass and20/20 after retry. Routing,
 the X no-match fallback and existing memory-tool schemas remain unchanged.
 
+Phase4.2 adds `git_read` (status/diff/log), `git_branch`, `git_switch`,
+`git_commit`, `git_push` and `git_pr` through that same executor and grammar.
+Enable this tool set with `orbi --git tools "Show Git status"`, or invoke a
+typed action directly with `orbi tool`. `--git commit|push|pr` and `--skill NAME`
+also enable it. Default requests retain the exact Phase4.1 tool definitions;
+adding unrelated definitions caused a measured regression on a memory request.
+Reads are Auto; mutations show their exact preview and require terminal confirmation.
+Model commits, pushes and PRs additionally require explicit intent for that prompt:
+`orbi --git commit "Review the staged diff and commit it"`. Repeat `--git` for
+another requested action. Direct `orbi tool` invocation is also explicit intent.
+Ordinary prompt or skill text cannot grant it. A model commit must read the staged
+diff and submit its returned hash with a message derived from those changes.
+Only already-staged changes are committed; local Git author name/email must exist.
+Switching requires a clean worktree and supports regular-file trees, not symlink
+or submodule trees; hidden assume-unchanged/skip-worktree index entries are refused.
+Staged/tree diffs include exact gitlink summaries; submodule worktree diff is unavailable.
+Linked worktrees and executable/redirecting Git configuration
+are rejected. Push supports GitHub HTTPS (installed `gh` credentials) and in-root
+bare origins without active hooks, redirected stores or symbolic branch refs.
+The destination is one explicit feature branch;
+main/master, force, mirror and arbitrary refspecs are refused. PR creation
+uses the GitHub API after explicit push, so it cannot silently push or fork.
+
+`orbi skills` lists instruction packs without loading a model. Global packs live
+in `code/skills/NAME/SKILL.md`; project packs in `PROJECT/.orbi/skills/NAME/SKILL.md`
+override the same global name. Names use lowercase letters, digits and hyphens.
+Each file has YAML frontmatter followed by Markdown instructions:
+
+```markdown
+---
+name: review
+description: Review the current Git changes
+tools: [git_read]
+---
+Read the diff and report concrete problems with file references.
+```
+
+Load on demand with `orbi --skill review "Review my changes"` or the model's
+`load_skill` tool. Tool declarations are checked against available tools and never
+grant permission. Packs are data, not executable scripts; symlinks, invalid
+metadata and files over32KiB fail explicitly. `test_phase42.py` checks all11 items,
+adversarial boundaries and the new tool grammars. PR transport is fixture-tested;
+the test does not publish a live PR.
+
 `orbi_permissions` follows the routing log pattern, including rejected,
 declined, failed, cancelled and interrupted decisions. Inspection is project
 scoped. `web_data` accepts a `text` field and returns inert untrusted data;
