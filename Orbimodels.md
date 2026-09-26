@@ -1,6 +1,6 @@
 # Orbimodels — The Explicit Model List
 
-**v1 · 2026-09-05.** The concrete answer to "which models, how big, how much disk."
+**v1 · 2026-09-05.** The concrete answer to "which models, how big, how much disk." *(Product renamed Kildall 2026-09-27; model list unchanged.)*
 Replaces the soft "~26 models, ~4.9 TB" in `Orbiplan.md`. **Every number here sums.**
 
 ---

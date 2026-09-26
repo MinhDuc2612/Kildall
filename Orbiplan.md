@@ -1,6 +1,6 @@
-# Orbiplan — Building Orbi
+# Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v30 · 2026-09-26.** Design locked. **Orbi runs the real giants, unmodified. No training.**
+**v31 · 2026-09-27.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -24,9 +24,9 @@ this file = how it gets built.
 | **Lane A model** | ✅ **Gemma 4 26B-A4B** UD-IQ3_S, `--cache-ram 0` — **29.33 tok/s measured** |
 | **Speed, Lane A** | **19.48 tok/s measured** on this M4 (qwen3:8b, 2026-09-06) |
 | **Speed, Lane C giants** | **~2.2 s/token (Flash tier) to ~17.9 s/token (Kimi K3)** — varies ~8× by active params |
-| **Code lives at** | **`~/Orbi/code`** |
+| **Code lives at** | **`~/Kildall/code`** |
 | **Built by** | **you, via Codex** |
-| **Name** | 🔄 **Renaming to Kildall** — after Gary Kildall (CP/M), computing's classic underdog. Decided 2026-09-26; **rename slice runs after Phase 4.3** (see change log v30). Until then everything still says Orbi |
+| **Name** | ✅ **Kildall** — renamed from Orbi 2026-09-27 (code `70eb4e8`, repo `MinhDuc2612/Kildall`), after Gary Kildall (CP/M). `orbi` still works as a command alias for one release |
 | **Licence** | ✅ **MIT** — Orbi's own code. **Model weights keep their own licences** (see risk 9) |
 | **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — drive is 1+ month out** |
 
@@ -162,7 +162,7 @@ quality, at zero training cost.**
 
 ```bash
 sudo sysctl iogpu.wired_limit_mb=20480     # YOURS to run. Needs a password. Resets on reboot.
-cd ~/Orbi/code
+cd ~/Kildall/code
 python3.12 -m venv .venv                   # your default python3 is 3.14 — unsupported
 source .venv/bin/activate
 pip install mlx-lm && pip freeze > requirements.lock
@@ -171,23 +171,23 @@ ollama run qwen3:8b --verbose "test"       # write the tok/s down
 
 ## ⚠️ Two rules that follow from putting the code inside the vault
 
-**1. `orbi nuke` must be scoped to `~/Orbi/code` and nothing else.** The code now lives *inside* the
-research vault, so the old rule — "never touches `~/Orbi/`" — is impossible. Replace it with an
+**1. `kildall nuke` must be scoped to `~/Kildall/code` and nothing else.** The code now lives *inside* the
+research vault, so the old rule — "never touches `~/Kildall/`" — is impossible. Replace it with an
 allow-list of exactly one path:
 
-| `orbi nuke` may delete | `orbi nuke` must NEVER touch |
+| `kildall nuke` may delete | `kildall nuke` must NEVER touch |
 |---|---|
-| `~/Orbi/code/` **only** | `~/Orbi/Researchhub/` · `Orbiplan.md` · `Orbimodels.md` · `Orbichecklist.md` · `CLAUDE.md` · `Logo.png` · `.obsidian/` |
+| `~/Kildall/code/` **only** | `~/Kildall/Researchhub/` · `Orbiplan.md` · `Orbimodels.md` · `Orbichecklist.md` · `CLAUDE.md` · `Logo.png` · `Klogo.png` · `.obsidian/` |
 
-**Test it before trusting it:** dry-run must list only paths under `~/Orbi/code/`. If it lists
+**Test it before trusting it:** dry-run must list only paths under `~/Kildall/code/`. If it lists
 anything else, the guard is wrong. **This is the single most dangerous command in the project.**
 
-**2. Exclude `code/` from Obsidian.** `~/Orbi` is an Obsidian vault. A Python project puts tens of
+**2. Exclude `code/` from Obsidian.** `~/Kildall` is an Obsidian vault. A Python project puts tens of
 thousands of files in `.venv/`, and Obsidian will try to index all of them. Add `code/` to
 Settings → Files & Links → Excluded files.
 
-⚠️ **Never use `~/orbi` (lowercase).** Your volume is **case-insensitive** — verified — so `~/orbi`
-and `~/Orbi` are **the same directory**.
+⚠️ **Never use `~/kildall` (lowercase).** Your volume is **case-insensitive** — verified — so `~/kildall`
+and `~/Kildall` are **the same directory**.
 
 ## Phase 1 — CLI, memory, orbs, and the Lane A decision
 
@@ -554,9 +554,9 @@ changes what Orbi promises. #7 (clustering) costs hardware. Everything else is a
 | **Rollback** | skills, prompts, config in git · memory backed up nightly · `orbi rollback` |
 | **Logs** | L0 90 days · actions 180 days · backups 14 days · **alarm if `orbi.db` > 2 GB** |
 | **Benchmarks** | weekly. **>10% throughput drop blocks `dev` → `stable`** |
-| **Uninstall** | `orbi nuke`, dry-run default. **Deletes `~/Orbi/code/` only** — never `Researchhub/`, the planning files, or `.obsidian/` |
+| **Uninstall** | `kildall nuke`, dry-run default. **Deletes `~/Kildall/code/` only** — never `Researchhub/`, the planning files, or `.obsidian/` |
 | **MCP** | Orbi is an MCP client. ⚠️ `n8n` and `imessage` currently fail to connect |
-| **Packaging** | `pip install -e ~/Orbi/code`. Python pinned `<3.13` |
+| **Packaging** | `pip install -e ~/Kildall/code`. Python pinned `<3.13` |
 | **Multi-session** | safe **only** with SQLite WAL + `busy_timeout` |
 
 ---
@@ -570,7 +570,7 @@ not "do" hardware; every phase that touches a model runs this.**
 ## Once per machine
 
 ```bash
-bash ~/Orbi/Researchhub/sample3/uhwmini-setup.sh   # audits the machine, safe to re-run
+bash ~/Kildall/Researchhub/sample3/uhwmini-setup.sh   # audits the machine, safe to re-run
 sudo sysctl iogpu.wired_limit_mb=20480             # ✅ done — but RESETS ON REBOOT
 ```
 ⚠️ **The wired limit resets on every reboot.** `check.sh` must verify it and warn. Biggest single win.
@@ -674,7 +674,7 @@ one minute can thrash at minute six.
    that would make every option comfortable.**
 9. **Licences vary — and Orbi's own licence is MIT.** Kimi K3 and GLM-5.3 custom; `NLLB` CC-BY-NC and
    `FLUX.2 dev` non-commercial were **excluded**. Picked on evidence, licence flagged per row.
-   🔑 **MIT covers Orbi's code only (`~/Orbi/code`), never the models.** Orbi downloads weights from
+   🔑 **MIT covers Kildall's code only (`~/Kildall/code`), never the models.** Orbi downloads weights from
    their publishers at setup and **never ships or redistributes them**, so each model's own licence
    binds whoever runs it — MIT cannot relicense a custom-licence model. **Rule: Orbi never bundles
    weights in its repo or releases**; custom-licence rows stay flagged, and any commercial use must
@@ -699,6 +699,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-09-27 (v31)** — **Rename executed: Orbi is now Kildall.** Code `70eb4e8` merged to `main` via PR #3; GitHub repo `MinhDuc2612/Kildall` (old URL redirects); package `kildall`, commands `kildall` plus the `orbi` alias; MIT `LICENSE` added; logo `Klogo.png`. The user renamed the vault folder to `~/Kildall`, so every live path and the nuke allow-list now read `~/Kildall/code`. All gates held: recall, abstention, category, lane and callable JSON 20/20; tools 17/20 first-pass and 20/20 post-retry; CLI 18/18; hooks 5/5; nuke dry-run 0 outside `code/`. **The planning file names stay `Orbi*.md`** because the frozen `bench_cases.json` references `../Orbiplan.md`. **Historical entries below keep the name Orbi** — they record what was true then. ⚠️ **Three nightly backups were missed (Sep 25–27)**; the 03:00 run on Sep 27 still used the old paths and wrote nothing. A manual run of `local.kildall.backup` on 2026-09-27 succeeded (exit 0, `integrity_check` ok).
 - **2026-09-26 (v30)** — **Product renamed to Kildall**, at user instruction, after Gary Kildall (CP/M; lost the IBM PC deal to Microsoft). **Why rename:** Netgear owns the "Orbi" trademark for networking products, a risk once the MIT code is published; "Perlis" was taken by `perlis.ai`, a near-identical "Secure Agent OS". **Kildall checked 2026-09-26:** free on PyPI, npm and Homebrew; `kildall.ai` and `kildall.dev` unregistered; 21 GitHub repos (top 2★); no AI product found. ⚠️ **Not a trademark search** — check USPTO and WIPO before publishing; it is a real person's name, so get legal advice before commercial use. 🔴 **Not executed yet — it runs as its own slice after Phase 4.3, never mid-slice.** Measured scope: **437 lines in 33 code files**, package `name = "orbi"`, the `orbi` command, repo `MinhDuc2612/Orbi`, the three planning files (121 mentions), `~/.config/orbi/`, the backup launchd label, and nuke's typed confirmation. **Rename slice rules:** keep an `orbi` command alias for one release; rename the GitHub repo (GitHub redirects the old URL); re-register the nightly backup; run the full frozen regressions afterwards with no score change allowed. ⚠️ **Whether to move the `~/Orbi` folder itself is open** — moving it breaks `.venv`, the launchd job, this vault and Claude's memory path, and the plan's nuke allow-list names `~/Orbi/code`. Default: **keep the folder, rename the product, command, package and repo.**
 - **2026-09-26 (v29)** — **Orbi is licensed MIT**, at user instruction. Added to *Answer first* and risk 9. **Scope: Orbi's code only** — model weights are downloaded from their publishers, never redistributed, and keep their own licences, so MIT does not relicense Kimi K3, GLM-5.3 or any custom row. Rule added: **never bundle weights** in the repo or a release. `code/LICENSE` and the `pyproject.toml` licence field **do not exist yet** — recorded as a to-do for the next Codex slice, not claimed done.
 - **2026-09-23 (v28)** — **`tencent/Hy4-preview` added to Lane C as model 8**, taking the library to **23 models · ~9.87 T · ~5.23 TB** (2.77 TB free on the 8 TB drive). **770 B total / 49 B active**, MoE with 256 routed + 1 shared expert, top-8 per token, 78 layers, 1M context, text-only, **Apache-2.0**, released **2026-08-28**. Measured claims: **SWE-Bench Pro 65.7 · GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1**. **Lane C by arithmetic, not preference:** 49 B active × 0.5 bytes = **24.5 GB per token**, against ~20 GB usable RAM, so it cannot be resident — **~8.4 s/token on Thunderbolt 4, ~70 minutes for a 500-token answer.** 🔑 **It lands in exactly the same tier as `DeepSeek-V4-Pro-0813`** — also 49 B active, also ~8.4 s/token — **but at 385 GB against 800 GB, less than half the disk.** 🔴 **Blocked on runtime, not merit: no GGUF and no MLX.** It ships BF16 safetensors plus FP8 and deploys through vLLM or SGLang across 8 GPUs, tensor-parallel 8 — CUDA-oriented, **so it cannot run on Metal today.** This is the same wall that made candidate 2 *unsupported/unmeasured*, not a quality judgement. ⚠️ **It is also a preview**, and the standing precedent is Wan 3.0, held as a Phase 5 decision *because it is beta*. ⚠️ **Do not rank its 65.7 against Kimi K3's 76.8/93.4** — those are SWE-bench **Verified** and this is SWE-Bench **Pro**, a harder set; comparing them would be a real error. 🔑 **One genuinely interesting detail: it ships a built-in MTP layer for speculative decoding**, which is directly relevant to improvement **#1, cross-lane speculative decoding** — recorded as a revisit note only, since Metal speculative decoding already measured as a loss *even at 100% draft acceptance*. **Revisit conditions: a GGUF conversion appears, or Lane C moves off llama.cpp.** No phase, lane assignment or installed model changed.

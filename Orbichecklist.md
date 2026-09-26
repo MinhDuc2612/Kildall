@@ -1,6 +1,6 @@
 # Orbichecklist — Definition of Done
 
-**v1 · 2026-09-05.** Orbi replaces Claude Code when this list is ticked.
+**v1 · 2026-09-05.** Orbi replaces Claude Code when this list is ticked. *(Product renamed Kildall 2026-09-27; see Orbiplan v31. History below keeps "Orbi".)*
 **This is done-test #2.** Tests #1 and #3 are at the bottom.
 
 ---
@@ -236,16 +236,16 @@
       Qwen3-Reranker-4B, Harrier-27B embeddings; Qwen3-VL-235B dropped
 - [ ] ⚠️ **Only Lane A goes on the internal disk** (it streams every request, needs the measured
       3.44 GB/s). **Lanes B and C go external.** Internal free: **93.3 GB, ~155 GB after emptying Trash**
-- [x] `orbi nuke`, dry-run by default, must type `orbi` to confirm
-- [ ] ⚠️ **`orbi nuke` deletes `~/Orbi/code/` and nothing else** — allow-list, not a deny-list.
+- [x] `kildall nuke`, dry-run by default, must type `kildall` to confirm
+- [ ] ⚠️ **`kildall nuke` deletes `~/Kildall/code/` and nothing else** — allow-list, not a deny-list.
       **Safety verified 2026-09-22: 14,918 paths listed, 0 outside `code/`.** Not fully ticked:
       3 outward `.venv/bin/python*` symlinks are refused, so `code/` is not completely removed.
       Fix: `os.unlink` the link itself (never touches the target), gated on the *link's own*
       location via `os.lstat`, not `realpath`
-- [x] **Dry-run lists only paths under `~/Orbi/code/`** — if it lists anything else, the guard is wrong
-- [x] `orbi nuke` cannot touch `Researchhub/`, the planning `.md` files, `Logo.png` or `.obsidian/`
+- [x] **Dry-run lists only paths under `~/Kildall/code/`** — if it lists anything else, the guard is wrong
+- [x] `kildall nuke` cannot touch `Researchhub/`, the planning `.md` files, `Logo.png` or `.obsidian/`
 - [ ] `code/` excluded from Obsidian indexing (Settings → Files & Links → Excluded files)
-- [ ] `pip install -e ~/Orbi/code`, Python pinned `<3.13`
+- [ ] `pip install -e ~/Kildall/code`, Python pinned `<3.13`
 - [ ] Multi-session safe — SQLite WAL plus `busy_timeout`
 
 ---
