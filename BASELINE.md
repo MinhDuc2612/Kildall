@@ -1,4 +1,4 @@
-# Orbi baseline
+# Kildall baseline
 
 **19.48 tok/s — qwen3:8b, measured 2026-09-06.** This is the existing
 Ollama baseline, recorded here without re-measuring; it is not an MLX benchmark.

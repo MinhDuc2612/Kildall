@@ -11,7 +11,7 @@ import subprocess
 import urllib.parse
 import urllib.request
 
-from setup_orbi import verify
+from setup_kildall import verify
 
 ROOT = Path(__file__).resolve().parent
 WORK = ROOT / ".session/retest-20260909"
@@ -90,7 +90,7 @@ def download(name):
                if entry["rfilename"].endswith((".safetensors", ".json", ".jinja", ".txt", ".md"))]
     with ThreadPoolExecutor(max_workers=4) as pool:
         verified = list(pool.map(download_one, entries))
-    write_json(destination / "orbi-artifact.json", dict(repo=repo, revision=revision, files=verified))
+    write_json(destination / "kildall-artifact.json", dict(repo=repo, revision=revision, files=verified))
 
 
 def calibration():
@@ -187,7 +187,7 @@ def train(stage):
                               sha256=hashlib.file_digest(stream, "sha256").hexdigest()))
     if not files or json.loads((destination / "config.json").read_text())["quantization"]["bits"] != 4:
         raise RuntimeError("DWQ output verification failed")
-    write_json(destination / "orbi-dwq-build.json", dict(teacher=MODELS["granite"][0],
+    write_json(destination / "kildall-dwq-build.json", dict(teacher=MODELS["granite"][0],
         revision=MODELS["granite"][1], calibration_sha256=verified["calibration_sha256"],
         train_examples=128, valid_examples=32, max_seq_length=LENGTH, seed=SEED,
         bits=4, group_size=64, learning_rate=1e-6, changed_quantization_arrays=len(changed), files=files))

@@ -11,7 +11,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
-import orbi
+import kildall
 import permissions
 import shell_tools as shell
 
@@ -27,16 +27,16 @@ def until(predicate, seconds=5):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix='orbi-shell-lifecycle-') as directory:
+    with tempfile.TemporaryDirectory(prefix='kildall-shell-lifecycle-') as directory:
         root = Path(directory).resolve()
         db_path, project = root / 'audit.sqlite3', str(root)
-        orbi.initialize(db_path)
+        kildall.initialize(db_path)
 
         def run(name, **args):
             return permissions.run_action(db_path, project, name, args)
 
         def job_row(ident):
-            with orbi.database(db_path) as db:
+            with kildall.database(db_path) as db:
                 return dict(db.execute('SELECT j.*,p.pid,p.owner_start,p.status FROM orbi_shell_jobs j '
                                        'JOIN orbi_permissions p ON p.id=j.id WHERE j.id=?', (ident,)).fetchone())
 
@@ -77,7 +77,7 @@ def main():
 
         result = run('run_command', command='sleep 5', timeout=1)
         assert result['timed_out'] and result['exit_code'] == -signal.SIGKILL
-        with orbi.database(db_path) as db:
+        with kildall.database(db_path) as db:
             assert db.execute('SELECT status FROM orbi_permissions ORDER BY created DESC LIMIT 1').fetchone()[0] == 'timed_out'
         print('PASS: a live command is killed at its timeout and its actual exit is logged')
 
@@ -86,14 +86,14 @@ def main():
             permissions.authorize(record, 'Auto')
             record['update'](status='background')
             ident = record['id']
-            with orbi.database(db_path) as db:
+            with kildall.database(db_path) as db:
                 shell.tables(db)
                 db.execute('INSERT INTO orbi_shell_jobs(id,project,cwd,command,timeout,result) VALUES(?,?,?,?,?,NULL)',
                            (ident, project, project, 'echo complete', 1))
                 db.execute('UPDATE orbi_permissions SET pid=?,owner_start=? WHERE id=?',
                            (99999998, 'old-owner', ident))
         completed = dict(stdout='complete\n', stderr='', exit_code=0, timed_out=False, truncated=False)
-        process_start = orbi.process_start
+        process_start = kildall.process_start
 
         def finish_during_poll(pid):
             if pid == 99999998:
@@ -101,7 +101,7 @@ def main():
                 return None
             return process_start(pid)
 
-        with patch.object(orbi, 'process_start', side_effect=finish_during_poll):
+        with patch.object(kildall, 'process_start', side_effect=finish_during_poll):
             polled = run('shell_job', id=ident)
         assert polled['status'] == 'done' and polled['result'] == completed
         assert job_row(ident)['status'] == 'done'

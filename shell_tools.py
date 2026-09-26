@@ -131,7 +131,7 @@ def tables(db):
 
 
 def stop_owned_child(pid, started):
-    from orbi import process_start
+    from kildall import process_start
     if not pid or not started or process_start(pid) != started:
         return
     try:
@@ -142,7 +142,7 @@ def stop_owned_child(pid, started):
 
 
 def finish(db_path, ident, result):
-    from orbi import database
+    from kildall import database
     status = 'cancelled' if result.get('cancelled') else 'timed_out' if result['timed_out'] else 'done' if result['exit_code'] == 0 else 'failed'
     with database(db_path) as db:
         if db.execute('UPDATE orbi_shell_jobs SET result=? WHERE id=?', (json.dumps(result), ident)).rowcount != 1:
@@ -153,7 +153,7 @@ def finish(db_path, ident, result):
 
 
 def execute(operation, args, record, project):
-    from orbi import database, process_start
+    from kildall import database, process_start
     from permissions import authorize
     db_path, ident = record['db_path'], record['id']
     with database(db_path) as db:
@@ -214,7 +214,7 @@ def execute(operation, args, record, project):
 
 
 def worker(db_path, ident):
-    from orbi import database, process_start
+    from kildall import database, process_start
 
     def terminated(signum, frame):
         raise KeyboardInterrupt('Shell worker terminated')

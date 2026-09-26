@@ -18,9 +18,9 @@ def blocked(action):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="orbi-nuke-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="kildall-nuke-") as temporary:
         work = Path(temporary).resolve()
-        vault = work / "Orbi"
+        vault = work / "Kildall"
         vault.mkdir()
         outside = vault / "Researchhub"
         outside.mkdir()
@@ -71,7 +71,8 @@ def main():
         blocked(lambda: open_parent(outward))
         assert stat.S_ISLNK(open_parent(outward, True).st_mode)
         for candidate in (outward / "keep.txt", inward / "file", root / "../Researchhub/keep.txt",
-                          sentinel, str(root).replace("Orbi", "Orbi".lower()) + "/nested/file", "~/outside"):
+                          sentinel, str(root).replace("Kildall", "Kildall".lower()) + "/nested/file",
+                          work / "Orbi/code/nested/file", "~/outside"):
             blocked(lambda candidate=candidate: open_parent(candidate, True))
         assert open_parent(root / "nested/file").st_size == len("inside only")
         blocked(lambda: p.nuke_manifest(inward))

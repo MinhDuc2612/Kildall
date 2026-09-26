@@ -17,8 +17,8 @@ import tomllib
 import uuid
 from unittest.mock import Mock, patch
 
-import orbi
-from setup_orbi import verify
+import kildall
+from setup_kildall import verify
 
 
 def control_checks():
@@ -26,8 +26,8 @@ def control_checks():
     root = Path(__file__).resolve().parent
     work = root / ".session" / ("cli-controls-" + uuid.uuid4().hex)
     work.mkdir(parents=True)
-    path = work / "orbi.db"
-    orbi.initialize(path)
+    path = work / "kildall.db"
+    kildall.initialize(path)
     checks = []
 
     def rejects(action):
@@ -43,9 +43,9 @@ def control_checks():
 
     child = """from pathlib import Path
 import sys
-import orbi
+import kildall
 try:
-    with orbi.activity(Path(sys.argv[1]), restoring=sys.argv[2] == '1'):
+    with kildall.activity(Path(sys.argv[1]), restoring=sys.argv[2] == '1'):
         pass
 except RuntimeError:
     raise SystemExit(23)
@@ -55,12 +55,12 @@ except RuntimeError:
         return subprocess.run([sys.executable, "-B", "-c", child, str(path), str(int(restoring))],
             cwd=root, text=True, capture_output=True, timeout=10)
 
-    with orbi.activity(path):
+    with kildall.activity(path):
         result = attempt(False)
         assert result.returncode == 0, result
         result = attempt(True)
         assert result.returncode == 23, result
-    with orbi.activity(path, restoring=True):
+    with kildall.activity(path, restoring=True):
         for restoring in (False, True):
             result = attempt(restoring)
             assert result.returncode == 23, result
@@ -78,11 +78,11 @@ except RuntimeError:
         order.append("history")
         return []
 
-    with patch.object(orbi, "Task", side_effect=admit), \
-            patch.object(orbi, "history", side_effect=history), \
-            patch.object(orbi, "ensure_runtime", side_effect=RuntimeError("control stop")), \
-            patch.object(orbi, "json_request") as http:
-        error = rejects(lambda: orbi.run_turn({"paths": {"db_path": path}},
+    with patch.object(kildall, "Task", side_effect=admit), \
+            patch.object(kildall, "history", side_effect=history), \
+            patch.object(kildall, "ensure_runtime", side_effect=RuntimeError("control stop")), \
+            patch.object(kildall, "json_request") as http:
+        error = rejects(lambda: kildall.run_turn({"paths": {"db_path": path}},
                         None, "control-session", str(work), "control prompt"))
         assert error == "control stop" and order == ["admitted", "history"], (error, order)
         task.finish.assert_called_once_with("error")
@@ -98,41 +98,41 @@ except RuntimeError:
     record = dict(pid=12345, started="control-start", model=str(model), port=8123)
     process = subprocess.CompletedProcess([], 0,
         stdout=f"/control/llama-server -m {model} --port 8123", stderr="")
-    with patch.object(orbi, "process_start", return_value="control-start"), \
-            patch.object(orbi.subprocess, "run", return_value=process), \
-            patch.object(orbi.subprocess, "Popen") as launch, \
-            patch.object(orbi, "json_request") as http:
-        assert orbi.owns_server(record)
-        assert not orbi.owns_server(dict(record, port=8125))
+    with patch.object(kildall, "process_start", return_value="control-start"), \
+            patch.object(kildall.subprocess, "run", return_value=process), \
+            patch.object(kildall.subprocess, "Popen") as launch, \
+            patch.object(kildall, "json_request") as http:
+        assert kildall.owns_server(record)
+        assert not kildall.owns_server(dict(record, port=8125))
         for stored in (record, {k: v for k, v in record.items() if k != "port"}):
-            orbi.atomic_json(state_dir / "services.json", {"lane_a": stored})
-            assert "--stop" in rejects(lambda: orbi.ensure_runtime(config))
+            kildall.atomic_json(state_dir / "services.json", {"lane_a": stored})
+            assert "--stop" in rejects(lambda: kildall.ensure_runtime(config))
         http.assert_not_called()
         launch.assert_not_called()
     passed("changed or legacy ports are rejected before HTTP; live port must match ownership")
 
     config["paths"]["db_path"] = path
     config["memory"].update(max_items=12, max_chars=4000, max_ms=300)
-    with orbi.activity(path), patch.object(orbi, "settings", return_value=config), \
-            patch.object(sys, "argv", ["orbi", "--restore", str(work / "unused.sqlite3")]), \
-            patch.object(orbi.Memory, "restore") as restore, redirect_stderr(io.StringIO()) as errors:
-        assert orbi.main() == 1
+    with kildall.activity(path), patch.object(kildall, "settings", return_value=config), \
+            patch.object(sys, "argv", ["kildall", "--restore", str(work / "unused.sqlite3")]), \
+            patch.object(kildall.Memory, "restore") as restore, redirect_stderr(io.StringIO()) as errors:
+        assert kildall.main() == 1
         assert "Database is active" in errors.getvalue()
         restore.assert_not_called()
 
-    assert "Session no longer exists" in rejects(lambda: orbi.Task(path, "removed-session"))
-    with orbi.database(path) as db:
+    assert "Session no longer exists" in rejects(lambda: kildall.Task(path, "removed-session"))
+    with kildall.database(path) as db:
         db.execute("INSERT INTO orbi_sessions VALUES(?,?,?)", ("missing-rows", str(work), time.time()))
-    task = orbi.Task(path, "missing-rows")
+    task = kildall.Task(path, "missing-rows")
     try:
         payload = {"role": "assistant", "content": "buffered"}
         message_id = task.message(payload)
-        with orbi.database(path) as db:
+        with kildall.database(path) as db:
             db.execute("DELETE FROM orbi_messages WHERE id=?", (message_id,))
         rejects(lambda: task.message(payload, message_id))
         task.finished.set()
         task.watcher.join(timeout=2)
-        with orbi.database(path) as db:
+        with kildall.database(path) as db:
             db.execute("DELETE FROM orbi_tasks WHERE id=?", (task.id,))
         rejects(lambda: task.set("thinking"))
         task.state = "done"  # Exercise the outcome UPDATE independently of the state UPDATE.
@@ -152,9 +152,9 @@ def main():
     project.mkdir()
     other = work / "other"
     other.mkdir()
-    database = work / "orbi.db"
-    config = tomllib.loads((root / "orbi.toml").read_text())
-    source = (root / "orbi.toml").read_text()
+    database = work / "kildall.db"
+    config = tomllib.loads((root / "kildall.toml").read_text())
+    source = (root / "kildall.toml").read_text()
     paths = [(value, str((root / value).resolve())) for value in config["paths"].values()]
     paths += [(config["lanes"]["a"]["model"], str(root / config["lanes"]["a"]["model"])),
               (config["memory"]["embedding_model"], str(root / config["memory"]["embedding_model"])),
@@ -165,13 +165,13 @@ def main():
         elif old == config["paths"]["backup_dir"]:
             new = str(work / "backups")
         source = source.replace(json.dumps(old), json.dumps(new))
-    test_config = work / "orbi.toml"
+    test_config = work / "kildall.toml"
     test_config.write_text(source)
     assert test_config.read_text() == source
     tomllib.loads(source)
-    environment = dict(os.environ, ORBI_CONFIG=str(test_config),
+    environment = dict(os.environ, KILDALL_CONFIG=str(test_config),
         http_proxy="http://127.0.0.1:9", HTTP_PROXY="http://127.0.0.1:9", no_proxy="", NO_PROXY="")
-    executable = str(root / ".venv/bin/orbi")
+    executable = str(root / ".venv/bin/kildall")
     checks = []
 
     def run(*args, text="", cwd=project):
@@ -186,7 +186,7 @@ def main():
     result = run("Reply with exactly: AMBER_FOX")
     passed("prompt streams a real reply", result.returncode == 0 and "AMBER_FOX" in result.stdout, result)
     passed("piped output contains no orbs or ANSI", not result.stderr and
-           not any(x in result.stdout for x in [*orbi.ORBS.values(), "\x1b"]), result)
+           not any(x in result.stdout for x in [*kildall.ORBS.values(), "\x1b"]), result)
     result = run("--continue", "Repeat exactly your previous answer.")
     passed("continue resumes stored conversation", result.returncode == 0 and "AMBER_FOX" in result.stdout, result)
     result = run(text="Reply with exactly: PIPED_OK")
@@ -210,7 +210,7 @@ def main():
         os.write(master, b"Reply with exactly: INTERACTIVE_OK\n\x04")
         output, errors = process.communicate(timeout=90)
         passed("interactive prompts stay out of piped stdout", process.returncode == 0
-               and b"INTERACTIVE_OK" in output and b"orbi>" not in output and b"orbi>" in errors,
+               and b"INTERACTIVE_OK" in output and b"kildall>" not in output and b"kildall>" in errors,
                (process.returncode, output, errors))
     finally:
         os.close(master)
@@ -272,12 +272,12 @@ def main():
             return True
 
     stdout, stderr = TTY(), TTY()
-    with orbi.database(database) as db:
+    with kildall.database(database) as db:
         db.execute("INSERT INTO orbi_sessions VALUES(?,?,?)", ("orb-self-check", str(project), time.time()))
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        task = orbi.Task(database, "orb-self-check")
+        task = kildall.Task(database, "orb-self-check")
         try:
-            for state in orbi.ORBS:
+            for state in kildall.ORBS:
                 task.set(state)
                 with sqlite3.connect(database) as db:
                     assert db.execute("SELECT state FROM orbi_tasks WHERE id=?", (task.id,)).fetchone()[0] == state
@@ -289,7 +289,7 @@ def main():
             assert task.state == "stalled"
         finally:
             task.finish("done")
-    passed("all orb states persist and stall monitoring works", all(x in stderr.getvalue() for x in orbi.ORBS.values()))
+    passed("all orb states persist and stall monitoring works", all(x in stderr.getvalue() for x in kildall.ORBS.values()))
 
     artifact = work / "artifact"
     artifact.write_bytes(b"verified")

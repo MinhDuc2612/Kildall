@@ -67,7 +67,7 @@ def _start_embedding(url, text, timeout):
     # ponytail: one in-flight request per process; a stuck peer disables semantic
     # retrieval until it returns. Daemon + nonblocking admission prevent thread leaks.
     try:
-        threading.Thread(target=work, daemon=True, name="orbi-embedding").start()
+        threading.Thread(target=work, daemon=True, name="kildall-embedding").start()
     except Exception:
         _EMBED_LOCK.release()
         raise
@@ -213,7 +213,7 @@ class Memory:
         # ponytail: one retrieval per process bounds stalled SQLite/file I/O too;
         # use a fixed-size pool if parallel in-process requests become necessary.
         try:
-            threading.Thread(target=work, daemon=True, name="orbi-retrieval").start()
+            threading.Thread(target=work, daemon=True, name="kildall-retrieval").start()
         except Exception:
             _RETRIEVE_LOCK.release()
             raise
@@ -346,7 +346,7 @@ class Memory:
     def backup(self, backup_dir):
         directory = Path(backup_dir).expanduser().resolve()
         directory.mkdir(parents=True, exist_ok=True)
-        namespace = "orbi-memory-" + hashlib.sha256(str(self.db_path).encode()).hexdigest()[:16] + "-"
+        namespace = "kildall-memory-" + hashlib.sha256(str(self.db_path).encode()).hexdigest()[:16] + "-"
         now = datetime.now(timezone.utc)
         stem = namespace + now.strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex
         snapshot, mirror = directory / (stem + ".sqlite3"), directory / (stem + ".md")
@@ -362,7 +362,7 @@ class Memory:
                 source.backup(target, pages=128, progress=progress, sleep=.02)
                 target.execute("PRAGMA journal_mode=DELETE")
                 self._verify_snapshot(target)
-                lines = ["# Orbi memory snapshot\n"]
+                lines = ["# Kildall memory snapshot\n"]
                 for row in target.execute("SELECT id,scope,project,tier,tags,text FROM memories ORDER BY id"):
                     row_id, scope, project, tier, tags, text = row
                     lines.append(f"\n## {row_id} · {scope} · {project or 'all'} · {tier}\n\nTags: {tags}\n\n{text}\n")

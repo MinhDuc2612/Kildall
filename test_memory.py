@@ -123,7 +123,7 @@ def main():
             backups = root / "backups"
             snapshot = memory.backup(backups)
             assert snapshot.is_file() and original in snapshot.with_suffix(".md").read_text()
-            namespace = re.match(r"orbi-memory-[0-9a-f]{16}-", snapshot.name)[0]
+            namespace = re.match(r"kildall-memory-[0-9a-f]{16}-", snapshot.name)[0]
             old = backups / (namespace + "20000101T000000-" + "a" * 32 + ".sqlite3")
             old.write_bytes(snapshot.read_bytes())
             old.with_suffix(".md").write_text("old own snapshot")
@@ -160,7 +160,7 @@ def main():
                 for _ in range(5):
                     result = checked_retrieve(memory, "topic1")
                     assert result["semantic_error"] == "Embedding worker is busy"
-                assert sum(t.name == "orbi-embedding" for t in threading.enumerate()) == 1
+                assert sum(t.name == "kildall-embedding" for t in threading.enumerate()) == 1
         finally:
             release.set()
             assert m._EMBED_LOCK.acquire(timeout=1)
@@ -183,7 +183,7 @@ def main():
                 result = checked_retrieve(memory, "topic1")
                 assert result["truncated"] and result["error"] == "Retrieval deadline exceeded"
                 assert checked_retrieve(memory, "topic1")["error"] == "Retrieval worker is busy"
-                assert sum(t.name == "orbi-retrieval" for t in threading.enumerate()) == 1
+                assert sum(t.name == "kildall-retrieval" for t in threading.enumerate()) == 1
         finally:
             release.set()
             assert m._RETRIEVE_LOCK.acquire(timeout=1)

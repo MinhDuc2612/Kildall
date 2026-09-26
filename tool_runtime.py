@@ -46,7 +46,7 @@ def visible(raw, *, final=False):
 
 
 def prepare(endpoint, body):
-    from orbi import json_request
+    from kildall import json_request
     if body.get('parallel_tool_calls', False) or body.get('tool_choice', 'auto') not in ('auto', 'required'):
         raise ValueError('Expected single-call auto or required tool choice')
     if any(key in body for key in ('grammar', 'response_format')):
@@ -70,7 +70,7 @@ def prepare(endpoint, body):
 
 def chat(endpoint, body, *, on_text=None):
     """Return the existing callable JSON protocol; no fallback to unconstrained tools."""
-    from orbi import strict_json
+    from kildall import strict_json
     native = prepare(endpoint, body)
     request = urllib.request.Request(endpoint + '/completion', json.dumps(native).encode(),
                                      {'Content-Type': 'application/json'})

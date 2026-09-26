@@ -1,4 +1,4 @@
-"""Install the three pinned local artifacts used by Orbi Phase 1."""
+"""Install the three pinned local artifacts used by Kildall Phase 1."""
 
 import hashlib
 from pathlib import Path

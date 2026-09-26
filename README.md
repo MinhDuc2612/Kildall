@@ -1,6 +1,8 @@
-# Orbi
+# Kildall
 
-Orbi is a local terminal assistant with streaming replies, persistent sessions,
+![Kildall logo](assets/kildall-logo.png)
+
+Kildall is a local terminal assistant with streaming replies, persistent sessions,
 and scoped memory. Phase 1 uses Gemma 4 26B-A4B UD-IQ3_S with Harrier embeddings.
 The latest controlled IQ3 run measured 26.64 tok/s and recall 20/20; the earlier
 29.33 tok/s result used the previous cache configuration. See [BENCHMARKS.md](BENCHMARKS.md).
@@ -55,13 +57,13 @@ On this Mac, activate the existing environment and run:
 ```sh
 source .venv/bin/activate
 ./check.sh
-orbi "Hello"
-orbi ask "Explain SQLite WAL briefly"
-orbi ask --lane a "Hello"
-orbi ask --explain "Extract the table from this scanned invoice"
-orbi job submit "Audit the architecture and propose a repair"
-orbi --continue
-printf 'Summarize this text' | orbi
+kildall "Hello"
+kildall ask "Explain SQLite WAL briefly"
+kildall ask --lane a "Hello"
+kildall ask --explain "Extract the table from this scanned invoice"
+kildall job submit "Audit the architecture and propose a repair"
+kildall --continue
+printf 'Summarize this text' | kildall
 ```
 
 From a fresh checkout on Apple Silicon, use Python 3.12:
@@ -70,19 +72,19 @@ From a fresh checkout on Apple Silicon, use Python 3.12:
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.lock
 .venv/bin/python -m pip install --no-deps -e .
-.venv/bin/python setup_orbi.py
+.venv/bin/python setup_kildall.py
 ```
 
 Setup downloads and verifies the pinned runtime and two models (about 11.7 GB).
 Do not run setup to enable other lanes: Phase 2 downloads no models.
-Servers start locally on demand; `orbi --stop` releases them. The measured context
+Servers start locally on demand; `kildall --stop` releases them. The measured context
 limit is 4,096 tokens. Generation uses a bounded native prefix cache
 (`--cache-ram 768 --ctx-checkpoints 3`); embeddings keep caching disabled.
-After updating from the old runtime flags, run `orbi --stop` before restarting.
+After updating from the old runtime flags, run `kildall --stop` before restarting.
 
 Memory uses SQLite WAL, BM25 and real semantic vectors, with hard limits of
 12 items, 4,000 rendered characters and 300 ms. Personal facts are global;
-project facts and sessions use the current directory. Ask Orbi to remember a
+project facts and sessions use the current directory. Ask Kildall to remember a
 fact, or start a new prompt in a project to retrieve its context. Memory tools
 are `remember` and `recall`. Phase4.1 adds file readers, approved write/edit and
 confined commands; other model lanes remain unavailable.
@@ -91,16 +93,16 @@ retries a mismatch once with a diff, then fails if the copied text still differs
 This check recognizes explicit source delimiters, not arbitrary natural-language wording.
 Ctrl-C saves partial state and exits 130. Orbs appear only on a terminal.
 
-`orbi --backup` writes a verified SQLite snapshot and markdown mirror to
-`../backups`, with 14-day retention. `orbi --restore PATH` restores a snapshot
+`kildall --backup` writes a verified SQLite snapshot and markdown mirror to
+`../backups`, with 14-day retention. `kildall --restore PATH` restores a snapshot
 after all active turns finish; it refuses to overwrite an active turn.
-`orbi --schedule-backups` registers a 03:00 macOS job for the current login;
+`kildall --schedule-backups` registers a 03:00 macOS job for the current login;
 run it again after logging in. Its plist stays inside `.session/`.
 
 After login, register backups with this exact command on this machine:
 
 ```sh
-/Users/minhduc/Orbi/code/.venv/bin/orbi --schedule-backups
+/Users/minhduc/Kildall/code/.venv/bin/kildall --schedule-backups
 ```
 
 `./check.sh` verifies the loaded 03:00 backup job against its plist and reports
@@ -109,7 +111,7 @@ if `iogpu.wired_limit_mb` is 0; it prints the manual sysctl command in that case
 
 Run `.venv/bin/python test_memory.py` for deterministic memory checks.
 `test_cli.py` and `test_recall.py` use the installed models and isolated test data;
-start the local services with one `orbi` prompt before running the recall test.
+start the local services with one `kildall` prompt before running the recall test.
 Model files, databases, backups and runtime logs stay out of Git.
 
 `ask` classifies the operational category and proposed catalog leaf in one call.
@@ -117,7 +119,7 @@ Requests too long for that compact catalog use the existing three-call hierarchy
 within the4,096-token context; requests are never silently shortened. Neither path
 verifies the proposed leaf match, and either can report an unmatched operation.
 `ask --lane a` skips classification. Oversized requests fail visibly.
-Legacy `orbi "..."` and `orbi --continue` retain their
+Legacy `kildall "..."` and `kildall --continue` retain their
 direct Lane A behavior. `ask --continue` resumes with routing enabled.
 
 The source contains **302 leaves, not 341**. All are represented with stable IDs,
@@ -145,7 +147,7 @@ backups. No learning or reweighting uses the log.
 later, from the same project directory, without starting any models:
 
 ```sh
-orbi ask --decision DECISION_ID
+kildall ask --decision DECISION_ID
 ```
 
 Run `.venv/bin/python test_routing.py` for persistence and failure controls;
@@ -155,23 +157,23 @@ classifier's category accuracy.
 
 Python is pinned to `>=3.12,<3.13`; `requirements.lock` pins the packages.
 See [BASELINE.md](BASELINE.md) for the recorded measurements and
-[../Orbiplan.md](../Orbiplan.md) for the local project plan (kept outside this repository).
+[../Kildallplan.md](../Kildallplan.md) for the local project plan (kept outside this repository).
 
 ## Permissions and Phase4.1 tools
 
 Explicit actions run through a closed executor, without starting a model:
 
 ```sh
-orbi tool read '{"path":"README.md"}'
-orbi tool ls '{"path":"."}'
-orbi tool git_status '{"path":"."}'
-orbi tool write '{"path":"note.txt","content":"Hello\n"}'
-orbi tool edit '{"path":"note.txt","old":"Hello","new":"Welcome"}'
-orbi tool install '{"source":"artifact.bin","path":"installed.bin"}'
-orbi tool commit '{"path":".","message":"Commit the reviewed staged changes"}'
-orbi permissions
-orbi permissions DECISION_ID
-orbi nuke
+kildall tool read '{"path":"README.md"}'
+kildall tool ls '{"path":"."}'
+kildall tool git_status '{"path":"."}'
+kildall tool write '{"path":"note.txt","content":"Hello\n"}'
+kildall tool edit '{"path":"note.txt","old":"Hello","new":"Welcome"}'
+kildall tool install '{"source":"artifact.bin","path":"installed.bin"}'
+kildall tool commit '{"path":".","message":"Commit the reviewed staged changes"}'
+kildall permissions
+kildall permissions DECISION_ID
+kildall nuke
 ```
 
 Read/list/status are Auto. Write/edit/commit/install require the exact preview
@@ -199,12 +201,12 @@ macOS Vision OCR). Image scene understanding and scanned-PDF OCR are unavailable
 Reads are bounded and report truncation; denied or failed reads are errors.
 
 ```sh
-orbi tool read_file '{"path":"README.md","start_line":1,"max_lines":20}'
-orbi tool run_command '{"command":"sleep 5","timeout":10,"background":true}'
-orbi tool shell_job '{"id":"JOB_ID"}'
+kildall tool read_file '{"path":"README.md","start_line":1,"max_lines":20}'
+kildall tool run_command '{"command":"sleep 5","timeout":10,"background":true}'
+kildall tool shell_job '{"id":"JOB_ID"}'
 ```
 
-Writes and Git operations are scoped to the hardcoded `~/Orbi/code/` root.
+Writes and Git operations are scoped to the hardcoded `~/Kildall/code/` root.
 Realpath containment and descriptor-based file operations reject escapes; parent
 directories must already exist. The permission check has no content/topic filter.
 Existing memory tools retain their behavior and now receive permission audit rows.
@@ -216,14 +218,14 @@ the X no-match fallback and existing memory-tool schemas remain unchanged.
 
 Phase4.2 adds `git_read` (status/diff/log), `git_branch`, `git_switch`,
 `git_commit`, `git_push` and `git_pr` through that same executor and grammar.
-Enable this tool set with `orbi --git tools "Show Git status"`, or invoke a
-typed action directly with `orbi tool`. `--git commit|push|pr` and `--skill NAME`
+Enable this tool set with `kildall --git tools "Show Git status"`, or invoke a
+typed action directly with `kildall tool`. `--git commit|push|pr` and `--skill NAME`
 also enable it. Default requests retain the exact Phase4.1 tool definitions;
 adding unrelated definitions caused a measured regression on a memory request.
 Reads are Auto; mutations show their exact preview and require terminal confirmation.
 Model commits, pushes and PRs additionally require explicit intent for that prompt:
-`orbi --git commit "Review the staged diff and commit it"`. Repeat `--git` for
-another requested action. Direct `orbi tool` invocation is also explicit intent.
+`kildall --git commit "Review the staged diff and commit it"`. Repeat `--git` for
+another requested action. Direct `kildall tool` invocation is also explicit intent.
 Ordinary prompt or skill text cannot grant it. A model commit must read the staged
 diff and submit its returned hash with a message derived from those changes.
 Only already-staged changes are committed; local Git author name/email must exist.
@@ -237,8 +239,8 @@ The destination is one explicit feature branch;
 main/master, force, mirror and arbitrary refspecs are refused. PR creation
 uses the GitHub API after explicit push, so it cannot silently push or fork.
 
-`orbi skills` lists instruction packs without loading a model. Global packs live
-in `code/skills/NAME/SKILL.md`; project packs in `PROJECT/.orbi/skills/NAME/SKILL.md`
+`kildall skills` lists instruction packs without loading a model. Global packs live
+in `code/skills/NAME/SKILL.md`; project packs in `PROJECT/.kildall/skills/NAME/SKILL.md`
 override the same global name. Names use lowercase letters, digits and hyphens.
 Each file has YAML frontmatter followed by Markdown instructions:
 
@@ -251,15 +253,15 @@ tools: [git_read]
 Read the diff and report concrete problems with file references.
 ```
 
-Load on demand with `orbi --skill review "Review my changes"` or the model's
+Load on demand with `kildall --skill review "Review my changes"` or the model's
 `load_skill` tool. Tool declarations are checked against available tools and never
 grant permission. Packs are data, not executable scripts; symlinks, invalid
 metadata and files over32KiB fail explicitly. `test_phase42.py` checks all11 items,
 adversarial boundaries and the new tool grammars. PR transport is fixture-tested;
 the test does not publish a live PR.
 
-Opt in to shell hooks with `orbi --hooks PATH "Read this file"` or
-`orbi tool --hooks PATH read_file '{"path":"README.md"}'`. The TOML file and
+Opt in to shell hooks with `kildall --hooks PATH "Read this file"` or
+`kildall tool --hooks PATH read_file '{"path":"README.md"}'`. The TOML file and
 scripts must be regular files under `code/`; relative script paths use its directory:
 
 ```toml
@@ -282,7 +284,7 @@ Exit0 allows the normal permission checks; any nonzero exit, crash, timeout or
 truncated output blocks. Pre-hooks run before confirmation/execution. Post-hook
 failure stops further calls and fails the task; it cannot undo an executed action
 or turn a background job into a failed job. Action and hook outcomes have separate
-audit rows. Inspect them through `orbi permissions`.
+audit rows. Inspect them through `kildall permissions`.
 
 Hooks add no model tools. Each selected configuration includes an independent
 Never shell veto, while the original code enforcement always remains active.
@@ -302,8 +304,8 @@ there is no web fetcher or claim of model-level injection resistance yet.
 All computer input and screen-capture actions are refused until Phase 4C replaces
 this temporary guard with its tree-first routing and per-action tier checks.
 
-`orbi nuke` is a dry-run. Deletion additionally requires `--delete` and typing
-exactly `orbi` in the controlling terminal. Symlinks inside the root are listed
+`kildall nuke` is a dry-run. Deletion additionally requires `--delete` and typing
+exactly `kildall` in the controlling terminal. Symlinks inside the root are listed
 and unlinked as entries, including the three outward Python links; their targets
 are never followed or deleted. The live dry-run lists zero paths outside code/.
 No root override exists. Nuke validates its audit database before opening it;
@@ -317,3 +319,22 @@ computer-action refusals and throwaway-tree deletion.
 Phase4.1 checks: `test_phase41.py`, `test_tool_grammar.py`, `test_tool_runtime.py`,
 `test_shell_lifecycle.py`, `test_image_reader.py` and `test_nuke.py`. Detailed
 results and retained failures are in [BENCHMARKS.md](BENCHMARKS.md).
+
+## Rename compatibility
+
+The package and primary command are `kildall`. The `orbi` command and Python
+module remain aliases for one release. Both commands share the same configuration
+and database; `KILDALL_CONFIG` takes precedence over the legacy `ORBI_CONFIG`.
+The vault lives at `~/Kildall`; SQLite table names and stored history retain their
+existing names. Existing data and backups were copied and verified before cutover;
+the originals remain available for recovery. Frozen benchmark text and model
+prompts are unchanged except for the authorized vault path in project labels
+and the write-tool description.
+
+Licensed under the [MIT License](LICENSE).
+
+Rename validation (2026-09-27): recall, abstention, category, lane and callable
+JSON20/20; tools17/20 first-pass and20/20 post-retry; CLI18/18; hooks5/5.
+All earlier controls and the health check pass. Recall requests differ only in
+the vault path, verified by path-normalized comparison. See the retained results
+and failures in [BENCHMARKS.md](BENCHMARKS.md).

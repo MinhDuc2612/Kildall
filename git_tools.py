@@ -146,7 +146,7 @@ def execute(operation, args, record, project):
         if hashlib.sha256(diff).hexdigest() != args['diff_sha256']:
             raise PermissionError('Commit must refer to the current real staged diff')
         if record['task'] is not None:
-            from orbi import database
+            from kildall import database
             with database(record['db_path']) as db:
                 seen = db.execute("SELECT preview FROM orbi_permissions WHERE task=? AND operation='git_read' AND status='done'",
                                   (record['task'],)).fetchall()

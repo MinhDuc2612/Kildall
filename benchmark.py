@@ -11,7 +11,7 @@ import threading
 import time
 import urllib.request
 
-from orbi import system_messages
+from kildall import system_messages
 
 PROMPT = (
     "Explain how a local command-line assistant can keep useful project memory "

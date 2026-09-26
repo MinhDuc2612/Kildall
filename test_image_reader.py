@@ -68,7 +68,7 @@ def text_image(path, text):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="orbi-image-") as directory:
+    with tempfile.TemporaryDirectory(prefix="kildall-image-") as directory:
         root = Path(directory)
         image = root / "text.png"
         text_image(image, b"ORBI LOCAL TEXT 12345")

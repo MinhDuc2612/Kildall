@@ -26,7 +26,7 @@ PLAN_DEFAULTS = {
 
 def classify(config, system, prompt, properties):
     # Imported here so the CLI can also run as a script without an import cycle.
-    from orbi import json_request, strict_json, system_messages, url
+    from kildall import json_request, strict_json, system_messages, url
 
     messages = system_messages([dict(role="system", content=system), dict(role="user", content=prompt)])
     endpoint = url(config)
@@ -75,7 +75,7 @@ Choose a leaf only when its specific operation covers the requested scope. Share
 
 
 def classify_catalog(config, prompt):
-    from orbi import json_request, url
+    from kildall import json_request, url
     from skill_catalog import SKILLS
 
     started = time.monotonic()

@@ -42,21 +42,21 @@ print(f"Free disk (/System/Volumes/Data): {free / 1e9:.2f} GB ({free / 2**30:.2f
 print("Recorded baseline: 19.48 tok/s (qwen3:8b, 2026-09-06; not re-measured)")
 
 root = Path.cwd()
-registration = f"{root}/.venv/bin/orbi --schedule-backups"
-service = f"gui/{os.getuid()}/local.orbi.backup"
+registration = f"{root}/.venv/bin/kildall --schedule-backups"
+service = f"gui/{os.getuid()}/local.kildall.backup"
 job = subprocess.run(["/bin/launchctl", "print", service], text=True, capture_output=True)
 try:
-    path = root / ".session/local.orbi.backup.plist"
+    path = root / ".session/local.kildall.backup.plist"
     schedule = plistlib.loads(path.read_bytes())
-    expected = [str(root / ".venv/bin/python"), str(root / "orbi.py"), "--backup"]
+    expected = [str(root / ".venv/bin/python"), str(root / "kildall.py"), "--backup"]
     live = {line.strip() for line in job.stdout.splitlines()}
     required = {f"path = {path}", f"program = {expected[0]}", *expected,
-                f"working directory = {root}", f"ORBI_CONFIG => {root / 'orbi.toml'}",
+                f"working directory = {root}", f"KILDALL_CONFIG => {root / 'kildall.toml'}",
                 '"Hour" => 3', '"Minute" => 0'}
     if not (schedule["ProgramArguments"] == expected
             and schedule["StartCalendarInterval"] == {"Hour": 3, "Minute": 0}
             and schedule["WorkingDirectory"] == str(root)
-            and schedule["EnvironmentVariables"]["ORBI_CONFIG"] == str(root / "orbi.toml")
+            and schedule["EnvironmentVariables"]["KILDALL_CONFIG"] == str(root / "kildall.toml")
             and job.returncode == 0 and required <= live):
         raise ValueError("Backup job does not match the configured schedule")
 except (OSError, ValueError, KeyError, TypeError):

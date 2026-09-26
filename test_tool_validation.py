@@ -12,7 +12,7 @@ from tool_validation import copy_issues, regex_issues, retry_feedback, verbatim_
 
 
 def cli_checks():
-    import orbi
+    import kildall
 
     source = 'Keep "this" punctuation 🌐.'
     prompt = 'Remember this exact fact globally: ' + source
@@ -25,16 +25,16 @@ def cli_checks():
         memory = Mock()
         memory.retrieve.return_value = dict(text='')
         memory.add.return_value = 1
-        with tempfile.TemporaryDirectory(dir=orbi.ROOT / '.session') as directory, \
-                patch.object(orbi, 'history', return_value=[]), \
-                patch.object(orbi, 'ensure_runtime'), patch.object(orbi, 'fit_messages', return_value=[]), \
-                patch.object(orbi, 'stream_reply', side_effect=replies), redirect_stdout(io.StringIO()):
+        with tempfile.TemporaryDirectory(dir=kildall.ROOT / '.session') as directory, \
+                patch.object(kildall, 'history', return_value=[]), \
+                patch.object(kildall, 'ensure_runtime'), patch.object(kildall, 'fit_messages', return_value=[]), \
+                patch.object(kildall, 'stream_reply', side_effect=replies), redirect_stdout(io.StringIO()):
             path = Path(directory) / 'audit.sqlite3'
-            orbi.initialize(path)
+            kildall.initialize(path)
             task = Mock(path=path, id='test-task')
-            with patch.object(orbi, 'Task', return_value=task):
+            with patch.object(kildall, 'Task', return_value=task):
                 try:
-                    orbi._run_turn(dict(paths=dict(db_path=path)), memory, 'session', str(Path.cwd()), prompt)
+                    kildall._run_turn(dict(paths=dict(db_path=path)), memory, 'session', str(Path.cwd()), prompt)
                 except ValueError as error:
                     assert not succeeds and 'Verbatim' in str(error)
                 else:
@@ -49,18 +49,18 @@ def cli_checks():
 
 
 def main():
-    import orbi
+    import kildall
 
     messages = [dict(role='system', content='Original instructions.'), dict(role='user', content='Keep me.')]
-    effective = orbi.system_messages(messages)
-    assert effective[0]['content'] == messages[0]['content'] + '\n\n' + orbi.SYSTEM_RULES
+    effective = kildall.system_messages(messages)
+    assert effective[0]['content'] == messages[0]['content'] + '\n\n' + kildall.SYSTEM_RULES
     assert messages[0]['content'] == 'Original instructions.' and effective[1] == messages[1]
-    assert orbi.system_messages(effective) == effective
-    assert orbi.system_messages(messages[1:])[0] == dict(role='system', content=orbi.SYSTEM_RULES)
-    with patch.object(orbi, 'json_request', side_effect=[dict(prompt='rendered'), dict(tokens=[1, 2])]) as request:
-        fitted = orbi.fit_messages(orbi.settings(), 'Original instructions.', 'Memory.', [], messages[1:])
+    assert kildall.system_messages(effective) == effective
+    assert kildall.system_messages(messages[1:])[0] == dict(role='system', content=kildall.SYSTEM_RULES)
+    with patch.object(kildall, 'json_request', side_effect=[dict(prompt='rendered'), dict(tokens=[1, 2])]) as request:
+        fitted = kildall.fit_messages(kildall.settings(), 'Original instructions.', 'Memory.', [], messages[1:])
     counted = request.call_args_list[0].args[1]['messages']
-    assert counted == fitted and counted[0]['content'].endswith(orbi.SYSTEM_RULES)
+    assert counted == fitted and counted[0]['content'].endswith(kildall.SYSTEM_RULES)
 
     source = 'Exact "quotes", a backslash \\, tiếng Việt 🌐.\nSecond line. '
     prompt = 'Remember this exact fact globally: ' + source

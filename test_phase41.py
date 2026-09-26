@@ -9,7 +9,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
-import orbi
+import kildall
 import permissions as p
 from shell_tools import run_bounded
 
@@ -35,10 +35,10 @@ def main():
     def passed(label):
         checks.append(label)
         print('PASS:', label, flush=True)
-    with tempfile.TemporaryDirectory(dir=orbi.ROOT / '.session', prefix='phase41-') as temporary:
+    with tempfile.TemporaryDirectory(dir=kildall.ROOT / '.session', prefix='phase41-') as temporary:
         work = Path(temporary)
         db = work / 'audit.db'
-        orbi.initialize(db)
+        kildall.initialize(db)
         def run(operation, **args):
             return p.run_action(db, str(work), operation, args)
         def rejected(operation, **args):
@@ -99,9 +99,9 @@ def main():
         result = run('read_image', path='image.png')
         assert 'ORBI' in result['text'].upper(), result
         passed('F9 local image decode and OCR (scene understanding unavailable)')
-        rejected('write', path=str(orbi.ROOT.parent/'phase41-forbidden'), content='no')
+        rejected('write', path=str(kildall.ROOT.parent/'phase41-forbidden'), content='no')
         link = work/'out'
-        link.symlink_to(orbi.ROOT.parent/'Researchhub', target_is_directory=True)
+        link.symlink_to(kildall.ROOT.parent/'Researchhub', target_is_directory=True)
         rejected('write', path=str(link/'forbidden'), content='no')
         passed('F10 writes outside root refused')
         result = run('run_command', command='echo hello')
@@ -114,7 +114,7 @@ def main():
         assert result['timed_out'] and result['exit_code'] == -9 and time.monotonic()-started < 2.5
         passed('S2 configurable timeout and actual signal exit')
         child = "import json,sys;from pathlib import Path;import permissions;print(json.dumps(permissions.run_action(Path(sys.argv[1]),sys.argv[2],'run_command',dict(command='sleep 1',timeout=5,background=True))))"
-        job = subprocess.run([sys.executable, '-c', child, str(db), str(work)], cwd=orbi.ROOT, capture_output=True, text=True, timeout=10, check=True)
+        job = subprocess.run([sys.executable, '-c', child, str(db), str(work)], cwd=kildall.ROOT, capture_output=True, text=True, timeout=10, check=True)
         ident = json.loads(job.stdout)['id']
         for _ in range(80):
             result = run('shell_job', id=ident)
@@ -125,14 +125,14 @@ def main():
         passed('S3 background command survives its caller; inspectable result')
         result = run('run_command', command='false')
         assert result['exit_code'] == 1
-        with orbi.database(db) as connection:
+        with kildall.database(db) as connection:
             assert connection.execute('SELECT status FROM orbi_permissions ORDER BY created DESC LIMIT 1').fetchone()[0] == 'failed'
         passed('S4 nonzero exit is logged as failed')
         run('run_command', command='cd sub')
         assert run('run_command', command='pwd')['stdout'].strip() == str(work/'sub')
         assert 'def hello' in run('run_command', command='cat a.py')['stdout']
         passed('S5 cwd persists across calls')
-        with patch.object(orbi, 'SYSTEM_RULES', ''):
+        with patch.object(kildall, 'SYSTEM_RULES', ''):
             for command in ('rm -rf .', 'sudo true', 'git push --force', 'git push origin +HEAD:main',
                             'sh -c true', 'python -c pass', 'osascript -e click', 'screencapture x', 'env true'):
                 rejected('run_command', command=command)
@@ -143,7 +143,7 @@ def main():
         for script in (f'echo bad > {sentinel}', '/bin/echo child'):
             result = run_bounded(['/bin/sh', '-c', script], work, 2)
             assert result['exit_code'] != 0 and not sentinel.exists(), result
-        with orbi.database(db) as connection:
+        with kildall.database(db) as connection:
             assert not connection.execute("SELECT 1 FROM orbi_permissions WHERE status IN ('checking','waiting','running','background')").fetchall()
         assert len(checks) == 16
         print(json.dumps(dict(passed=True, items=checks, extra='Kernel write/child-exec denial verified')))

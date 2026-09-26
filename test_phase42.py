@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 import git_tools
 import instruction_skills as skills
-import orbi
+import kildall
 import permissions as p
 from test_tool_grammar import NativeGrammar, call
 from tool_grammar import parse_tool_call, tool_grammar
@@ -30,12 +30,12 @@ def main():
             return error
         raise AssertionError('Expected refusal/failure')
 
-    with tempfile.TemporaryDirectory(prefix='phase42-', dir=orbi.ROOT / '.session') as tmp:
+    with tempfile.TemporaryDirectory(prefix='phase42-', dir=kildall.ROOT / '.session') as tmp:
         root = Path(tmp)
         repo = root / 'repo'
         repo.mkdir()
-        db = root / 'orbi.db'
-        orbi.initialize(db)
+        db = root / 'kildall.db'
+        kildall.initialize(db)
         project = str(repo)
         def raw(*args, cwd=repo):
             return subprocess.run(['/opt/homebrew/bin/git', '-c', 'core.hooksPath=/dev/null',
@@ -47,7 +47,7 @@ def main():
             with p.decision(db, project, operation, args, task, requested=requested) as record:
                 return p.execute(operation, args, record, project)
         def rows():
-            with orbi.database(db) as connection:
+            with kildall.database(db) as connection:
                 return [dict(r) for r in connection.execute('SELECT * FROM orbi_permissions ORDER BY created')]
         raw('init', '-b', 'main')
         raw('config', 'user.name', 'Orbi Test')
@@ -56,9 +56,9 @@ def main():
         raw('add', 'a.txt')
         raw('commit', '-m', 'Initial')
         initial = raw('rev-parse', 'HEAD')
-        with orbi.database(db) as connection:
+        with kildall.database(db) as connection:
             connection.execute('INSERT INTO orbi_sessions VALUES(?,?,?)', ('test', project, time.time()))
-        task_obj = orbi.Task(db, 'test')
+        task_obj = kildall.Task(db, 'test')
         task = task_obj.id
         (repo / 'a.txt').write_text('two\n')
         raw('add', 'a.txt')
@@ -136,7 +136,7 @@ def main():
         assert not remote_marker.exists()
         assert rows()[-1]['tier'] == 'Confirm'
         # A regular commondir file can redirect the actual store outside the allowed root.
-        with tempfile.TemporaryDirectory(prefix='orbi-outside-') as outside:
+        with tempfile.TemporaryDirectory(prefix='kildall-outside-') as outside:
             outside_repo = Path(outside) / 'outside.git'
             raw('init', '--bare', str(outside_repo), cwd=root)
             before = {str(p.relative_to(outside_repo)): p.read_bytes() for p in outside_repo.rglob('*') if p.is_file()}
@@ -204,7 +204,7 @@ def main():
             assert argv[1] == 'api' and 'repos/example/repo/pulls' in argv and 'pr' not in argv
         passed('G6 PR explicit intent/preview/payload tested with API fixture; no live PR published')
 
-        global_dir, project_dir = root / 'global', repo / '.orbi/skills'
+        global_dir, project_dir = root / 'global', repo / '.kildall/skills'
         global_dir.mkdir()
         project_dir.mkdir(parents=True)
         def pack(directory, name='review', body='Read the diff.\n', tools='[git_read]'):
@@ -214,7 +214,7 @@ def main():
             path.write_text(f'---\nname: {name}\ndescription: Review changes\ntools: {tools}\n---\n{body}')
             return path
         pack(global_dir)
-        available = {t['function']['name'] for t in orbi.TOOLS}
+        available = {t['function']['name'] for t in kildall.TOOLS}
         roots = dict(global_root=global_dir, project_root=project_dir)
         loaded = skills.load('review', project, available, **roots)
         assert loaded['instructions'] == 'Read the diff.\n'
@@ -235,14 +235,14 @@ def main():
         old = Path.cwd()
         try:
             os.chdir(repo)
-            with patch.object(orbi, 'settings', return_value={'paths': {'db_path': db}}), redirect_stdout(out):
-                assert orbi.permission_main(['skills']) == 0
+            with patch.object(kildall, 'settings', return_value={'paths': {'db_path': db}}), redirect_stdout(out):
+                assert kildall.permission_main(['skills']) == 0
         finally:
             os.chdir(old)
         listing = json.loads(out.getvalue())
         assert next(s for s in listing if s['name'] == 'review')['source'] == 'project'
         assert rows()[-1]['operation'] == 'skills' and rows()[-1]['tier'] == 'Auto'
-        passed('S4 orbi skills lists and logs without starting a runtime')
+        passed('S4 kildall skills lists and logs without starting a runtime')
         assert skills.load('review', project, available, **roots)['instructions'].startswith('Project review.')
         assert p.run_action(db, project, 'load_skill', {'name': 'review'})['source'] == 'project'
         with patch.object(p, 'terminal_confirm', side_effect=AssertionError('Skill cannot grant intent')):
@@ -309,21 +309,21 @@ def main():
         memory.retrieve.return_value = {'text': ''}
         for number, intent in enumerate(((), ('tools',), ('commit',))):
             session = 'tool-surface-' + str(number)
-            with orbi.database(db) as connection:
+            with kildall.database(db) as connection:
                 connection.execute('INSERT INTO orbi_sessions VALUES(?,?,?)', (session, project, time.time()))
-            with patch.object(orbi, 'ensure_runtime'), patch.object(orbi, 'fit_messages', return_value=[]) as fit, \
-                 patch.object(orbi, 'stream_reply', return_value=dict(role='assistant', content='Done')) as reply, \
+            with patch.object(kildall, 'ensure_runtime'), patch.object(kildall, 'fit_messages', return_value=[]) as fit, \
+                 patch.object(kildall, 'stream_reply', return_value=dict(role='assistant', content='Done')) as reply, \
                  redirect_stdout(io.StringIO()):
-                assert orbi.run_turn({'paths': {'db_path': db}}, memory, session, project,
+                assert kildall.run_turn({'paths': {'db_path': db}}, memory, session, project,
                                      'Inspect the current task.', git_intent=intent) == 0
-            expected = {'tools': orbi.TOOLS} if intent else {}
+            expected = {'tools': kildall.TOOLS} if intent else {}
             assert fit.call_args.kwargs == reply.call_args.kwargs == expected
-        assert len(orbi.BASE_TOOLS) == 12 and len(orbi.TOOLS) == 19
-        assert not git_tools.NAMES.intersection(t['function']['name'] for t in orbi.BASE_TOOLS)
+        assert len(kildall.BASE_TOOLS) == 12 and len(kildall.TOOLS) == 19
+        assert not git_tools.NAMES.intersection(t['function']['name'] for t in kildall.BASE_TOOLS)
         print('PASS: default tool requests unchanged; Git schemas enabled only by explicit task options', flush=True)
 
     grammar = NativeGrammar()
-    compiled = tool_grammar(orbi.TOOLS)
+    compiled = tool_grammar(kildall.TOOLS)
     samples = {
         'git_read': dict(path='.', action='diff', staged=True),
         'git_branch': dict(path='.', name='feature/review'),
@@ -337,7 +337,7 @@ def main():
         for args in (arguments, dict(reversed(list(arguments.items())))):
             raw_call = call(name, args)
             assert grammar.matches(compiled, raw_call)
-            assert parse_tool_call(raw_call, orbi.TOOLS) == dict(name=name, arguments=arguments)
+            assert parse_tool_call(raw_call, kildall.TOOLS) == dict(name=name, arguments=arguments)
         for bad in ({}, dict(arguments, force=True), {k: 1 for k in arguments}):
             assert not grammar.matches(compiled, call(name, bad))
     print(f'PASS: all seven new model tools enforced by real llama.cpp grammar ({grammar.checks} checks)', flush=True)

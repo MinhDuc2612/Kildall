@@ -15,7 +15,7 @@ TOOLS = [
     tool('grep_files', 'Search regex with optional ripgrep file type (e.g. py).', dict(path=S, pattern=S, file_type=S), ['path', 'pattern']),
     tool('read_pdf', 'Read local PDF text, up to ten pages. Scanned PDFs may have no text.', dict(path=S, start_page=dict(type='integer', minimum=1), pages=dict(type='integer', minimum=1, maximum=10)), ['path']),
     tool('read_image', 'Decode a local image and read text with macOS OCR; scene understanding unavailable.', dict(path=S), ['path']),
-    tool('write', 'Write UTF-8 text after user approves the exact diff. Only inside Orbi/code.', dict(path=S, content=S), ['path', 'content']),
+    tool('write', 'Write UTF-8 text after user approves the exact diff. Only inside Kildall/code.', dict(path=S, content=S), ['path', 'content']),
     tool('edit', 'Replace exactly one occurrence after user approves the exact diff.', dict(path=S, old=S, new=S), ['path', 'old', 'new']),
 ]
 READS = {item['function']['name'] for item in TOOLS} - {'write', 'edit'}

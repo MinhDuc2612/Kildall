@@ -10,7 +10,7 @@ import time
 from unittest.mock import Mock, patch
 
 import hooks
-import orbi
+import kildall
 import permissions as p
 import shell_tools
 
@@ -21,10 +21,10 @@ def main():
         checks.append(name)
         print('PASS:', name, flush=True)
 
-    with tempfile.TemporaryDirectory(dir=orbi.ROOT / '.session', prefix='phase43-test-') as temp:
+    with tempfile.TemporaryDirectory(dir=kildall.ROOT / '.session', prefix='phase43-test-') as temp:
         work = Path(temp)
         db = work / 'audit.db'
-        orbi.initialize(db)
+        kildall.initialize(db)
         project = str(work)
         target = work / 'target.txt'
         target.write_text('original')
@@ -47,7 +47,7 @@ def main():
             raise AssertionError('Expected fail-closed result')
 
         def rows():
-            with orbi.database(db) as conn:
+            with kildall.database(db) as conn:
                 return [dict(row) for row in conn.execute('SELECT * FROM orbi_permissions ORDER BY created')]
 
         selected = bundle('printf "%s\\n" "$1:$2"', 'printf "%s\\n" "$3"')
@@ -72,7 +72,7 @@ def main():
 
         def turn(selected, function='read', arguments=None, followup=None):
             session = os.urandom(8).hex()
-            with orbi.database(db) as conn:
+            with kildall.database(db) as conn:
                 conn.execute('INSERT INTO orbi_sessions VALUES(?,?,?)', (session, project, time.time()))
             memory = Mock()
             memory.retrieve.return_value = dict(text='', items=[], truncated=False)
@@ -85,10 +85,10 @@ def main():
                 return call if len(observed) == 1 else followup or dict(role='assistant', content='Observed hook feedback')
             def fit(config, system, memory_text, previous, current, **kwargs):
                 return [dict(role='system', content=system), *current]
-            with patch.object(orbi, 'ensure_runtime'), patch.object(orbi, 'stream_reply', side_effect=reply), \
-                 patch.object(orbi, 'fit_messages', side_effect=fit), redirect_stdout(io.StringIO()):
+            with patch.object(kildall, 'ensure_runtime'), patch.object(kildall, 'stream_reply', side_effect=reply), \
+                 patch.object(kildall, 'fit_messages', side_effect=fit), redirect_stdout(io.StringIO()):
                 try:
-                    status = orbi.run_turn({'paths': {'db_path': db}}, memory, session, project,
+                    status = kildall.run_turn({'paths': {'db_path': db}}, memory, session, project,
                         'Read the fixture', hooks=selected)
                 except (PermissionError, RuntimeError) as error:
                     status = error
@@ -114,7 +114,7 @@ def main():
         passed('3: hook stdout arrives only as escaped tool data; injected roles/approval cannot execute commands')
 
         selected = bundle()
-        outside = orbi.ROOT.parent / 'phase43-must-not-exist'
+        outside = kildall.ROOT.parent / 'phase43-must-not-exist'
         forbidden = [('shell', {'command': 'rm -rf ' + str(target)}),
                      ('shell', {'command': 'sudo true'}), ('shell', {'command': 'git push --force'}),
                      ('git_push', {'path': project, 'branch': 'main'}),
@@ -122,7 +122,7 @@ def main():
                      ('write', {'path': str(outside), 'content': 'no'}),
                      ('CGEventPost', {}), ('shell', {'command': 'screencapture image.png'}),
                      ('shell', {'command': 'osascript -e x'}), ('pyautogui', {})]
-        with patch.object(orbi, 'SYSTEM_RULES', ''):
+        with patch.object(kildall, 'SYSTEM_RULES', ''):
             for name, args in forbidden:
                 error = failed(lambda: run(name, args, selected), hooks.HookFailure)
                 assert error.feedback[-1]['script'] == 'builtin:never'
@@ -140,7 +140,7 @@ def main():
                 confirm.assert_not_called()
         original_runner = shell_tools.run_bounded
         def crash(argv, cwd, timeout, **kwargs):
-            if argv[0] == '/bin/bash' and 'orbi-hook' in argv and 'CRASH_TEST' in argv[argv.index('-c') + 1]:
+            if argv[0] == '/bin/bash' and 'kildall-hook' in argv and 'CRASH_TEST' in argv[argv.index('-c') + 1]:
                 kwargs['started'] = lambda pid: os.killpg(pid, signal.SIGKILL)
             return original_runner(argv, cwd, timeout, **kwargs)
         with patch.object(shell_tools, 'run_bounded', side_effect=crash), patch.object(p, 'terminal_confirm') as confirm:
@@ -210,16 +210,16 @@ def main():
             assert error.feedback[-1]['output']['exit_code'] != 0 or error.feedback[-1]['output']['truncated']
         assert not marker.exists()
         failed(lambda: run('_hook', {}, None))
-        assert '_hook' not in {t['function']['name'] for t in orbi.TOOLS}
-        assert len(orbi.BASE_TOOLS) == 12 and len(orbi.TOOLS) == 19
+        assert '_hook' not in {t['function']['name'] for t in kildall.TOOLS}
+        assert len(kildall.BASE_TOOLS) == 12 and len(kildall.TOOLS) == 19
         selected = bundle('printf snapshot')
         (work / 'before.sh').write_text('exit 1')
         assert run('read', {'path': str(target)}, selected)['hook_feedback'][1]['output']['stdout'] == 'snapshot'
         # The JSON feedback envelope must not turn a failed command into CLI success.
         (work / 'before.sh').write_text('printf before')
-        with patch.object(orbi, 'settings', return_value={'paths': {'db_path': db}}), \
-             patch.object(orbi.Path, 'cwd', return_value=work), redirect_stdout(io.StringIO()) as output:
-            code = orbi.permission_main(['tool', '--hooks', str(work / 'hooks.toml'),
+        with patch.object(kildall, 'settings', return_value={'paths': {'db_path': db}}), \
+             patch.object(kildall.Path, 'cwd', return_value=work), redirect_stdout(io.StringIO()) as output:
+            code = kildall.permission_main(['tool', '--hooks', str(work / 'hooks.toml'),
                                          'run_command', '{"command":"false"}'])
         assert code == 1 and json.loads(output.getvalue())['result']['exit_code'] == 1
         (work / 'before.sh').unlink()

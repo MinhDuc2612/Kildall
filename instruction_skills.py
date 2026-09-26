@@ -37,7 +37,7 @@ def slug(value):
 def packs(project, available_names, *, global_root=None, project_root=None):
     from permissions import CODE_ROOT, parent_fd
     roots = [('global', Path(global_root) if global_root is not None else CODE_ROOT / 'skills'),
-             ('project', Path(project_root) if project_root is not None else Path(project).resolve() / '.orbi/skills')]
+             ('project', Path(project_root) if project_root is not None else Path(project).resolve() / '.kildall/skills')]
     found = {}
     for source, root in roots:
         root = root.absolute()

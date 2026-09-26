@@ -84,7 +84,7 @@ def scalar_grammar(schema):
 
 
 def main():
-    from orbi import TOOLS
+    from kildall import TOOLS
 
     fixture = json.loads(Path(__file__).with_name("bench_cases.json").read_text())
     grammar = NativeGrammar()

@@ -83,7 +83,7 @@ def shell(source, argv, project, timeout):
     # ponytail: hooks support builtin-only shell logic; external programs need
     # a separately audited typed operation, never a wider sandbox executable list.
     return run_bounded(['/bin/bash', '--noprofile', '--norc', '-p', '-r', '-c', prelude + source,
-                        'orbi-hook', *argv], project, timeout, limit=4096)
+                        'kildall-hook', *argv], project, timeout, limit=4096)
 
 
 def policy_fields(operation, args, project):
@@ -108,7 +108,7 @@ def policy_fields(operation, args, project):
 
 def run_stage(bundle, phase, operation, arguments, record, project):
     from permissions import decision, execute
-    from orbi import strict_json
+    from kildall import strict_json
     args = strict_json(arguments) if isinstance(arguments, str) else arguments
     event = dict(phase=phase, operation=operation, arguments=args,
                  decision=record['id'], status=record['status'], result=record.get('result'))

@@ -3,7 +3,7 @@ import io
 import json
 from unittest.mock import patch
 
-import orbi
+import kildall
 import tool_runtime as runtime
 from file_tools import TOOLS
 from test_tool_grammar import call
@@ -21,7 +21,7 @@ def main():
             events.append(finish)
         return io.BytesIO(b''.join(b'data: '+json.dumps(event).encode()+b'\n\n' for event in events))
     seen = []
-    with patch.object(orbi, 'json_request', return_value={'prompt':'<|turn>user\nread<turn|>\n<|turn>model\n'}), patch.object(runtime._OPENER, 'open', return_value=response(raw)) as http:
+    with patch.object(kildall, 'json_request', return_value={'prompt':'<|turn>user\nread<turn|>\n<|turn>model\n'}), patch.object(runtime._OPENER, 'open', return_value=response(raw)) as http:
         result = runtime.chat('http://127.0.0.1', body, on_text=seen.append)
         assert ''.join(seen) == result['choices'][0]['message']['content'] == 'Reading.\n'
         function = result['choices'][0]['message']['tool_calls'][0]['function']
@@ -32,7 +32,7 @@ def main():
                          (raw.replace('read_file', 'sudo'), final),
                          (raw.replace('path:', 'missing:'), final),
                          (raw+call('read_file', dict(path='b.txt')), final)):
-        with patch.object(orbi, 'json_request', return_value={'prompt':'<|turn>model\n'}), patch.object(runtime._OPENER, 'open', return_value=response(text, finish)):
+        with patch.object(kildall, 'json_request', return_value={'prompt':'<|turn>model\n'}), patch.object(runtime._OPENER, 'open', return_value=response(text, finish)):
             try:
                 runtime.chat('http://127.0.0.1', body)
             except (ValueError, RuntimeError):
@@ -41,7 +41,7 @@ def main():
                 raise AssertionError('Invalid or incomplete call returned to executor')
     for raw, expected in (('a < b', 'a < b'), ('hello<|channel>thought\nhidden', 'hello'), ('日本語', '日本語')):
         assert runtime.visible(raw, final=True) == expected
-    with patch.object(orbi, 'json_request') as http:
+    with patch.object(kildall, 'json_request') as http:
         invalid = dict(type='function', function=dict(name='bad', parameters=dict(type='object', properties={}, additionalProperties=True)))
         try:
             runtime.prepare('http://127.0.0.1', dict(body, tools=[invalid]))

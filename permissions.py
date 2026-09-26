@@ -16,7 +16,7 @@ import time
 import uuid
 
 # Production scope is never supplied by a model, configuration, or command-line flag.
-CODE_ROOT = Path.home() / "Orbi" / "code"
+CODE_ROOT = Path.home() / "Kildall" / "code"
 COMPUTER_REASON = "Computer input and screen capture are unavailable until Phase 4C"
 AUTO = {"read", "ls", "git_status", "remember", "recall", "web_data"}
 CONFIRM = {"write", "edit", "commit", "install"}
@@ -80,7 +80,7 @@ def replace_file(path, before, content):
     with parent_fd(path) as (fd, name):
         if snapshot(path) != before:
             raise RuntimeError("Target changed after its diff was approved")
-        temporary = ".orbi-write-" + uuid.uuid4().hex
+        temporary = ".kildall-write-" + uuid.uuid4().hex
         try:
             out = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
                           0o600, dir_fd=fd)
@@ -132,7 +132,7 @@ def terminal_confirm(preview, word="yes"):
 
 @contextmanager
 def decision(db_path, project, operation, arguments, task=None, *, requested=(), hooks=None):
-    from orbi import database, process_start
+    from kildall import database, process_start
     ident = uuid.uuid4().hex
     row = dict(id=ident, db_path=db_path, task=task, requested=frozenset(requested),
                tier="Never", status="checking", preview=None, reason=None)
@@ -290,7 +290,7 @@ def execute(operation, args, record, project):
     if operation in ('skills', 'load_skill'):
         if operation == 'skills':
             fields(args)
-        from orbi import TOOLS
+        from kildall import TOOLS
         authorize(record, 'Auto')
         available = {t['function']['name'] for t in TOOLS}
         return (instruction_skills.discover(project, available) if operation == 'skills' else
@@ -347,12 +347,12 @@ def execute(operation, args, record, project):
         if git_repository(repo) != repo or staged(repo) != before:
             raise RuntimeError("Staged diff changed after approval")
         # Freeze the approved index; update-ref compares the reviewed parent atomically.
-        with tempfile.TemporaryDirectory(prefix="orbi-index-", dir=repo / ".git") as directory:
+        with tempfile.TemporaryDirectory(prefix="kildall-index-", dir=repo / ".git") as directory:
             private = Path(directory) / "index"
             private.write_bytes(index)
             tree = git(repo, "write-tree", index=private).decode().strip()
             commit = git(repo, "commit-tree", tree, "-p", head, "-m", args["message"]).decode().strip()
-            git(repo, "update-ref", "--no-deref", "-m", "orbi: approved commit", branch, commit, head)
+            git(repo, "update-ref", "--no-deref", "-m", "kildall: approved commit", branch, commit, head)
         if git(repo, "rev-parse", branch).decode().strip() != commit:
             raise OSError("Commit verification failed")
         return {"commit": commit}
@@ -365,7 +365,7 @@ def execute(operation, args, record, project):
 
 
 def run_action(db_path, project, operation, raw_args, task=None, *, hooks=None):
-    from orbi import strict_json
+    from kildall import strict_json
     # This entry point is a direct user CLI action, never a model/skill dispatch.
     requested = (operation.removeprefix('git_'),) if task is None else ()
     with decision(db_path, project, operation, raw_args, task, requested=requested, hooks=hooks) as record:
@@ -449,7 +449,7 @@ def _delete_tree(root, manifest):
 
 def nuke_database(root=CODE_ROOT):
     guard_path(root, root)
-    path = Path(root) / "orbi.db"
+    path = Path(root) / "kildall.db"
     for suffix in ("", "-wal", "-shm", "-journal"):
         candidate = Path(str(path) + suffix)
         guard_path(candidate, root)
@@ -461,7 +461,7 @@ def nuke_database(root=CODE_ROOT):
 
 
 def nuke(*, delete=False):
-    from orbi import initialize
+    from kildall import initialize
     db_path = nuke_database()
     initialize(db_path)
     with decision(db_path, str(Path.cwd().resolve()), "nuke", {"delete": delete}) as record:
@@ -476,7 +476,7 @@ def nuke(*, delete=False):
             record["update"](tier="Never")
             raise PermissionError("Nuke refused: scan contains unsafe paths")
         record["update"](status="waiting")
-        if not terminal_confirm(report, "orbi"):
+        if not terminal_confirm(report, "kildall"):
             record["update"](status="declined")
             raise PermissionError("Nuke declined")
         record["update"](status="authorized")

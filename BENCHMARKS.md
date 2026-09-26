@@ -1,4 +1,9 @@
-# Lane A measurements
+# Kildall measurements
+
+Current checkout and sole mutation root: `~/Kildall/code`. Current backup
+registration command: `~/Kildall/code/.venv/bin/kildall --schedule-backups`.
+Historical commands, errors and raw evidence below retain their original path
+spellings; the rename validation records the authorized path-only comparison.
 
 Phase 1 is in progress. No candidate has passed all four gates yet.
 
@@ -1795,3 +1800,149 @@ Final source snapshot verified unchanged; both runtime ports are closed and the
 runner's owned service state is empty. Interrupted/failed evidence is retained,
 not counted as a pass. Scope remains hooks only:4.4,4.5, MCP, computer mode,
 rename/licence implementation and cloud setup are deferred; MLX stays closed.
+
+## Kildall rename slice — 2026-09-26, in progress
+
+Phase4.3 was integrated through PR#2 by an ordinary non-force fast-forward;
+independent `git ls-remote` verified main at
+`e257865bb57c189fbf40e8b8ec1c679e31a54c53`. The working branch is
+`rename-kildall`. GitHub is now `MinhDuc2612/Kildall`; origin uses the new
+URL, and the old web URL redirects to it with HTTP200.
+
+The live filesystem differs from the rename brief: the vault already resides at
+`/Users/minhduc/Kildall`, with `Klogo.png`; `/Users/minhduc/Orbi` and `Plogo.png`
+are absent. User clarification is pending. The hardcoded permission root remains
+`~/Orbi/code`, as required. No folder move, logo copy, live data cutover, runtime
+reinstallation or launchd replacement has been performed. The old backup job is
+registered but points at the absent original path; that is not a healthy schedule.
+
+Completed independent work: primary module/setup/config names, package and both
+console entry declarations, MIT license, display strings and documentation, plus
+mechanical test imports. The `orbi` Python alias shares module state with `kildall`.
+Direct-script execution now registers the same module identity. Backup scheduling
+normalizes a sibling `python` alias only when it resolves to the exact interpreter,
+matching the existing health-check requirement. SQLite tables, model prompts,
+tool schemas, routing behavior, catalog, grammar and server flags are unchanged.
+The frozen fixture bytes and canonical recall fixture remain authoritative.
+
+Six independent control scripts pass: exact-tool validation, native GBNF,
+completion adapter, temporary-tree nuke, synthetic memory and health-check
+failure paths. This does not claim live model, production dry-run or health gates.
+The first new rename compatibility test failed because its temporary-directory
+expectation used `/var` while settings correctly canonicalized to `/private/var`;
+the failed log is retained as `test_rename.log`. The test expectation was corrected
+to use the real path; its result is recorded separately.
+
+An exclusive-lock SQLite backup of live `orbi.db` was copied to evidence and
+verified by `integrity_check`, schema hash, all-table row counts and row hashes.
+It has nine permission records and no memory/session/message/task records. All14
+historical SQLite backups pass integrity checks. No live record or original backup
+was deleted or renamed. Evidence: `.session/rename-kildall-20260926/`, including
+`memory-audit.json`, `independent-controls.json`, `static-invariants.json`,
+`github-rename.json` and `integration.json`.
+
+Pending: resolve fixed-root/source-logo mismatch; verified live database/backup
+cutover; installed commands; new launchd registration before removal of the old
+job; production nuke dry-run; full unchanged no-drop regressions; `check.sh`;
+rename commit, push, independent SHA verification, PR and fast-forward merge.
+No Phase4.4 work started.
+
+Corrected rename compatibility controls exit0 (`test_rename-corrected.log`):
+shared alias/direct-script state, legacy configuration fallback, new-variable
+precedence and canonical backup interpreter. Both source-script help commands
+exit0 from outside the checkout. Installed-entrypoint verification remains pending.
+
+User clarification: the vault move to `~/Kildall` and logo rename to `Klogo.png`
+were deliberate. The sole production allow-list is now `~/Kildall/code`. Current
+commands/configuration/README use that root; historical raw evidence remains
+unchanged. The write-tool description changes only its displayed allow-root path.
+Recall request and server-command comparisons will normalize only the old/new
+vault path components; prompts, fixtures, settings and score thresholds stay fixed.
+
+### Rename migration and controls — 2026-09-27
+
+The path question is resolved: retain `~/Kildall` and use `Klogo.png`. The logo
+copy at `assets/kildall-logo.png` matches the source SHA256; both root logos are
+unchanged. LICENSE and package metadata declare MIT, copyright2026 Nguyen Hoang
+Minh Duc. `kildall` and the one-release `orbi` command/module alias share state,
+configuration and the migrated database. `KILDALL_CONFIG` takes priority over
+the supported legacy variable; no access was made to `~/.config/orbi/`.
+
+Recreated `.venv` with Python3.12.13 at its new absolute location, preserving the
+old environment in evidence. The wheel cache was incomplete; only missing locked
+packages and three compatible cp312 replacements were fetched. The first offline
+resolution failed because cached MarkupSafe/PyYAML/sentencepiece wheels targeted
+cp314; the failed log is retained. The corrected local wheelhouse resolved and
+installed the unchanged34 requirements plus setuptools80.9.0 offline. `pip check`
+passes. Both installed commands and the shared import identity work from outside
+the checkout. No weights, runtime selection, model flags or inference settings
+changed; fetching existing locked MLX libraries did not reopen the closed MLX fork.
+
+The migration copies live `orbi.db` to `kildall.db`, copies14 historical SQLite
+snapshots into the new backup namespace, and renders14 mirrors from those verified
+new snapshots. Original databases and mirrors remain available for recovery.
+Exclusive activity locks and a SQLite write reservation cover the live copy; no
+unfinished tasks or shell jobs existed. Copies pass integrity, schema, counts and
+all-row hash comparisons, with only explicit project/cwd fields normalized to
+the new root. Nine live permission project paths changed; no record was dropped.
+Historical command/decision payloads remain unchanged. Synthetic nonempty memory,
+vector, FTS and session controls also pass. No live `.orbi/skills` directories were
+found requiring migration. See `migration.json` and `skills-migration-inventory.json`.
+
+Registered and verified `local.kildall.backup` with new absolute paths and03:00
+schedule; `check-new-backup.log` exits0. Only afterward removed the owned legacy
+registration, verified its absence, and retained its old plist as evidence. The
+first retirement assertion failed because the inactive old job was `spawn scheduled`
+rather than `not running`; after checking active count0, noPID and its absent
+original executable, the corrected retirement succeeded. This did not change or
+weaken the production health check.
+
+All14 deterministic scripts pass (`deterministic-final.json`), covering Phase3,
+all16 files/shell items, all11 Git/skills items, all5 hook items, GBNF/completion,
+exact arguments, routing persistence, nuke adversaries, shell lifecycle, image
+reader, memory, health failures and rename compatibility. Nuke's live dry-run
+reports29320 entries, zero outside the sole `~/Kildall/code` root, zero rejections,
+and all three outward Python links as entries. Destructive checks used only
+throwaway trees. Full live no-drop regression results follow when complete.
+
+### Final rename exit gates — 2026-09-27
+
+| Gate | Before | After |
+|---|---:|---:|
+| Recall |20/20|20/20|
+| Abstention |20/20|20/20|
+| Product category |20/20|20/20|
+| Final lane |20/20|20/20|
+| Callable JSON |20/20|20/20|
+| Exact tools, first pass |17/20|17/20|
+| Exact tools, post-retry |20/20|20/20|
+| CLI controls |18/18|18/18|
+| Hook items |5/5|5/5|
+
+All Phase3/4.1/4.2 controls pass. The three first-pass misses remain t07/t09/t12,
+with the same three successful retries; no attempts were made to tune them.
+`r17` emits `formal_reasoning:X`, with no leaf and LaneC fallback.
+
+All20 complete recall requests match the accepted IQ3 baseline after replacing
+only `/Users/minhduc/Orbi/` with `/Users/minhduc/Kildall/`; raw requests are
+retained and explicitly recorded as different. Server commands also match after
+that path-only normalization. Fixture file bytes, canonical recall SHA888ef490…
+and bench SHAfdcf6695… remain unchanged before/after every stage. Source hashes
+remained frozen throughout inference. See `regressions/summary.json`,
+`recall-request-comparison.json`, `runtime-comparison.json`, and
+`final-semantic-audit.json`.
+
+Both installed commands work, including inspecting a migrated historical audit
+record through `orbi`. Final `check.sh` exits0 with Python3.12.13, wired20480,
+MLX GPU availability and the new03:00 backup job verified. The owned runtimes are
+stopped, service-state files are empty, and both ports8123/8124 are closed.
+Final nuke dry-run: 29413 entries, zero outside `~/Kildall/code`,
+zero rejections; no live destructive test. See `nuke-final.json` and
+`check-final-verified.log`.
+
+The retained rename-test, incompatible-wheel resolution and old-job state-check
+failures are documented above; all corrected controls and final gates pass.
+Original live DB,14 snapshots,14 mirrors and the old environment remain available
+for recovery. The protected planning files, Researchhub, source logos and API-key
+configuration were untouched. Deferred: Phase4.4/4.5, MCP and all of4C; the computer
+placeholder guard remains enforced and the MLX migration fork stays closed.

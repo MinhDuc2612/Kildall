@@ -1,8 +1,8 @@
-# Orbi Phase 1. Relative paths are relative to this code directory.
+# Kildall Phase 1. Relative paths are relative to this code directory.
 [paths]
 code_dir = "."
 model_dir = "models"
-db_path = "orbi.db"
+db_path = "kildall.db"
 backup_dir = "../backups" # Phase 1 backups and markdown mirrors live outside code/.
 
 # Phase 1 runtime retained; Lane A is provisional after the DWQ exact-argument retest.
