@@ -258,6 +258,43 @@ metadata and files over32KiB fail explicitly. `test_phase42.py` checks all11 ite
 adversarial boundaries and the new tool grammars. PR transport is fixture-tested;
 the test does not publish a live PR.
 
+Opt in to shell hooks with `orbi --hooks PATH "Read this file"` or
+`orbi tool --hooks PATH read_file '{"path":"README.md"}'`. The TOML file and
+scripts must be regular files under `code/`; relative script paths use its directory:
+
+```toml
+before = ["before.sh"]
+after = ["after.sh"]
+timeout = 2
+```
+
+Scripts receive `$1` (before/after), `$2` (operation), and `$3` (JSON event with
+arguments, decision ID, status and the post-call result). For example:
+
+```sh
+case "$2" in
+  write|edit) printf '%s\n' 'Writes blocked by this hook'; exit 77 ;;
+esac
+printf '%s\n' 'Hook checked the action'
+```
+
+Exit0 allows the normal permission checks; any nonzero exit, crash, timeout or
+truncated output blocks. Pre-hooks run before confirmation/execution. Post-hook
+failure stops further calls and fails the task; it cannot undo an executed action
+or turn a background job into a failed job. Action and hook outcomes have separate
+audit rows. Inspect them through `orbi permissions`.
+
+Hooks add no model tools. Each selected configuration includes an independent
+Never shell veto, while the original code enforcement always remains active.
+Scripts are snapshotted before the task; changing a file mid-task does not change
+the selected hook. Shell control flow and `:`, `[`, `test`, `printf`, `echo`,
+`read`, `true`, `false`, `exit`, `break`, `continue` are available. External
+programs, child processes, eval/source, writes, network and computer APIs are
+unavailable. Hooks cannot grant consent or change tool arguments. Their output
+is escaped tool data, not instructions. Limits: four scripts per stage,16KiB per
+file,1–10 seconds per script,4KiB per output stream,64KiB event. Run
+`.venv/bin/python test_phase43.py` for the five hook controls and confinement checks.
+
 `orbi_permissions` follows the routing log pattern, including rejected,
 declined, failed, cancelled and interrupted decisions. Inspection is project
 scoped. `web_data` accepts a `text` field and returns inert untrusted data;

@@ -1691,3 +1691,107 @@ PR permission/payload/response handling is tested with a controlled API fixture;
 Deferred unchanged:4.3 hooks,4.4 subagents/batching,4.5 web/cloud/guard model, MCP work and all4C computer mode. Computer input/screen-capture placeholder remains enforced. MLX stays closed. No model download or skill_catalog.py edit.
 
 Final live nuke dry-run: 15452 entries, **0 outside code/**, including the three outward Python links themselves. Real deletion was tested only on throwaway trees.
+
+## Phase 4.3 hooks — 2026-09-24 through 2026-09-26
+
+Evidence: `.session/phase4.3-20260924/`. Phase4.2 PR #1 was merged by non-force
+fast-forward; independent `git ls-remote` confirms main at
+`c45a0921804497c400ec5d7d524e6e95a0368f66`. Work continues on `phase4.3-hooks`.
+
+Hooks require explicit `--hooks` configuration and add no model tools. Selected
+shell scripts are snapshotted, then run as child decisions through the existing
+executor and sandbox. Only shell control/data builtins are available; external
+commands, forks, writes, network and GUI IPC remain denied. A mandatory selected
+Never hook is a second veto; removing hooks leaves the original code checks.
+Output stays escaped, untrusted tool data, never parsed as actions or approval.
+
+Pre-hook crash/timeout/nonzero exit prevents the action. A post-hook runs after
+execution: its failure cannot undo the action; the completed result is retained
+in the audit, further calls are blocked, and the task fails. This is an explicit
+lifecycle limit, not a claim of rollback. No live injection-resistance score is
+claimed from the data-boundary tests.
+
+Before checks: wired limit20480; recall fixture SHA
+`888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d`, benchmark SHA
+`fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d` verified.
+Default schemas, model, prompts, routing, catalog and frozen flags unchanged.
+Final deterministic and unchanged live results follow below. Slices4.4/4.5, MCP and4C
+remain deferred; computer-use placeholder stays; MLX fork remains closed.
+
+Failures retained: `controls-first.log` failed the intended crash assertion
+because the test selected the wrong Bash argv slot and actually exercised a
+timeout. The test now locates `-c` explicitly. Independent review also found
+the new hook JSON envelope hid nonzero command status at the CLI boundary;
+exit propagation was corrected and covered by a CLI assertion. Neither is
+counted as a pass. The unchanged Phase3 controls already exit0.
+
+Corrected hook controls passed in `controls-second.log` through
+`controls-fourth.log`. Review additionally found post-hook failure could overwrite
+a background worker's status (and cancellation had the same edge). Action status
+is now preserved for every exception after execution; the child hook independently
+records failure/cancellation. Tests cover real background completion and retained
+hook refusal. Final deterministic and live gates are recorded below.
+
+Final deterministic result: all11 scripts exit0 (`deterministic-release.json`),
+including all5 hook items, prior Phase3/4.1/4.2 controls, native grammar/runtime,
+tool validation, routing persistence, nuke, shell lifecycle and image controls.
+The real installed CLI `--hooks` smoke also passes (`smoke/results.json`): actual
+model/GBNF read_file followed by three successful shell-hook child decisions
+(Never, pre, post), with feedback persisted and supplied to the model. This smoke
+certifies dispatch and feedback, not an extra quality score. Runtimes stopped and
+fixture hashes held before the full unchanged regressions began.
+
+The first live regression (`regressions/`, exit130) was deliberately interrupted
+for an audit-edge fix before source edits: recall20/20 and abstention20/20 had
+passed, but quality/product routing/CLI were unfinished. It is **not** a completed
+gate. Runtimes stopped in the runner's finally block; hashes verified. The64KiB
+event check originally ran before child-decision insertion, leaving oversized
+post-hook input without its own failed hook row. It now runs inside that logged
+decision; a large-result check verifies failed child plus successful parent.
+Final evidence uses `smoke-final/` and `regressions-final/` without overwriting
+the initial run. A PID lookup first returned no match because macOS reports the
+Python executable with a capital P; no process was signalled until its exact
+command and PID were verified.
+
+Resumed2026-09-26: `smoke-final/` had passed and stopped cleanly. The wired limit
+had reset to0, so inference was held until the user restored20480; verified
+before launching `regressions-final/`. Concurrent vault plan/name/logo changes
+are separate work and remain outside this slice. Production source/fixtures
+are frozen throughout the final runner.
+
+### Final result — all exit gates pass
+
+`regressions-final/summary.json` reports the unchanged suites:
+
+| Gate | Result |
+|---|---:|
+| Recall / abstention | 20/20 each |
+| Product category / final lane | 20/20 each |
+| Callable JSON | 20/20 |
+| Exact tools, first-pass / post-retry | 17/20 / 20/20 |
+| CLI/control checks | 18/18 |
+
+Only the accepted t07/t09/t12 first-pass misses remain, each recovered by one
+retry. No attempt was made to tune them. r05 passes on the unchanged default
+surface; r17 emits `formal_reasoning:X`, leaf null, and preserves Lane C fallback.
+Recall request bodies match the accepted IQ3 baseline exactly. All fixture and
+source hashes held across measurement.
+
+All5 hook items pass. Eleven deterministic scripts passed; after the final event
+cap audit fix, the affected hook suite passed again (`controls-cap-fix.log`).
+The final installed-CLI smoke passed (`smoke-final/`); all model calls still use
+the existing GBNF layer with unchanged12/19 default/opt-in schemas. No hook tool
+is exposed to the model. Hook-free Phase3 Never enforcement remains intact.
+
+Health failures retained: `check-final.log` and `check-corrected.log` exit1 due
+to missing/mismatched backup registration after login. The installed CLI registered
+the Python3.12 alias, while the existing health check requires `.venv/bin/python`.
+After verifying ownership and that the job was idle, only Orbi's backup job was
+reloaded using `.venv/bin/python orbi.py --schedule-backups`. `check-restored.log`
+exits0 and verifies the03:00 job, Python3.12.13 and wired20480. No health-check,
+production source or frozen runtime changes were needed for this restoration.
+
+Final source snapshot verified unchanged; both runtime ports are closed and the
+runner's owned service state is empty. Interrupted/failed evidence is retained,
+not counted as a pass. Scope remains hooks only:4.4,4.5, MCP, computer mode,
+rename/licence implementation and cloud setup are deferred; MLX stays closed.

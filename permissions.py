@@ -131,7 +131,7 @@ def terminal_confirm(preview, word="yes"):
 
 
 @contextmanager
-def decision(db_path, project, operation, arguments, task=None, *, requested=()):
+def decision(db_path, project, operation, arguments, task=None, *, requested=(), hooks=None):
     from orbi import database, process_start
     ident = uuid.uuid4().hex
     row = dict(id=ident, db_path=db_path, task=task, requested=frozenset(requested),
@@ -150,9 +150,22 @@ def decision(db_path, project, operation, arguments, task=None, *, requested=())
                    "VALUES(?,?,?,?,?,'Never','checking',?,?,?,?)",
                    (ident, task, project, operation, json.dumps(arguments, ensure_ascii=True),
                     os.getpid(), process_start(os.getpid()), time.time(), time.time()))
+    after_action = False
     try:
+        if hooks is not None:
+            from hooks import run_stage
+            run_stage(hooks, 'before', operation, arguments, row, project)
         yield row
+        if hooks is not None:
+            after_action = True
+            # Save the actual action outcome before post-hooks. Background workers
+            # own their action row; hook failures have separate child decisions.
+            if row['status'] not in ('rejected', 'authorized', 'done', 'failed', 'timed_out', 'background', 'interrupted'):
+                update(status='done')
+            run_stage(hooks, 'after', operation, arguments, row, project)
     except BaseException as error:
+        if after_action:
+            raise  # Preserve the completed/background action and the failed child hook.
         status = "refused" if isinstance(error, PermissionError) else (
             "cancelled" if isinstance(error, (KeyboardInterrupt, EOFError)) else "failed")
         update(status="declined" if row["status"] == "declined" else status, reason=str(error))
@@ -244,6 +257,14 @@ def staged(repo):
 
 def execute(operation, args, record, project):
     """The sole permission boundary; unknown names and command forms fail closed."""
+    if operation == '_hook':
+        fields(args)
+        if 'hook_capability' not in record:
+            raise PermissionError('Hooks require explicit configuration; not a model tool')
+        from hooks import shell
+        source, argv, timeout = record.pop('hook_capability')
+        authorize(record, 'Auto')
+        return shell(source, argv, project, timeout)
     if operation == "shell":
         fields(args, "command")
         parts = shlex.split(args["command"])
@@ -343,13 +364,16 @@ def execute(operation, args, record, project):
     raise PermissionError("Action is outside the closed executor; " + COMPUTER_REASON)
 
 
-def run_action(db_path, project, operation, raw_args, task=None):
+def run_action(db_path, project, operation, raw_args, task=None, *, hooks=None):
     from orbi import strict_json
     # This entry point is a direct user CLI action, never a model/skill dispatch.
     requested = (operation.removeprefix('git_'),) if task is None else ()
-    with decision(db_path, project, operation, raw_args, task, requested=requested) as record:
+    with decision(db_path, project, operation, raw_args, task, requested=requested, hooks=hooks) as record:
         args = strict_json(raw_args) if isinstance(raw_args, str) else raw_args
-        return execute(operation, args, record, project)
+        result = execute(operation, args, record, project)
+        record['result'] = result
+    from hooks import feedback_result
+    return feedback_result(result, record)
 
 
 def nuke_manifest(root=CODE_ROOT):

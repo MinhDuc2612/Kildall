@@ -417,13 +417,13 @@ def stream_reply(config, messages, task, *, tools=None):
         task.message(message, message_id)
 
 
-def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=()):
+def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None):
     with activity(config["paths"]["db_path"]):
         return _run_turn(config, memory, session, project, prompt, route_mode=route_mode, explain=explain,
-                         git_intent=git_intent, skills=skills)
+                         git_intent=git_intent, skills=skills, hooks=hooks)
 
 
-def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=()):
+def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None):
     task = Task(config["paths"]["db_path"], session)
     # Extra schemas change model behavior even on unrelated requests. Keep the
     # established surface until the user explicitly requests a Git/skill task.
@@ -431,6 +431,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
     current = [{"role": "user", "content": prompt}]
     outcome, answer = "error", []
     copy_retry_used, pending_copy = False, False
+    hooks_stopped = False
     route_recorded, route_status, route_error = False, "classifying", None
     system = (
         f"You are Orbi, a local assistant. Current project: {project}. Answer directly. "
@@ -474,7 +475,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 return 0 if route_mode == "job" else 3
         for name in skills:
             from permissions import run_action
-            pack = run_action(task.path, project, 'load_skill', {'name': name}, task.id)
+            pack = run_action(task.path, project, 'load_skill', {'name': name}, task.id, hooks=hooks)
             message = dict(role='user', content='Requested instruction skill:\n' + json.dumps(pack))
             current.append(message)
             task.message(message)
@@ -490,51 +491,67 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 if pending_copy:
                     raise ValueError("Verbatim retry ended without a corrected tool call")
                 break
+            if hooks_stopped:
+                raise PermissionError("Post-hook failed; further tool calls are blocked")
             task.set("tool")
             call = reply["tool_calls"][0]
             function = call["function"]["name"]
             from permissions import authorize, decision, execute
-            with decision(task.path, project, function, call["function"]["arguments"], task.id, requested=git_intent) as permission:
-                args = strict_json(call["function"]["arguments"])
-                if not isinstance(args, dict):
-                    raise ValueError("Tool arguments must be an object")
-                if function in ("remember", "recall"):
-                    authorize(permission, "Auto")
-                if pending_copy and function != "remember":
-                    raise ValueError("Verbatim retry must correct the rejected remember call")
-                if function == "remember":
-                    if set(args) != {"text", "scope", "tier"} or args["tier"] not in ("L1", "L2", "L3"):
-                        raise ValueError("Invalid remember arguments")
-                    issues = copy_issues(prompt, function, args)
-                    if issues:
-                        if copy_retry_used:
-                            raise ValueError("Verbatim copy still differs after one retry")
-                        feedback = {"role": "tool", "tool_call_id": call["id"],
-                                    "content": retry_feedback(issues)}
-                        task.message(feedback)
-                        current.append(feedback)
-                        permission["update"](status="rejected", reason="Verbatim argument requires correction")
-                        copy_retry_used = pending_copy = True
-                        continue
-                    pending_copy = False
-                    item = memory.add(args["text"], scope=args["scope"],
-                        project=project if args["scope"] == "project" else None, tier=args["tier"])
-                    result = dict(saved=item)
-                elif function == "recall":
-                    if set(args) != {"query", "scope"}:
-                        raise ValueError("Invalid recall arguments")
-                    recalled = memory.retrieve(args["query"], project=project, scope=args["scope"])
-                    memory_text = recalled["text"]
-                    # Replace one bounded block; never accumulate multiple 4,000-character tool results.
-                    result = dict(items=len(recalled["items"]), context="Memory block replaced",
-                                  truncated=recalled["truncated"])
-                else:
-                    result = execute(function, args, permission, project)
+            from hooks import HookFailure, feedback_result
+            copy_feedback = None
+            try:
+                with decision(task.path, project, function, call["function"]["arguments"], task.id, requested=git_intent, hooks=hooks) as permission:
+                    args = strict_json(call["function"]["arguments"])
+                    if not isinstance(args, dict):
+                        raise ValueError("Tool arguments must be an object")
+                    if function in ("remember", "recall"):
+                        authorize(permission, "Auto")
+                    if pending_copy and function != "remember":
+                        raise ValueError("Verbatim retry must correct the rejected remember call")
+                    if function == "remember":
+                        if set(args) != {"text", "scope", "tier"} or args["tier"] not in ("L1", "L2", "L3"):
+                            raise ValueError("Invalid remember arguments")
+                        issues = copy_issues(prompt, function, args)
+                        if issues:
+                            if copy_retry_used:
+                                raise ValueError("Verbatim copy still differs after one retry")
+                            copy_feedback = retry_feedback(issues)
+                            permission["update"](status="rejected", reason="Verbatim argument requires correction")
+                            copy_retry_used = pending_copy = True
+                            result = dict(error=copy_feedback)
+                        else:
+                            pending_copy = False
+                            item = memory.add(args["text"], scope=args["scope"],
+                                project=project if args["scope"] == "project" else None, tier=args["tier"])
+                            result = dict(saved=item)
+                    elif function == "recall":
+                        if set(args) != {"query", "scope"}:
+                            raise ValueError("Invalid recall arguments")
+                        recalled = memory.retrieve(args["query"], project=project, scope=args["scope"])
+                        memory_text = recalled["text"]
+                        # Replace one bounded block; never accumulate multiple 4,000-character tool results.
+                        result = dict(items=len(recalled["items"]), context="Memory block replaced",
+                                      truncated=recalled["truncated"])
+                    else:
+                        result = execute(function, args, permission, project)
+                    permission["result"] = result
+                result = feedback_result(result, permission)
+            except HookFailure as error:
+                result = dict(blocked=True, action_completed=error.phase == 'after',
+                              hook_feedback=error.feedback)
+                hooks_stopped = error.phase == 'after'
+            if copy_feedback is not None and hooks is None:
+                feedback = {"role": "tool", "tool_call_id": call["id"], "content": copy_feedback}
+                task.message(feedback)
+                current.append(feedback)
+                continue
             tool = {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(result)}
             task.message(tool)
             current.append(tool)
         else:
             raise RuntimeError("Tool-call limit reached")
+        if hooks_stopped:
+            raise RuntimeError("Post-hook failed after execution; task stopped without further actions")
         task.set("tool")
         memory.add("User: " + prompt + "\nAssistant: " + "".join(answer), scope="project", project=project, tier="L0")
         outcome = "done"
@@ -602,6 +619,7 @@ def main():
     parser.add_argument('--git', choices=['tools', 'commit', 'push', 'pr'], action='append', default=[],
                         help='Enable Git/skill tools for this prompt; commit/push/pr also declare intent, still requiring confirmation')
     parser.add_argument('--skill', action='append', default=[], help='Load a named instruction pack for this prompt')
+    parser.add_argument('--hooks', type=Path, help='Opt in to a confined hook configuration for this prompt')
     if route_mode is not None:
         parser.add_argument("--explain", action="store_true", help="Print the recorded routing reason to stderr")
     if route_mode == "auto":
@@ -654,8 +672,8 @@ def main():
             return 0
         prompt = " ".join(args.prompt)
         interactive = sys.stdin.isatty() and not prompt
-        if interactive and (args.git or args.skill):
-            raise ValueError('--git and --skill require a one-shot prompt')
+        if interactive and (args.git or args.skill or args.hooks):
+            raise ValueError('--git, --skill and --hooks require a one-shot prompt')
         if route_mode == "job":
             interactive = False
         if not sys.stdin.isatty():
@@ -691,7 +709,8 @@ def main():
                              explain=getattr(args, "explain", False))
         else:
             return run_turn(config, memory, session, project, prompt, route_mode=route_mode,
-                            explain=getattr(args, "explain", False), git_intent=args.git, skills=args.skill)
+                            explain=getattr(args, "explain", False), git_intent=args.git, skills=args.skill,
+                            hooks=__import__("hooks").load(args.hooks) if args.hooks else None)
         return 0
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)
@@ -710,6 +729,7 @@ def permission_main(argv):
     if argv[0] == "nuke":
         parser.add_argument("--delete", action="store_true", help="Requires typing orbi in the controlling terminal")
     elif argv[0] == "tool":
+        parser.add_argument("--hooks", type=Path, help="Opt in to confined pre/post hooks")
         parser.add_argument("operation", choices=None)
         parser.add_argument("arguments", help="JSON object; relative paths use the current directory")
     elif argv[0] == 'skills':
@@ -727,7 +747,8 @@ def permission_main(argv):
         project = str(Path.cwd().resolve())
         if argv[0] == "tool":
             with activity(path):
-                result = run_action(path, project, args.operation, args.arguments)
+                result = run_action(path, project, args.operation, args.arguments,
+                                    hooks=__import__("hooks").load(args.hooks) if args.hooks else None)
         elif argv[0] == 'skills':
             with activity(path):
                 result = run_action(path, project, 'skills', {})
@@ -743,6 +764,8 @@ def permission_main(argv):
                 for key in ("arguments", "preview"):
                     row[key] = strict_json(row[key]) if row[key] else None
         print(json.dumps(result, ensure_ascii=True, indent=2))
+        if argv[0] == 'tool' and args.hooks:
+            result = result['result']  # Preserve the real command's exit status beneath feedback.
         if argv[0] == "tool" and isinstance(result, dict) and result.get("exit_code") is not None:
             code = result["exit_code"]
             return code if code >= 0 else 128 - code
