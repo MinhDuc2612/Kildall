@@ -1,6 +1,6 @@
 # Orbiplan — Building Orbi
 
-**v28 · 2026-09-23.** Design locked. **Orbi runs the real giants, unmodified. No training.**
+**v29 · 2026-09-26.** Design locked. **Orbi runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -26,6 +26,7 @@ this file = how it gets built.
 | **Speed, Lane C giants** | **~2.2 s/token (Flash tier) to ~17.9 s/token (Kimi K3)** — varies ~8× by active params |
 | **Code lives at** | **`~/Orbi/code`** |
 | **Built by** | **you, via Codex** |
+| **Licence** | ✅ **MIT** — Orbi's own code. **Model weights keep their own licences** (see risk 9) |
 | **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — drive is 1+ month out** |
 
 ---
@@ -670,9 +671,16 @@ one minute can thrash at minute six.
    **28.4 GB**, because `du` reports logical size on APFS and both the HuggingFace cache and the
    180 git repos shared blocks heavily. **Freeing the 62 GB CrossOver Steam bottle is the one move
    that would make every option comfortable.**
-9. **Licences vary.** Kimi K3 and GLM-5.3 custom; `NLLB` CC-BY-NC and `FLUX.2 dev` non-commercial were
-   **excluded**. Picked on evidence, licence flagged per row — an open-source Orbi must swap the custom
-   rows.
+9. **Licences vary — and Orbi's own licence is MIT.** Kimi K3 and GLM-5.3 custom; `NLLB` CC-BY-NC and
+   `FLUX.2 dev` non-commercial were **excluded**. Picked on evidence, licence flagged per row.
+   🔑 **MIT covers Orbi's code only (`~/Orbi/code`), never the models.** Orbi downloads weights from
+   their publishers at setup and **never ships or redistributes them**, so each model's own licence
+   binds whoever runs it — MIT cannot relicense a custom-licence model. **Rule: Orbi never bundles
+   weights in its repo or releases**; custom-licence rows stay flagged, and any commercial use must
+   check them per row. **To do (next Codex slice, not yet present):** add `code/LICENSE` with the
+   standard MIT text, `Copyright (c) 2026 Nguyen Hoang Minh Duc`, and `license = "MIT"` in
+   `pyproject.toml`. Third-party code copied into `code/` must be MIT-compatible and keep its
+   notice.
 10. **Research ages in weeks.** Qwen shipped 3 versions in 6 months. Phase 7 exists for this.
 
 ---
@@ -690,6 +698,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-09-26 (v29)** — **Orbi is licensed MIT**, at user instruction. Added to *Answer first* and risk 9. **Scope: Orbi's code only** — model weights are downloaded from their publishers, never redistributed, and keep their own licences, so MIT does not relicense Kimi K3, GLM-5.3 or any custom row. Rule added: **never bundle weights** in the repo or a release. `code/LICENSE` and the `pyproject.toml` licence field **do not exist yet** — recorded as a to-do for the next Codex slice, not claimed done.
 - **2026-09-23 (v28)** — **`tencent/Hy4-preview` added to Lane C as model 8**, taking the library to **23 models · ~9.87 T · ~5.23 TB** (2.77 TB free on the 8 TB drive). **770 B total / 49 B active**, MoE with 256 routed + 1 shared expert, top-8 per token, 78 layers, 1M context, text-only, **Apache-2.0**, released **2026-08-28**. Measured claims: **SWE-Bench Pro 65.7 · GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1**. **Lane C by arithmetic, not preference:** 49 B active × 0.5 bytes = **24.5 GB per token**, against ~20 GB usable RAM, so it cannot be resident — **~8.4 s/token on Thunderbolt 4, ~70 minutes for a 500-token answer.** 🔑 **It lands in exactly the same tier as `DeepSeek-V4-Pro-0813`** — also 49 B active, also ~8.4 s/token — **but at 385 GB against 800 GB, less than half the disk.** 🔴 **Blocked on runtime, not merit: no GGUF and no MLX.** It ships BF16 safetensors plus FP8 and deploys through vLLM or SGLang across 8 GPUs, tensor-parallel 8 — CUDA-oriented, **so it cannot run on Metal today.** This is the same wall that made candidate 2 *unsupported/unmeasured*, not a quality judgement. ⚠️ **It is also a preview**, and the standing precedent is Wan 3.0, held as a Phase 5 decision *because it is beta*. ⚠️ **Do not rank its 65.7 against Kimi K3's 76.8/93.4** — those are SWE-bench **Verified** and this is SWE-Bench **Pro**, a harder set; comparing them would be a real error. 🔑 **One genuinely interesting detail: it ships a built-in MTP layer for speculative decoding**, which is directly relevant to improvement **#1, cross-lane speculative decoding** — recorded as a revisit note only, since Metal speculative decoding already measured as a loss *even at 100% draft acceptance*. **Revisit conditions: a GGUF conversion appears, or Lane C moves off llama.cpp.** No phase, lane assignment or installed model changed.
 - **2026-09-22 (v27)** — **Added #51, hardware auto-fit and auto-expand**, taking the list to **51**. It absorbs **#5**, generalising auto-quant into quant + lane + batch + context. **Orbi currently runs on exactly one computer** — every figure in this plan is a property of this Mac mini and none is read from the machine at setup. 🔑 **Lane assignment is already a hardware function** (`active_bytes` vs usable RAM), merely hardcoded, and 🔑 **`skill_catalog.py` already carries an *original* and a *preferred* pick per leaf**, so the data structure for expanding upward exists without having been named. ⚠️ Only **13 leaves** have a named alternative (56 in sample 1's research), so ~250 of 302 have nothing to expand into. 🔴 **The governing rule is shrink on arithmetic, grow only on evidence.** Fitting downward is safe because RAM is physics; expanding upward without **#13** would automate **unverified** upgrades, since only **46 of 302 leaves are benchmark-verified**. 🔴 Second trap: **bigger ≠ faster** — a 32 GB base M4 is still 120 GB/s, so capacity promotes lanes but accelerates nothing already resident. ⚠️ Third trap, already proved in this project: **active params are not residency** — Lane A is 4 B active, ~2 GB by arithmetic, **12.23 GB measured**, a 6× error — so the design must be **propose then verify**, which is the Phase 1 Lane A gate loop automated.
 - **2026-09-22 (v26)** — **Phase 3 complete at commit `a2415b6`**, pushed and remote-verified. The permission boundary is a **closed typed executor** — an allow-list of actions, so an unknown action fails by default rather than needing a rule. **The hard test passed properly**: `SYSTEM_RULES=''` with *all* system messages omitted, a recursive-delete tool call emitted into the real `_run_turn` dispatcher, sentinel unchanged and the Never refusal persisted — so the boundary is code, not prompt. `orbi nuke` verified independently: **14,918 paths listed, 0 outside `code/`**, dry-run by default, typed `orbi` to confirm, live destructive path never exercised. ⚠️ **Two honest limits recorded rather than hidden.** (1) **Nuke refuses 3 outward `.venv/bin/python*` symlinks**, which is correct — following them would delete Homebrew's Python — but it means `code/` is **not completely removed**. The fix is to `os.unlink` the link itself, which never touches its target, gated on the **link's own** location via `os.lstat` rather than `realpath`. (2) **Install copies a local artifact only** — no pip, npm, hooks, scripts or dependency resolution; that belongs to Phase 4. Also scoped honestly: item 7 is **a data-boundary check, not measured model injection resistance**, and the guard-model item is **deferred to Phase 4** because it needs the web fetcher and Granite Guardian 4.1 8B, which is not on disk. Checklist now **14 of 156**.
