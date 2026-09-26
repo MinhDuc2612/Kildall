@@ -549,7 +549,8 @@ changes what Orbi promises. #7 (clustering) costs hardware. Everything else is a
 
 | | |
 |---|---|
-| **Secrets** | macOS Keychain. Never in config, DB, logs or backups |
+| **Secrets** | macOS Keychain. Never in config, DB, logs or backups. ⚠️ Cloud API keys currently wait in a plain holding file, `~/.config/orbi/keys.env` (chmod 600, outside every repo); **Phase 4.5 must import them into the Keychain** and never read the file at runtime |
+| **Publishing** | **Every push to GitHub `main` is followed by `kildall-hf-sync`**, which mirrors the same commit to Hugging Face `MinhDuc26121/kildall` (public, MIT). It uploads **only git-tracked files of `origin/main`** via `git archive` — never `models/` (154 GB of third-party weights), `.venv/`, `.session/` or memory databases — and refuses `*.gguf`, `*.safetensors`, `*.sqlite3`, `*.env` or any file over 20 MB. `--dry-run` lists the files without uploading. Script: `~/.local/bin/kildall-hf-sync`. **Never run `hf upload .` from `code/`** |
 | **Spend cap** | `orbi budget set --monthly N`. **Default 0 = free tiers and local only.** Hard stop at 100% |
 | **Rollback** | skills, prompts, config in git · memory backed up nightly · `orbi rollback` |
 | **Logs** | L0 90 days · actions 180 days · backups 14 days · **alarm if `orbi.db` > 2 GB** |
