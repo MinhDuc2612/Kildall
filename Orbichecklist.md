@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **156** |
-| **Done now** | **14** of 156 |
+| **Items** | **182** |
+| **Done now** | **14** of 182 *(ticks for 4.1–4.3 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -179,8 +179,8 @@
 
 - [ ] **Speech in** — ASR transcribes what you say
 - [ ] **Speech out** — Orbi reads answers aloud
-- [ ] **Push-to-talk. No always-on mic**
-- [ ] Uses the ASR + TTS pair (~2.0 GB), not Qwen3-Omni, by default
+- [ ] ~~Push-to-talk. No always-on mic~~ → superseded 2026-09-27: **local wake word**, audio never leaves the machine (Group 19)
+- [ ] ~~ASR + TTS pair~~ → superseded 2026-09-27: **faster-whisper + Kokoro-82M**, not Qwen3-Omni (Group 19)
 - [ ] Voice can be turned off entirely
 - [ ] Falls back to text cleanly when audio hardware is missing
 
@@ -248,6 +248,35 @@
 - [ ] `pip install -e ~/Kildall/code`, Python pinned `<3.13`
 - [ ] Multi-session safe — SQLite WAL plus `busy_timeout`
 
+## 19. Agentic OS — P2 *(Phase 9 — Kildall 100%)*
+
+- [ ] **Laya-MLX answers typed decisions locally** (needs text gen? · category · command/question/note · interrupt?) and never decides a Never-tier action
+- [ ] Laya becomes the first routing stage **only if it scores 20/20 category on the frozen fixture** — otherwise it pre-filters
+- [ ] **Hermes Agent runs the agent loop with Kildall as its model and executor**; Hermes's own shell/file tools are off
+- [ ] 🔴 **Phase 3 hard test passes through Hermes** — empty system prompt, recursive-delete call refused
+- [ ] **Voice in:** faster-whisper, local; **voice out:** Kokoro-82M, local — no audio leaves the machine
+- [ ] **Local wake word**; hard mute key; mic indicator always visible
+- [ ] **End of speech → first audio under 1.5 s** on short commands, measured (else swap to mlx-whisper/whisper.cpp, recorded)
+- [ ] Voice routes *"note that…"* to the vault and *"do…"* to Kildall
+- [ ] **Obsidian second brain** with `raw/` · `wiki/` · `outputs/`, laid out and linked by Graphify
+- [ ] 🔴 **The vault is outside every git repo** — never in GitHub, Hugging Face or anything that leaves the machine
+- [ ] Kildall retrieves vault context within the 12 items / 4,000 chars / 300 ms caps
+- [ ] **Activity capture** (apps, time, links, files, events) → `raw/` → daily notes, opt-in per source
+- [ ] Capture exclusion list honoured (password managers, banking, private windows, Keychain prompts, key files); one command pauses it
+- [ ] 🔴 **Captured text is treated as untrusted data**, and never sent to a cloud model or Workspace unasked — injection fixture passes
+- [ ] **Wallpaper dashboard** in a desktop-level window: RAM, pressure, swap, GPU, tok/s, lanes, cache hits, routing p50/p99, backups
+- [ ] Dashboard lists every MCP connector (with failures), plugin, skill and agent, plus the skill audit (use count, success rate)
+- [ ] **One-click skills** pass the same permission tiers — Confirm still asks
+- [ ] **Skill mining chart** from all past sessions: task · desired output · proposed skill
+- [ ] **Work interview** done, with blind spots called out
+- [ ] Skills live at `.kildall/skills/<name>/SKILL.md` — trigger phrases in `description`; workflow, conventions, edge cases, ask-vs-infer, done
+- [ ] **Every new skill is dry-run on a real example** and refined until it matches the manual result
+- [ ] **Automations** scheduled and chained; **self-improving loops adopt a change only if it wins on the eval harness**
+- [ ] **Google Workspace** (Gmail, Calendar, Drive, Docs) via MCP; OAuth tokens in the Keychain; the credential pasted 2026-09-27 revoked
+- [ ] **Skill packs:** research · content creation · data workflows
+- [ ] **Profiles per client** — theme, voice, wake word, instructions, skills; `kildall --profile <client>`
+- [ ] 🔴 **10-minute soak with the full stack resident, zero critical memory samples** — else voice and Laya load on demand
+
 ---
 
 # THE OTHER TWO TESTS
@@ -278,6 +307,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-09-27** — **Group 19, Agentic OS (Phase 9), added: 26 items → 182 total across 20 groups.** Voice items in Group 14 superseded by the local wake word and faster-whisper + Kokoro (Orbiplan v33). The done count is stale: Phases 4.1–4.3 passed but their items are not ticked yet.
 - **2026-09-05 (v3)** — Lane A corrected from a dense model to **Qwen3.8-Flash-Next (MoE 180B/6B
   active)**, with an explicit item that Lane A must **never be dense**, and its **unmeasured tok/s
   flagged as test-before-all-else**. Added items for the **five known-stale models that must be

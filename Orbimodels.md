@@ -112,8 +112,8 @@ a proven-viable floor** — whatever else fails, Lane A ships.
 | Job | Model | Params | Disk | Licence | Evidence |
 |---|---|---|---|---|---|
 | **ASR** (speech in) | `nvidia/canary-qwen-2.5b` | 2.5B | **1.4 GB** | ⚠ | **Tops HF Open ASR — 5.63% WER** |
-| ASR, 52 langs | `Qwen/Qwen3-ASR-1.7B` | 1.7B | **1.0 GB** | ⚠ | ✅ **Current — Jan 2026.** 52 languages + language ID and timestamps |
-| **TTS** (speech out) | `Qwen/Qwen3-TTS-12Hz-1.7B` | 1.7B | **1.0 GB** | ⚠ | ✅ **Current — 22 Jan 2026.** 10 languages, voice cloning, streaming |
+| ASR, local *(Phase 9.3)* | **`SYSTRAN/faster-whisper`** — Whisper model size picked in 9.3 | — | **~0.8–1.6 GB** | MIT | 🔄 **Swapped in 2026-09-27, user choice.** ⚠️ **CPU-only on Mac (no Metal)** — gated on end-of-speech → first audio < 1.5 s; fallback `mlx-whisper`/`whisper.cpp`. Replaces `Qwen/Qwen3-ASR-1.7B` (kept as fallback: 52 languages)
+| **TTS** (speech out) *(Phase 9.3)* | **`hexgrad/Kokoro-82M`** via `kokoro-mlx` | 82M | **~0.35 GB** | Apache-2.0 | 🔄 **Swapped in 2026-09-27, user choice.** MLX, 54 voices. ⚠️ **No Vietnamese voice** in its language list — keep `Qwen/Qwen3-TTS-12Hz-1.7B` as fallback for languages Kokoro lacks (check it covers Vietnamese before relying on it)
 | Voice, single-model | `Qwen3-Omni-30B-A3B` ⚠ | 30B / 3B act | **15 GB** | ⚠ | Latest Omni. ⚠️ **Too big to co-load — use the ASR+TTS pair (2.4 GB)** |
 | **OCR / documents** | `PaddlePaddle/PaddleOCR-VL-1.6` | 0.9B | **0.5 GB** | ⚠ | ✅ **Current — 28 May 2026.** 96.33% OmniDocBench v1.6, open OCR leader; beats models hundreds of times its size |
 | **Embeddings** (memory) | `microsoft/Harrier-oss-v1-27B` | 27B | **13.5 GB** | **MIT** | ✅ **#1 on multilingual MTEB-v2**, the newer benchmark — 30 Mar 2026. 100+ languages, 32k context. Beats `Qwen3-Embedding-8B` (#1 on the older MTEB at 70.6) |

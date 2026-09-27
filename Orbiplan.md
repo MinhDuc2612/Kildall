@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v32 · 2026-09-27.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v33 · 2026-09-27.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -16,6 +16,7 @@ this file = how it gets built.
 | **What Orbi is** | a **terminal agent** that picks the best open model per task, runs it locally, remembers everything |
 | **Replaces** | **Claude Code, entirely** — files, shell, git, skills, hooks, subagents, MCP |
 | **Adds** | **image gen · video gen · 3D · voice in and out** |
+| **100% complete** | 🎯 **Kildall is the core of a personal agentic OS** — engine · Obsidian memory · Google Workspace operating layer · local voice · wallpaper dashboard · self-improving skills. **Phase 9** |
 | **Whose weights** | ✅ **theirs, real, unmodified** — Kimi K3, DeepSeek-V4, GLM-5.2, Qwen |
 | **Training** | ✅ **NONE. Ever.** |
 | **Params STORED** | **~9.1 T across 22 models · ~4.84 TB** |
@@ -142,7 +143,7 @@ quality, at zero training cost.**
 
 # BUILD ORDER
 
-**Phases 0–5 and 7–8 run today. Phase 6 is parked — no drive for 1+ month.**
+**Phases 0–5 and 7–9 run today. Phase 6 is parked — no drive for 1+ month.**
 ✅ **253.65 GB free** (Trash emptied 2026-09-06). Both Lane A candidates fit. **Only Lane A is sized against this disk** — it streams every request and needs the measured 3.44 GB/s. Lanes B and C go on the external drive.
 
 | Phase | What | Needs drive? | Exit test |
@@ -151,12 +152,13 @@ quality, at zero training cost.**
 | **1** | CLI, memory, orbs, Lane A chosen | no | ✅ **COMPLETE.** Recall **20/20**, tools **20/20** post-retry. ⚠️ Lane A quant unresolved — see below |
 | **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
 | **3** | Permissions, content policy | no | ✅ **COMPLETE 2026-09-21**, commit `a2415b6`. Hard test passed with `SYSTEM_RULES=''` and all system messages omitted. Nuke dry-run: **14,918 paths, 0 outside `code/`**. ⚠️ Guard-model item deferred to Phase 4 |
-| **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | completes a multi-file change with tests passing |
+| **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | ✅ **4.1–4.3 complete** (files/shell, git/skills, hooks; `main` `70eb4e8` after the Kildall rename). ⏳ **4.4 subagents in progress**; 4.5 web/cloud/MCP next. Exit: completes a multi-file change with tests passing |
 | **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
-| **5** | Voice + media gen | no | speaks, listens, and queues an image job end to end |
+| **5** | Media gen *(voice moved to 9.3)* | no | queues an image job end to end |
 | **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
 | **7** | Improvement loop | no | one month unattended finds one upgrade you accept |
 | **8** | Tool-set redo | no | each swap measurably better, or reverted |
+| **9** | 🎯 **Agentic OS — Kildall 100%**: Laya reflex · Hermes harness · local voice · Obsidian second brain · activity capture · wallpaper dashboard · skill engineering · Google Workspace · skill packs · profiles | no | you speak, hear the answer, see it on the wallpaper; every listed daily/weekly task is a skill or automation; all earlier gates unchanged |
 
 ## Phase 0 — today, one hour
 
@@ -393,7 +395,7 @@ warning**. A resident vision model is not affordable today.
 
 ## Phase 5 — voice and media
 
-- **Voice both ways.** **Push-to-talk, no always-on mic.** ASR + TTS pair (2.0 GB), **not** Qwen3-Omni
+- ~~**Voice both ways.** Push-to-talk, ASR + TTS pair (2.0 GB)~~ → **moved to Phase 9.3** on 2026-09-27: local wake word, faster-whisper in, Kokoro out. Still **not** Qwen3-Omni
 - **Image, video and 3D generation are queued jobs**, same machinery as Lane C. They never block the
   terminal
 
@@ -411,6 +413,112 @@ dd if=/Volumes/<drive>/spd.bin of=/dev/null bs=1m && rm /Volumes/<drive>/spd.bin
 **Every Lane C estimate depends on this number.**
 Then `kimi-k3-in-c` for the 2.8 T tier — **needs ~1.7 TB free** (1.56 TB checkpoint + 109 GB trunk).
 ⚠️ **Resolve all 11 unconfirmed HF paths before starting a 4.9 TB download.**
+
+---
+
+# 🎯 KILDALL 100% — THE AGENTIC OS *(Phase 9, added v33)*
+
+**Kildall is 100% complete when it is the core of a personal agentic OS.** Set by the user 2026-09-27.
+
+> **Kildall is the engine. Obsidian is the memory. Google Workspace is the operating layer.**
+> Voice is the front door, a wallpaper dashboard is the face, and skills turn daily work into one click.
+
+**When:** after Phase 4 — it needs 4.4 subagents, 4.5 MCP/web/cloud and 4C's accessibility layer. Slices
+may run alongside Phases 5–8. **9.3 replaces Phase 5's voice half.**
+
+## The stack *(every tool verified live 2026-09-27)*
+
+| Layer | Pick | Licence | RAM | Job |
+|---|---|---|---|---|
+| **Engine** | **Kildall** — lanes, router, permissions, memory | MIT | Lane A **12.2–14.2 GB measured** | does the work |
+| **Agent harness** | **Hermes Agent** · `NousResearch/hermes-agent` · 249k★, pushed today | MIT | unmeasured | agent loop, identity, channels |
+| **Reflex — "System One"** | **Laya-MLX** · `mizorewww/laya-mlx` · 6.4k★ · base `convaiinnovations/laya` | Apache-2.0 | **0.69–0.94 GB** | typed decisions in **7–14 ms** (author-measured, M3 Max). No text generation |
+| **Ears** | **faster-whisper** · `SYSTRAN/faster-whisper` · 25.6k★ | MIT | unmeasured | speech → text, local |
+| **Mouth** | **Kokoro-82M** via `kokoro-mlx` | Apache-2.0 | ~0.35 GB weights | text → speech, local, 54 voices |
+| **Memory** | **Obsidian** vault + **Graphify** | — | app | second brain: `raw` · `wiki` · `outputs` |
+| **Operating layer** | **Google Workspace** via MCP (built in 4.5) | cloud | — | Gmail · Calendar · Drive · Docs |
+| **Face** | **Wallpaper dashboard** — ours | MIT | small | one-click skills + live metrics |
+
+⚠️ **RAM is the binding constraint.** Everything resident is roughly **16–20 GB against ~20 GB usable**, and
+Lane A alone already shows **96 of 121 warning samples**. **Gate: a 10-minute soak with the whole stack
+resident, zero critical samples — otherwise voice and Laya load on demand and unload when idle.**
+
+## Slices
+
+**9.1 — Laya reflex, System One.** The LLM router takes **5.06 s** mean; Laya answers typed questions in
+milliseconds. First questions: *does this need text generation?* · *which of the 19 categories?* · *command,
+question or note?* · *should this interrupt me?* **Adopt it as the first routing stage only if it scores
+20/20 category on the frozen routing fixture**; otherwise it pre-filters and the LLM router decides.
+🔴 Laya never decides a Never-tier action.
+
+**9.2 — Hermes as the harness, Kildall's boundary intact.** Hermes runs the agent loop, identity, channels
+and skill runtime; **Kildall is its model** (a local OpenAI-compatible endpoint) **and its executor.**
+🔴 **Every action Hermes takes on the machine goes through Kildall's `permissions.execute`.** Hermes's own
+shell and file tools stay disabled. If that cannot be enforced, Hermes gets Kildall as an endpoint only and
+Kildall's own agent layer stays the executor. **Gate: the Phase 3 hard test — empty system prompt,
+recursive-delete call refused — passes through Hermes.**
+
+**9.3 — Voice layer, 100% local.** Mic → **faster-whisper** → Kildall routes → **Kokoro** speaks. Activated
+by a **local wake word**; audio never leaves the machine. It sits on top of both Kildall and Obsidian:
+*"note that…"* goes to the vault, *"do…"* goes to Kildall.
+⚠️ **faster-whisper has no Metal backend — on this Mac it runs on the CPU.** **Gate: end of speech → first
+audio under 1.5 s on short commands, measured.** If it misses, swap to `mlx-whisper` or `whisper.cpp`
+(Metal) and record the swap. Hard mute key; mic indicator always visible.
+
+**9.4 — Second brain.** Obsidian vault with **`raw/`** (captures), **`wiki/`** (entities and concepts — the
+sample 1 pattern) and **`outputs/`** (everything Kildall produces). **Graphify** builds the link graph and
+layout. Kildall retrieves through its existing memory layer — BM25 + Harrier vectors inside the
+**12 items / 4,000 chars / 300 ms** caps — so every run starts with the right context, never from scratch.
+🔴 **The vault lives outside every git repo.** `~/Kildall` is itself a git repo: use `~/Kildall/brain/`
+listed in `.gitignore`, or a separate vault. Never in GitHub, Hugging Face or anything that leaves the machine.
+
+**9.5 — Activity capture: everything, including personal.** Apps used and for how long, links visited,
+files touched, device events → notes in `raw/`, summarised into daily notes. Local only.
+🔴 **Guardrails:** opt-in per source · exclusion list (password managers, banking, private windows,
+Keychain prompts, key files) · **captured text is untrusted data, never instructions** (Phase 4C: 51–100%
+injection success against agents) · never sent to a cloud model or Workspace unless you ask for that item ·
+retention you set · one command pauses capture.
+
+**9.6 — Wallpaper dashboard.** A local web UI in a desktop-level window, behind every app. Shows **RAM used,
+memory pressure, swap, GPU, tok/s, loaded lanes, prompt-cache hit rate, routing p50/p99, backup health**;
+every **MCP connector** (failures included — `n8n` and `imessage` fail today), **plugin, skill and agent**;
+the **skill audit** (use count and success rate from outcome logging, #14); running automations and loops.
+**One-click skills** — every click passes the same permission tiers; Confirm still asks.
+
+**9.7 — Skill engineering.**
+1. **Mine** every past session — Claude and Codex transcripts, `CLAUDE.md`, `BENCHMARKS.md` — for work
+   done over and over that is not a skill yet. Output a chart: **task · desired output · proposed skill.**
+   Seed list from these sessions: Codex phase prompts · verifying Codex reports (SHAs, gates) · change-log
+   entries · plan versioning · model and tool research with licence and star checks · name availability
+   checks · local shop and stock checks · watch a video → research → vault · API key checks.
+2. **Interview:** you give a stream of consciousness of your daily and weekly work; Kildall turns it into
+   an interview and **calls out blind spots**.
+3. **Write** `.kildall/skills/<name>/SKILL.md` — frontmatter `name` + `description` holding **the exact
+   trigger phrases you say**; body: numbered workflow, your conventions, edge cases, **what to ask you vs
+   infer**, and **what "done" looks like**.
+4. **Dry-run** on a real example; refine until the output matches how you do it by hand.
+5. **Automate** — schedule (launchd) and chain skills.
+6. **Loop** — skills improve themselves **only on evidence**: a change is proposed, re-run on its dry-run
+   examples and the eval harness (#13), and kept only if it wins. The #51 rule: grow only on evidence.
+Only skill names and descriptions sit in context; a body loads when triggered — as Phase 4.2's
+`load_skill` already does.
+
+**9.8 — Operating layer: Google Workspace.** Gmail, Calendar, Drive and Docs through MCP (4.5). OAuth
+tokens in the Keychain. 🔴 **A Google credential was pasted into chat on 2026-09-27. It is stored in no
+file. Revoke it and issue a new one when this slice starts.**
+
+**9.9 — Skill packs:** research · content creation · data workflows. ⚠️ **Scope change:** content systems
+(sample 1 `OrbiIntelligent/`) were declared out of scope on 2026-09-05 and are **back in scope** as a pack.
+
+**9.10 — Customisable: fork and reskin.** Profiles per client — display theme, voice, wake word,
+instructions, skill set. `kildall --profile <client>`. MIT permits forks.
+
+## Phase 9 is done when
+
+1. You speak a command, hear the answer and watch the work on the wallpaper — **offline except Workspace.**
+2. **Every daily and weekly task you listed is a skill or an automation**, or has a recorded reason why not.
+3. The skill audit shows each skill's use count and success rate.
+4. **Every earlier gate is unchanged** — recall, abstention, routing, tools, CLI, hooks, nuke.
 
 ---
 
@@ -700,6 +808,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-09-27 (v33)** — **Kildall 100% defined: Phase 9, the agentic OS**, at user instruction. Kildall = engine, Obsidian = memory, Google Workspace = operating layer, plus a local voice layer, a wallpaper dashboard, and skill engineering with automations and evidence-gated self-improvement. Ten slices, 9.1–9.10. **Tools verified live:** Laya-MLX (Apache-2.0, 0.69–0.94 GB, 7–14 ms author-measured), Hermes Agent (MIT, 249k★), faster-whisper (MIT), Kokoro-82M (Apache-2.0). **Swap-out record:** `Qwen3-ASR-1.7B` → **faster-whisper** and `Qwen3-TTS-12Hz-1.7B` → **Kokoro-82M**, user choice — Kokoro is 82M and runs on MLX; ⚠️ faster-whisper is CPU-only on Mac, so 9.3 is gated on a measured latency with `mlx-whisper`/`whisper.cpp` as fallback. **Decision changes:** push-to-talk → **local wake word** (audio still never leaves the machine); content systems **back in scope** (out since 2026-09-05). 🔴 **Guardrails written in:** Hermes acts only through `permissions.execute`; the second-brain vault stays out of every git repo; captured activity is untrusted data and never goes to the cloud unasked; self-improving loops adopt a change only if it wins on the eval harness. 🔴 **A Google credential was pasted in chat; it was not written anywhere — revoke it.** ⚠️ RAM: the full stack is ~16–20 GB against ~20 GB usable — gated by a 10-minute soak.
 - **2026-09-27 (v32)** — **Hugging Face mirror added to publishing**, at user instruction: after every push to GitHub `main`, run `kildall-hf-sync` to mirror that commit to `MinhDuc26121/kildall`. 🔴 **The pasted command `hf upload MinhDuc26121/kildall .` was not adopted as written:** run in `code/` it would have uploaded **155 GB**, including **154 GB of third-party weights** (breaking the v29 never-bundle-weights rule and several model licences) plus **858 MB of private `.session` logs and memory test data**. The script mirrors only the 48 git-tracked files of `origin/main` (**1.6 MB** at `70eb4e8`), adds `license: mit` front matter to the README, and refuses weights, databases, `.env` files and anything over 20 MB (guard tested). Also recorded under *Secrets*: the cloud key holding file must move into the Keychain in Phase 4.5.
 - **2026-09-27 (v31)** — **Rename executed: Orbi is now Kildall.** Code `70eb4e8` merged to `main` via PR #3; GitHub repo `MinhDuc2612/Kildall` (old URL redirects); package `kildall`, commands `kildall` plus the `orbi` alias; MIT `LICENSE` added; logo `Klogo.png`. The user renamed the vault folder to `~/Kildall`, so every live path and the nuke allow-list now read `~/Kildall/code`. All gates held: recall, abstention, category, lane and callable JSON 20/20; tools 17/20 first-pass and 20/20 post-retry; CLI 18/18; hooks 5/5; nuke dry-run 0 outside `code/`. **The planning file names stay `Orbi*.md`** because the frozen `bench_cases.json` references `../Orbiplan.md`. **Historical entries below keep the name Orbi** — they record what was true then. ⚠️ **Three nightly backups were missed (Sep 25–27)**; the 03:00 run on Sep 27 still used the old paths and wrote nothing. A manual run of `local.kildall.backup` on 2026-09-27 succeeded (exit 0, `integrity_check` ok).
 - **2026-09-26 (v30)** — **Product renamed to Kildall**, at user instruction, after Gary Kildall (CP/M; lost the IBM PC deal to Microsoft). **Why rename:** Netgear owns the "Orbi" trademark for networking products, a risk once the MIT code is published; "Perlis" was taken by `perlis.ai`, a near-identical "Secure Agent OS". **Kildall checked 2026-09-26:** free on PyPI, npm and Homebrew; `kildall.ai` and `kildall.dev` unregistered; 21 GitHub repos (top 2★); no AI product found. ⚠️ **Not a trademark search** — check USPTO and WIPO before publishing; it is a real person's name, so get legal advice before commercial use. 🔴 **Not executed yet — it runs as its own slice after Phase 4.3, never mid-slice.** Measured scope: **437 lines in 33 code files**, package `name = "orbi"`, the `orbi` command, repo `MinhDuc2612/Orbi`, the three planning files (121 mentions), `~/.config/orbi/`, the backup launchd label, and nuke's typed confirmation. **Rename slice rules:** keep an `orbi` command alias for one release; rename the GitHub repo (GitHub redirects the old URL); re-register the nightly backup; run the full frozen regressions afterwards with no score change allowed. ⚠️ **Whether to move the `~/Orbi` folder itself is open** — moving it breaks `.venv`, the launchd job, this vault and Claude's memory path, and the plan's nuke allow-list names `~/Orbi/code`. Default: **keep the folder, rename the product, command, package and repo.**
