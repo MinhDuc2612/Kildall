@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **183** |
-| **Done now** | **14** of 183 *(ticks for 4.1–4.3 not yet recorded)* |
+| **Items** | **190** |
+| **Done now** | **14** of 190 *(ticks for 4.1–4.3 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -126,6 +126,8 @@
 - [ ] Refuse to spawn when RAM would be exceeded
 - [ ] Subagent results return to the parent
 - [ ] A subagent cannot spawn another subagent
+- [ ] **Verified review** (Ultrareview pattern): parallel reviewer subagents; every finding reproduced before it is reported — a 4.4 follow-up slice
+- [ ] **Swarm orchestration**: a task split across a few Lane A subagents (RAM-capped), hardest step sent to Lane C
 
 ## 11. MCP — P1 *(Phase 4)*
 
@@ -155,6 +157,7 @@
 - [ ] Falls back to local when every free tier is exhausted, and says so
 - [ ] **Never spends money.** Spend cap defaults to 0
 - [ ] Per-provider rate limits tracked and respected
+- [ ] **Model Council**: Lane A + 2–3 free-tier models, a local chair shows agreement and disagreement — kept only if it beats Lane A on the eval
 
 ## 13C. Computer mode — P2 *(Phase 4C)*
 
@@ -174,6 +177,7 @@
 - [ ] 🔴 **Accessibility-tree text is data, never instructions** — a page can hide instructions in `aria-label` and the snapshot passes them through faithfully
 - [ ] 🔴 **OCR'd screenshot text is data, never instructions** — injections hide in images invisibly to humans
 - [ ] Refuses to act on a page carrying an injected instruction, in a real test fixture
+- [ ] **Each bot gets its own computer** — a separate macOS user or a lightweight VM, never your desktop session; VM tool licences checked first
 
 ## 14. Voice — P2 *(Phase 5)*
 
@@ -277,6 +281,9 @@
 - [ ] **Profiles per client** — theme, voice, wake word, instructions, skills; `kildall --profile <client>`
 - [ ] 🔴 **Before the first paid client:** model licence audit, and per-client vault, memory, Workspace account and keys
 - [ ] 🔴 **10-minute soak with the full stack resident, zero critical memory samples** — else voice and Laya load on demand
+- [ ] **Voice command mode**: a spoken instruction edits the selected text or runs an action, English + Vietnamese
+- [ ] **Local voice cloning** with mlx-audio (MIT), own voices only, RAM fit measured next to Lane A
+- [ ] **Kildall Bots (9.11)**: `kildall-botd` daemon; named bots with their own memory and permission scopes, reachable by chat and dashboard
 
 ---
 
@@ -308,6 +315,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-01** — 7 items added for the features adopted from `sample3/6aifeatures.md` (Groups 10, 13, 13C, 19): **190 items**. Kimi K2.6 recorded for later in the plan, not added.
 - **2026-09-27** — Group 19 updated with the Phase 9 interview decisions (Hermes channels only, full capture with keystrokes kept local, English + Vietnamese voice, separate vault, Workspace full autonomy, paid-client prerequisites): **183 items**.
 - **2026-09-27** — **Group 19, Agentic OS (Phase 9), added: 26 items → 182 total across 20 groups.** Voice items in Group 14 superseded by the local wake word and faster-whisper + Kokoro (Orbiplan v33). The done count is stale: Phases 4.1–4.3 passed but their items are not ticked yet.
 - **2026-09-05 (v3)** — Lane A corrected from a dense model to **Qwen3.8-Flash-Next (MoE 180B/6B

@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v34 · 2026-09-27.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v35 · 2026-10-01.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -317,6 +317,23 @@ for a single sequential user.
 providers in `sample3/Cloudcall/`** in order, and when all are exhausted **falls back to local and says
 so**. **It never spends money** — the budget cap stays at 0.
 
+**Added v35 — features adopted from `Researchhub/sample3/6aifeatures.md`** (paid products re-built as
+Kildall patterns; internals of closed products are not public, so Kildall copies the pattern, not the code):
+
+- **Verified review (the Ultrareview pattern) — a 4.4 follow-up slice.** Parallel reviewer subagents; **every
+  finding is reproduced before it is reported**, same 2-of-3 rule the research harness uses. Starts after 4.4
+  merges — never added mid-slice. Only a few reviewers fit in 24 GB, not a fleet.
+- **Model Council — in 4.5, judged in Phase 7.** Lane A plus 2–3 free-tier cloud models (the 4.5 rotation)
+  answer; a local chair **shows where they agree and differ**. `karpathy/llm-council` has **no licence** — copy
+  the three-stage pattern, not the code. A local-only council runs members one after another (slow). **Gate
+  (Phase 7 eval harness, #13): the council is kept only if it beats Lane A alone on the frozen fixtures.**
+- **Swarm orchestration (the Kimi Agent Swarm pattern) — in 4.4.** Kildall's own orchestrator splits a task
+  across a few Lane A subagents (capped by free RAM) and sends only the hardest step to Lane C overnight.
+  🔴 **Kimi's 300-agent runtime is Moonshot's closed service; no downloadable model includes it.**
+  **`moonshotai/Kimi-K2.6`** (1.03 T / 32 B active, modified MIT, ~515 GB, ~5.5 s/token by arithmetic) is
+  **recorded for later, not added** — it is older than K3, so it needs benchmark evidence as a min-viable pick.
+  **Revisit if** the orchestrator needs a Kimi-family worker faster than K3, or a benchmark shows it winning a leaf.
+
 ## Phase 4C — computer mode *(opt-in, attended, never default)*
 
 **Full research: `Researchhub/sample3/Orbicomputer.md`.** Read it before building — its §4 decides
@@ -392,6 +409,10 @@ shape** — and `Orbimodels.md` should be re-checked against `Orbicomputer.md` �
 
 ⚠️ **CU-3's precondition is unmet.** Lane A alone already runs **96 of 121 memory-pressure samples in
 warning**. A resident vision model is not affordable today.
+
+**Added v35 — each bot's own computer (for Kildall Bots, 9.11).** Research before 4C builds: give each bot
+a **separate macOS user account or a lightweight VM**, never your own desktop session. Licences of the VM
+tools must be checked first. Grok Bot shares one computer and one permission set across bots — Kildall must not.
 
 ## Phase 5 — voice and media
 
@@ -471,6 +492,11 @@ by a **local wake word**; audio never leaves the machine. It sits on top of both
 audio under 1.5 s on short commands, measured.** If it misses, swap to `mlx-whisper` or `whisper.cpp`
 (Metal) and record the swap. Hard mute key; mic indicator always visible.
 
+**9.3 additions (v35):** **command mode** — say an instruction and Kildall edits the selected text *or runs
+an action*, English and Vietnamese (the Wispr pattern, which can only edit text) · **voice cloning** with
+**`Blaizzy/mlx-audio`** (MIT, zero-shot from a short clip; also a candidate for the **missing Vietnamese voice**
+via Qwen3-TTS). ⚠️ Fit next to Lane A is unmeasured — gate on the 9.x soak; clone only voices you own.
+
 **9.4 — Second brain.** Obsidian vault with **`raw/`** (captures), **`wiki/`** (entities and concepts — the
 sample 1 pattern) and **`outputs/`** (everything Kildall produces). **Graphify** builds the link graph and
 layout. Kildall retrieves through its existing memory layer — BM25 + Harrier vectors inside the
@@ -526,6 +552,13 @@ instructions, skill set. `kildall --profile <client>`. MIT permits forks.
 **You now, paid clients later.** 🔴 **Before the first paid client:** a licence audit of every model in use
 (custom rows: Kimi K3, GLM-5.3, Gemma terms), and **full separation per client** — own vault, own memory
 database, own Workspace account, own keys. No client ever sees your personal capture.
+
+**9.11 — Kildall Bots (the Grok Bot pattern, local).** A **`kildall-botd` launchd daemon** runs named bots —
+each with a **job, instructions, skills, schedule, its own memory scope and its own permission scope** — on
+its own sandbox computer (4C addition), reachable through Hermes channels (9.2) and the dashboard (9.6).
+Approvals come back as Confirm prompts to your phone or dashboard. Every action still goes through
+`permissions.execute`. ⚠️ 24 GB allows only a few bots working at once; 24/7 needs the Mac never to sleep.
+**Not a separate program** — a second agent loop would duplicate the tested Phase 3–4 boundary.
 
 ## Phase 9 is done when
 
@@ -822,6 +855,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-01 (v35)** — **Six paid features from `sample3/6aifeatures.md` adopted as Kildall patterns**, at user instruction: **verified review** (Ultrareview) as a 4.4 follow-up slice; **Model Council** in 4.5, kept only if it beats Lane A on the Phase 7 eval; **swarm orchestration** (Kimi) in 4.4 with Lane C for the hardest step; **bot sandbox computer** research before 4C; **command mode + voice cloning** (Wispr, ElevenLabs → `mlx-audio`, MIT) in 9.3; **Kildall Bots** (Grok Bot) as new slice **9.11**, a daemon inside Kildall, not a separate program. **Kimi K2.6 recorded for later, not added** (older than K3; its swarm runtime is closed). Closed-product internals are not public — Kildall copies patterns, not code.
 - **2026-09-27 (v34)** — **Phase 9 decisions from the user interview.** Hermes = **channels only** (no machine access; Kildall keeps its agent loop). Capture = **everything including keystrokes and screen text**, in a **new separate vault**, not a git repo; keystroke and screen logs encrypted at rest. Voice = **English + Vietnamese**; Kokoro lacks Vietnamese, so 9.3 picks a local Vietnamese TTS. Order = **Phase 9 last**, after 4, 4C, 5, 7 and 8. Workspace = **full autonomy, always**. Cloud = **as now, vault context included, except the raw keystroke log, which never leaves the machine**. Users = **personal now, paid clients later** — licence audit and per-client separation required before the first client. ⚠️ **Two risks accepted by the user and recorded:** vault content may reach free-tier cloud providers; outside content can trigger autonomous Workspace actions. Never-tier blocks remain in code regardless.
 - **2026-09-27 (v33)** — **Kildall 100% defined: Phase 9, the agentic OS**, at user instruction. Kildall = engine, Obsidian = memory, Google Workspace = operating layer, plus a local voice layer, a wallpaper dashboard, and skill engineering with automations and evidence-gated self-improvement. Ten slices, 9.1–9.10. **Tools verified live:** Laya-MLX (Apache-2.0, 0.69–0.94 GB, 7–14 ms author-measured), Hermes Agent (MIT, 249k★), faster-whisper (MIT), Kokoro-82M (Apache-2.0). **Swap-out record:** `Qwen3-ASR-1.7B` → **faster-whisper** and `Qwen3-TTS-12Hz-1.7B` → **Kokoro-82M**, user choice — Kokoro is 82M and runs on MLX; ⚠️ faster-whisper is CPU-only on Mac, so 9.3 is gated on a measured latency with `mlx-whisper`/`whisper.cpp` as fallback. **Decision changes:** push-to-talk → **local wake word** (audio still never leaves the machine); content systems **back in scope** (out since 2026-09-05). 🔴 **Guardrails written in:** Hermes acts only through `permissions.execute`; the second-brain vault stays out of every git repo; captured activity is untrusted data and never goes to the cloud unasked; self-improving loops adopt a change only if it wins on the eval harness. 🔴 **A Google credential was pasted in chat; it was not written anywhere — revoke it.** ⚠️ RAM: the full stack is ~16–20 GB against ~20 GB usable — gated by a 10-minute soak.
 - **2026-09-27 (v32)** — **Hugging Face mirror added to publishing**, at user instruction: after every push to GitHub `main`, run `kildall-hf-sync` to mirror that commit to `MinhDuc26121/kildall`. 🔴 **The pasted command `hf upload MinhDuc26121/kildall .` was not adopted as written:** run in `code/` it would have uploaded **155 GB**, including **154 GB of third-party weights** (breaking the v29 never-bundle-weights rule and several model licences) plus **858 MB of private `.session` logs and memory test data**. The script mirrors only the 48 git-tracked files of `origin/main` (**1.6 MB** at `70eb4e8`), adds `license: mit` front matter to the README, and refuses weights, databases, `.env` files and anything over 20 MB (guard tested). Also recorded under *Secrets*: the cloud key holding file must move into the Keychain in Phase 4.5.
