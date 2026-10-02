@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v35 · 2026-10-01.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v36 · 2026-10-02.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -413,6 +413,11 @@ warning**. A resident vision model is not affordable today.
 **Added v35 — each bot's own computer (for Kildall Bots, 9.11).** Research before 4C builds: give each bot
 a **separate macOS user account or a lightweight VM**, never your own desktop session. Licences of the VM
 tools must be checked first. Grok Bot shares one computer and one permission set across bots — Kildall must not.
+**v36 — the default (user confirmed 2026-10-02):** each bot's computer is **virtual, on this one Mac** — Kildall's
+model is shared; only the bot's actions are confined. **Default: a separate macOS user account per bot** (near-zero
+RAM, many bots). **A VM only for bots that browse untrusted sites or open unknown files.** ⚠️ To verify in the
+research: macOS allows **at most 2 macOS VMs at once** on Apple hardware, and each VM needs several GB — next to
+Lane A's 12–14 GB that means **about 1 VM at a time**.
 
 ## Phase 5 — voice and media
 
@@ -464,6 +469,7 @@ machine** · users = **you now, paid clients later.**
 | **Memory** | **Obsidian** vault + **Graphify** | — | app | second brain: `raw` · `wiki` · `outputs` |
 | **Operating layer** | **Google Workspace** via MCP (built in 4.5) | cloud | — | Gmail · Calendar · Drive · Docs |
 | **Face** | **Wallpaper dashboard** — ours | MIT | small | one-click skills + live metrics |
+| **Bot app** *(v36)* | **Kildall Bots desktop app** — ours: the 9.6 web UI in a native window | MIT | small, unmeasured | create, watch, pause, approve bots; routes everything to Kildall |
 
 ⚠️ **RAM is the binding constraint.** Everything resident is roughly **16–20 GB against ~20 GB usable**, and
 Lane A alone already shows **96 of 121 warning samples**. **Gate: a 10-minute soak with the whole stack
@@ -559,6 +565,18 @@ its own sandbox computer (4C addition), reachable through Hermes channels (9.2) 
 Approvals come back as Confirm prompts to your phone or dashboard. Every action still goes through
 `permissions.execute`. ⚠️ 24 GB allows only a few bots working at once; 24/7 needs the Mac never to sleep.
 **Not a separate program** — a second agent loop would duplicate the tested Phase 3–4 boundary.
+
+**9.11 addition (v36) — the Kildall Bots desktop app** (user decision 2026-10-02: a desktop app that only routes
+the bots you create to Kildall). You **create, watch, pause and approve** bots in it; each bot is saved **inside
+Kildall** (proposed `.kildall/bots/<name>/BOT.md`, the 4.2 skill pattern) and **`kildall-botd` does all the work**.
+🔴 The app has **no shell, file or network tools of its own** — the Hermes rule (9.2); every action goes through
+`permissions.execute`. **Reuse, not a second UI:** the app shows the **same local web UI as the 9.6 dashboard** in a
+normal window, plus a menu-bar icon. The app, the CLI (`kildall bot new · list · pause · logs`) and chat channels
+call **one bot API inside Kildall**. 🔴 That API listens **only on this Mac** (Unix socket or `127.0.0.1`) and
+**requires a secret token** — otherwise any web page in your browser could command your bots. Window shell:
+**native Swift `WKWebView`** (no new dependency, near-zero RAM) preferred over **Electron** (hundreds of MB);
+decided in the 9.11 spec. **Gate: a request without the token, and one sent from a browser page, are both refused
+and logged; nothing runs.**
 
 ## Phase 9 is done when
 
@@ -855,6 +873,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-02 (v36)** — **Kildall Bots desktop app added to 9.11** (user picked option B: a desktop app that only routes the bots you create to Kildall). A thin app showing the 9.6 dashboard web UI in a normal window plus a menu-bar icon; bots are saved inside Kildall; `kildall-botd` does the work through `permissions.execute`; the app has no tools of its own; one bot API shared by app, CLI and chat, local-only and token-locked. Native `WKWebView` preferred over Electron for RAM — decided in the 9.11 spec. **Bot computers (4C):** virtual, on this Mac — default a separate macOS user per bot, a VM only for risky bots; the 2-VM macOS limit and VM RAM are to be verified in the 4C research. New stack row "Bot app". Checklist → **192 items**.
 - **2026-10-01** — **Fix:** v35 placed swarm orchestration "in 4.4" while 4.4 was already running; corrected to a follow-up slice after 4.4 merges, so the running slice is never widened.
 - **2026-10-01** — **Roles fixed (user decision):** GPT-6 Astra builds every slice; Claude (Opus 5.5) designs the judgment-heavy phases beforehand and reviews every slice afterwards. Mixed-builder splits were considered and dropped.
 - **2026-10-01 (v35)** — **Six paid features from `sample3/6aifeatures.md` adopted as Kildall patterns**, at user instruction: **verified review** (Ultrareview) as a 4.4 follow-up slice; **Model Council** in 4.5, kept only if it beats Lane A on the Phase 7 eval; **swarm orchestration** (Kimi) as a 4.4 follow-up slice with Lane C for the hardest step; **bot sandbox computer** research before 4C; **command mode + voice cloning** (Wispr, ElevenLabs → `mlx-audio`, MIT) in 9.3; **Kildall Bots** (Grok Bot) as new slice **9.11**, a daemon inside Kildall, not a separate program. **Kimi K2.6 recorded for later, not added** (older than K3; its swarm runtime is closed). Closed-product internals are not public — Kildall copies patterns, not code.

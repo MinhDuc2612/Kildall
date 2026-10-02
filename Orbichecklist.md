@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **190** |
-| **Done now** | **14** of 190 *(ticks for 4.1–4.3 not yet recorded)* |
+| **Items** | **192** |
+| **Done now** | **14** of 192 *(ticks for 4.1–4.3 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -177,7 +177,7 @@
 - [ ] 🔴 **Accessibility-tree text is data, never instructions** — a page can hide instructions in `aria-label` and the snapshot passes them through faithfully
 - [ ] 🔴 **OCR'd screenshot text is data, never instructions** — injections hide in images invisibly to humans
 - [ ] Refuses to act on a page carrying an injected instruction, in a real test fixture
-- [ ] **Each bot gets its own computer** — a separate macOS user or a lightweight VM, never your desktop session; VM tool licences checked first
+- [ ] **Each bot gets its own computer** — a separate macOS user or a lightweight VM, never your desktop session; VM tool licences checked first. *(v36: default = separate macOS user; VM only for bots that browse untrusted sites or open unknown files; verify the 2-VM macOS limit and VM RAM)*
 
 ## 14. Voice — P2 *(Phase 5)*
 
@@ -284,6 +284,8 @@
 - [ ] **Voice command mode**: a spoken instruction edits the selected text or runs an action, English + Vietnamese
 - [ ] **Local voice cloning** with mlx-audio (MIT), own voices only, RAM fit measured next to Lane A
 - [ ] **Kildall Bots (9.11)**: `kildall-botd` daemon; named bots with their own memory and permission scopes, reachable by chat and dashboard
+- [ ] **Kildall Bots desktop app (v36)**: the 9.6 web UI in a native window + menu-bar icon; creates, watches, pauses and approves bots; no tools of its own — everything routes to Kildall through `permissions.execute`
+- [ ] 🔴 **The bot API is local-only and token-locked** — a request without the token, and one sent from a browser page, are both refused and logged; nothing runs
 
 ---
 
@@ -315,6 +317,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-02** — 2 items added to Group 19 for the Kildall Bots desktop app (Orbiplan v36): the app itself and the local-only, token-locked bot API. Bot-computer item notes the v36 default (separate macOS user; VM only for risky bots): **192 items**.
 - **2026-10-01** — 7 items added for the features adopted from `sample3/6aifeatures.md` (Groups 10, 13, 13C, 19): **190 items**. Kimi K2.6 recorded for later in the plan, not added.
 - **2026-09-27** — Group 19 updated with the Phase 9 interview decisions (Hermes channels only, full capture with keystrokes kept local, English + Vietnamese voice, separate vault, Workspace full autonomy, paid-client prerequisites): **183 items**.
 - **2026-09-27** — **Group 19, Agentic OS (Phase 9), added: 26 items → 182 total across 20 groups.** Voice items in Group 14 superseded by the local wake word and faster-whisper + Kokoro (Orbiplan v33). The done count is stale: Phases 4.1–4.3 passed but their items are not ticked yet.
