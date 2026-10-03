@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **192** |
-| **Done now** | **14** of 192 *(ticks for 4.1–4.3 not yet recorded)* |
+| **Items** | **194** |
+| **Done now** | **14** of 194 *(ticks for 4.1–4.3 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -224,6 +224,8 @@
 - [ ] **Speculative decoding never enabled in llama.cpp on Metal** (−11% to −28%). MLX only
 - [ ] **Neural Engine never used** for token generation
 - [ ] Every benchmark run **10 minutes minimum**, watching memory pressure
+- [ ] **Hardware auto-fit (#51, Phase 7, v37)** — reads chip, RAM and memory bandwidth; derives quant, context, batch, cache and lane; propose → short gate → adopt. Passes on this Mac and on a smaller RAM budget (10-minute soak, zero critical samples, every frozen gate held). Required before the first paid client
+- [ ] **Auto-expand upward only on an eval-harness (#13) win** — never on arithmetic alone
 
 ## 18. Operations — P1 *(throughout)*
 
@@ -317,6 +319,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-03** — 2 items added to Group 17 for hardware auto-fit and evidence-only auto-expand (#51, now a Phase 7 slice, Orbiplan v37): **194 items**.
 - **2026-10-02** — 2 items added to Group 19 for the Kildall Bots desktop app (Orbiplan v36): the app itself and the local-only, token-locked bot API. Bot-computer item notes the v36 default (separate macOS user; VM only for risky bots): **192 items**.
 - **2026-10-01** — 7 items added for the features adopted from `sample3/6aifeatures.md` (Groups 10, 13, 13C, 19): **190 items**. Kimi K2.6 recorded for later in the plan, not added.
 - **2026-09-27** — Group 19 updated with the Phase 9 interview decisions (Hermes channels only, full capture with keystrokes kept local, English + Vietnamese voice, separate vault, Workspace full autonomy, paid-client prerequisites): **183 items**.
