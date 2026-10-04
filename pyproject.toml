@@ -15,4 +15,4 @@ requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["kildall", "orbi", "memory", "tool_validation", "routing", "skill_catalog", "permissions", "tool_grammar", "tool_runtime", "file_tools", "shell_tools", "image_reader", "git_tools", "instruction_skills", "hooks"]
+py-modules = ["kildall", "orbi", "memory", "tool_validation", "routing", "skill_catalog", "permissions", "tool_grammar", "tool_runtime", "file_tools", "shell_tools", "image_reader", "git_tools", "instruction_skills", "hooks", "subagents"]

@@ -10,7 +10,8 @@ import tomllib
 # This shell policy is an additional veto, not a substitute for permissions.execute.
 # $1 phase, $2 operation, $3 JSON event, $4 canonical scope, $5 command, $6 branch.
 NEVER = '''case "$2" in
-read|ls|git_status|remember|recall|web_data|read_file|read_bytes|glob_files|grep_files|read_pdf|read_image|shell_job|skills|load_skill) ;;
+read|ls|git_status|remember|recall|web_data|read_file|read_bytes|glob_files|grep_files|read_pdf|read_image|shell_job|skills|load_skill|_agent_memory) ;;
+spawn_agents) test "$7" = parent || { printf '%s\\n' 'Never: recursive subagent'; exit 77; } ;;
 write|edit|install|commit|git_read|git_branch|git_switch|git_commit|git_push|git_pr)
     test "$4" = inside || { printf '%s\\n' 'Never: mutation/repository outside allowed root'; exit 77; } ;;
 run_command|shell)
@@ -125,7 +126,7 @@ def run_stage(bundle, phase, operation, arguments, record, project):
                 # Capability stays in process memory; a model/CLI JSON argument
                 # cannot populate this record or create executable hook authority.
                 child['hook_capability'] = (source, [phase, operation, encoded,
-                    *policy_fields(operation, args, project)], bundle['timeout'])
+                    *policy_fields(operation, args, project), 'child' if record.get('agent') else 'parent'], bundle['timeout'])
                 result = execute('_hook', {}, child, project)
                 child['update'](preview=dict(metadata, output=result))
                 if (result['exit_code'] != 0 or result['timed_out'] or result['truncated']

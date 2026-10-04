@@ -40,3 +40,4 @@ server = ".tools/llama-b10809/llama-b10809/llama-server"
 port = 8123
 embedding_port = 8124
 context_size = 4096
+parallel = 2 # Measured KV/RSS sizing; total server context8192, 4096 per slot.

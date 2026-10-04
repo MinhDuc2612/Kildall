@@ -30,7 +30,9 @@ def completion(content="ok", calls=None, finish="stop", rate=20):
 def run_http(payloads, action):
     replies = iter(payloads)
     with patch.object(b.urllib.request, "urlopen", side_effect=lambda *a, **k:
-                      io.BytesIO(json.dumps(next(replies)).encode())), redirect_stdout(io.StringIO()):
+                      io.BytesIO(json.dumps(next(replies)).encode())), \
+            patch("tool_runtime.chat", side_effect=lambda *a, **k: next(replies)), \
+            redirect_stdout(io.StringIO()):
         return action()
 
 

@@ -45,7 +45,7 @@ def visible(raw, *, final=False):
     return ''.join(content)
 
 
-def prepare(endpoint, body):
+def prepare(endpoint, body, *, cancel=None):
     from kildall import json_request
     if body.get('parallel_tool_calls', False) or body.get('tool_choice', 'auto') not in ('auto', 'required'):
         raise ValueError('Expected single-call auto or required tool choice')
@@ -56,7 +56,7 @@ def prepare(endpoint, body):
     rendered = json_request(endpoint + '/apply-template', {
         'messages': body['messages'], 'tools': tools,
         'tool_choice': body.get('tool_choice', 'auto'), 'parallel_tool_calls': False,
-        'add_generation_prompt': True})['prompt']
+        'add_generation_prompt': True}, **({'cancel': cancel} if cancel is not None else {}))['prompt']
     if not isinstance(rendered, str) or '<|turn>' not in rendered:
         raise ValueError('Expected the pinned Gemma 4 native chat template')
     native = {key: body[key] for key in ('temperature', 'top_p', 'samplers', 'seed', 'cache_prompt') if key in body}
@@ -65,17 +65,20 @@ def prepare(endpoint, body):
                   # WORD becomes a special-token trigger; PATTERN also catches ordinary-token spellings.
                   grammar_triggers=[{'type': 1, 'value': TOOL_START}, {'type': 2, 'value': r'<\|tool_call>'}],
                   preserved_tokens=PRESERVED, return_tokens=True)
-    return native
+    from subagents import inference_body
+    if 'id_slot' in body:
+        native['id_slot'] = body['id_slot']
+    return inference_body(endpoint + '/completion', native)
 
 
-def chat(endpoint, body, *, on_text=None):
+def chat(endpoint, body, *, on_text=None, cancel=None):
     """Return the existing callable JSON protocol; no fallback to unconstrained tools."""
     from kildall import strict_json
-    native = prepare(endpoint, body)
+    native = prepare(endpoint, body, **({'cancel': cancel} if cancel is not None else {}))
     request = urllib.request.Request(endpoint + '/completion', json.dumps(native).encode(),
                                      {'Content-Type': 'application/json'})
     raw, shown, tokens, completed = '', '', [], None
-    with _OPENER.open(request, timeout=180) as response:
+    with (cancel or _OPENER).open(request, timeout=180) as response:
         if native['stream']:
             for line in response:
                 if len(line) > 1_000_000:
@@ -142,4 +145,6 @@ def chat(endpoint, body, *, on_text=None):
     return dict(choices=[dict(message=message, finish_reason=finish)], timings=timing,
                 request=body, native_request=native,
                 native_response=dict(content=raw, tokens=tokens, stop_type=stop,
+                                     id_slot=completed.get('id_slot'), tokens_cached=completed.get('tokens_cached'),
+                                     tokens_evaluated=completed.get('tokens_evaluated'),
                                      generation_settings=completed.get("generation_settings")))

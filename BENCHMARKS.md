@@ -1946,3 +1946,159 @@ Original live DB,14 snapshots,14 mirrors and the old environment remain availabl
 for recovery. The protected planning files, Researchhub, source logos and API-key
 configuration were untouched. Deferred: Phase4.4/4.5, MCP and all of4C; the computer
 placeholder guard remains enforced and the MLX migration fork stays closed.
+
+## Phase 4.4 — baseline, slot sizing and failed second-process probe (2026-09-27)
+
+Evidence: `.session/phase4.4-20260927/`. Pinned b10809 source audit verifies total context splits across explicit slots, 768MiB is a global saved-prefix cache, and three checkpoints are per live slot. Original single-slot settings/prompts/12-tool surface held for 100 measured inference requests after four warmups: p50 **5.986s**, p99 **6.114s** (nearest-rank), 32 generated tokens each; 0-child candidate limit **6.726s**. This includes rendering/HTTP/SSE, excludes CLI startup and memory I/O. Frozen fixture hashes and wired20480 held.
+
+One versus two slots, each4096 context: warmed process RSS grew by **533,315,584 bytes**, device GPU allocated by **234,979,328 bytes**. Both slots reused1812–1813 prefix tokens (one prompt token evaluated) in repeat requests. Sizing uses measured free+inactive+speculative pages, minus2GiB reserve, divided by observed incremental RSS; this selects **2 total slots**. This is a measured admission estimate, subject to the latency and600s soak gates, not a certified memory peak.
+
+**FAILED:** the actual second IQ3 model process reached peak RSS **11,635,621,888 bytes**, but concurrent generation caused Metal `kIOGPUCommandBufferCallbackErrorOutOfMemory` and HTTP500 in both servers. Both were stopped cleanly; raw failure/logs retained. macOS pressure sampled25normal/0warning/0critical despite GPU allocation failure: pressure alone is insufficient. Separate-process cap is **0**, both by the measured free-RAM formula and by failed execution certification. RSS includes shared mmap pages; summed process RSS is not physical incremental consumption. No5GB assumption. Final quality/soak/delivery gates remain pending.
+
+Initial Phase4.4 deterministic controls: existing Phase3/4.1/4.2/hooks/transport/shell lifecycle all pass. `controls-phase44-a.log` **failed** because the new test incorrectly expected `before=null` for a new-file diff; existing executor correctly returns empty text. Corrected assertion only; `controls-phase44-b.log` passes own-context overlap, parent terminal approval, inherited tools/project memory, prompt-free Never/recursion, cap0/refusals, cwd/job isolation, real HTTP cancellation and crash cleanup. These are deterministic controls, not live quality or throughput certification.
+
+**FAILED before load:** `child-soak-a` admitted no children: measured free+inactive+speculative1,919,156,224B, warning pressure, below the initial2GiB shared-admission threshold. The guard incorrectly reused the new-process reserve after resident KV was allocated. Shared admission now requires available RAM at least `active children × measured slot RSS increment` (1,066,631,168B for two), plus no critical pressure and the measured two-slot cap. Separate-process admission retains2GiB reserve and cap0. This is an explicit admission-policy correction, not a passing soak; raw refusal, one pressure sample and failed log retained.
+
+**Pre-existing synthetic test failure reproduced on main70eb4e8:** `test_benchmark.py` still mocked only the old HTTP completion entry point, so Phase4.1 native tool requests escaped its mock and the synthetic20/20 assertion failed. Current-branch failure and isolated-main reproduction retained (`controls-release/`, `test-benchmark-main.log`). A preview updating only the native-tool mock seam passes every unchanged assertion/fixture; production evaluator and frozen suites are untouched. Applying the test-only seam repair after the source-frozen soak finishes.
+
+First complete real-child soak (`child-soak-b`): **600.046s observation**,121samples = **103normal/18warning/0critical**, versus historical25/96/0. Load611.574s,25batches/50children,3189generated tokens. Peak Lane A RSS13,278,478,336B; device GPU in-use14,562,492,416B and allocated15,399,075,840B, reported separately. Child inference p5024.738s/p9925.677s with actual bounded retrieval/context and64-token reply cap; total5.214tok/s including prefill and memory/tool overhead. This differs from the fixed32-token HTTP latency protocol and is not a generation-only rate. Live parent delegation also passed: native GBNF emitted spawn_agents, two processing server slots overlapped, and CHILD_ALPHA/CHILD_BETA returned to the parent.
+
+Final review added server-idle draining before a cancelled slot can be reused, and forwarded automatic memory-hook outputs to the parent as data. Both have deterministic controls. The stale synthetic evaluator mock seam is now repaired; all assertions and frozen fixtures are unchanged. A fresh source-frozen600s soak and final latency/scaling/regression chain will verify this final revision; prior results remain intact.
+
+Final deterministic controls (`controls-final/results.json`): **15/15 scripts exit0**. Coverage includes prior Phase3/4.1/4.2 and all5 hook items; own child contexts and results; parent-terminal confirmation; inherited tools/Git intent/project-only memory writes; prompt-free recursion and Never refusals; linked action records; independent child cwd/jobs; real SIGINT, blocked HTTP cancellation and crash cleanup; strict grammar and idle slot handoff. Separate-server launch/cleanup is tested with simulated admission only; successful dual-model inference is **not** claimed. Actual cap0 follows the failed hardware probe.
+
+### Pre-review source-frozen child soak
+
+`child-soak-final/`: **600.049s** observation,121samples = **121normal/0warning/0critical**; historical single-slot reference25/96/0.52real child contexts in26batches completed over623.632s load, using actual retrieval, memory writes and the shared executor. Peak Lane A process RSS **13,474,529,280B**; device-wide GPU in-use **14,160,969,728B**, allocated **14,891,909,120B**. The device figures include other GPU allocations and are separate from process RSS. Pressure observations are machine-state dependent, not an isolated physical-memory comparison.
+
+With64-token reply caps and growing bounded memory context, child inference p50 **24.436s**, p99 **25.129s**,3316generated tokens and **5.317tok/s** across total load wall time. This is the real-child soak workload, distinct from the fixed32-token latency/scaling protocol. All source and frozen fixture hashes held; owned runtimes stopped cleanly.
+
+**FAILED final parent exact-once smoke (`live-parent-final/`):** the parent first emitted child prompts `CHILD_ALPHA` and `CHILD_BETA`, omitting the requested `Reply exactly`. Both children returned UNKNOWN. The parent then sent corrected prompt strings in a second batch and returned both expected answers. The smoke assertion requiring exactly2children failed:4children completed across2batches. This is an opt-in delegation argument-content/instruction-following failure; GBNF guaranteed valid structure, not those strings or the requested single invocation. It remains a failed run. All4children had linked records, completed, and at most2processing slots were observed; no safety/cap failure. Earlier `live-parent-a` passed, and the final52-child soak passed, but neither erases this failure. No prompts, schemas, fixtures or production code were changed to chase it. Frozen default-tool quality gates follow independently.
+
+### Pre-review interactive inference latency
+
+Same100payloads,32reply tokens and4warmups, with zero children. Nearest-rank percentiles; rendering, HTTP and SSE included, CLI startup and memory I/O excluded.
+
+| Configuration | p50 (s) | p99 (s) | Total tokens / wall (s) | Total tok/s |
+|---|---:|---:|---:|---:|
+| Single slot,4096 total context |5.986|6.114|3200 /600.276|5.331|
+| Two slots,8192 total context, zero children |5.957|6.132|3200 /596.717|5.363|
+
+Final p99 increased **0.28%**, below the10% limit (**6.726s**). `candidate-zero-final/summary.json` passes. The earlier candidate-a result,6.339s/+3.68%, also passed and remains recorded; the pre-review source revision is the result above; the corrected-source repeat follows below. These end-to-end inference rates are not Lane A generation-only tok/s.
+
+### Regression harness incompatibility — 2026-09-28
+
+**FAILED `regressions/`: recall0/20, exit1.** Every recall row raised `Cannot verify the completed single-slot recall request`: frozen `test_recall.py` requires `len(/slots)==1` after generation, whereas this phase deliberately runs2slots. It rejects before assigning/scoring the answer. Diagnostic inspection finds20/20raw responses match the unchanged aliases, but the recorded run remains0/20 and failed. No frozen file or score was rewritten. The queued final verification timed out because the chain was unsuccessful.
+
+Other unchanged gates in that same run passed: abstention20/20, product category/lane20/20, callable20/20, tools17/20first and20/20post-retry, CLI18/18. t07/t09/t12 remain the three first-pass misses; r17 retains its no-match escape. Both runtimes stopped. A separate unchanged one-slot frozen run and explicitly documented per-slot verifier will distinguish fixture compatibility from production two-slot recall quality.
+
+### Shared inference scaling
+
+Same100fixed32-token requests per point; one warmup per worker excluded. One resident process, separate pinned contexts. These per-request measurements include template/HTTP/prefill/stream but exclude memory/tool work; the real-child soak separately includes that work. **N=2**, so2andN are the same measured point, not separate experiments.
+
+| Concurrent contexts | p50 (s) | p99 (s) | Total tok/s |
+|---|---:|---:|---:|
+|1|6.036|6.295|5.274|
+|2 = N|11.644|12.306|5.476|
+
+Aggregate throughput gains **3.82%**; per-request tail latency rises substantially under concurrency. This is interleaving with a measured two-slot ceiling, not a large throughput win. Source `.session/phase4.4-20260927/scaling-a/summary-*.json`. Product routing on the unchanged20cases averages **6.720s**, versus the historical5.06s; category/lane20/20 and r17`formal_reasoning:X` hold.
+
+Routing cache detail:7cold classifications average17.761s;13warm classifications average0.776s and reuse3866tokens. The server log records global768MiB cache evictions while an idle second slot retains a prompt. Thus both slots can reuse prefixes, but the shared budget does not preserve every router snapshot across intervening answer requests. The measured6.720s product mean is a regression from5.06s and is reported as a cost, not hidden by the short-request p99 result. No cache/flag/prompt/routing tuning was attempted.
+
+### Final review corrections — 2026-09-28
+
+**FAILED new capability regression:** the model-dispatch helper could grant the internal transcript-write capability solely from action name `_agent_memory`. Strict GBNF excluded that name, but the executor boundary must remain independently closed. `review-capability-red.log` reproduces the failure. The helper now grants that capability only for trusted `automatic=True` calls; direct model-path invocation is refused without any memory write.
+
+Review also found that template/tokenization preflights used ordinary HTTP sockets before entering cancellable generation. A stalled preflight could delay Ctrl-C cleanup until its30s timeout. Child-only cancellation now owns all template/tokenization/completion requests. Real stalled HTTP controls at all3preflight stages pass; ordinary requests retain their existing transport and payloads. No model/prompt/schema/flag changes. These corrections supersede the earlier source snapshot; fresh final controls/soak/regressions follow.
+
+**FAILED normal-background outcome regression (`review-background-red.log`):** a child that launched a background job and returned could be reported successful even though batch cleanup cancelled that job. Cleanup now returns the cancelled-job outcomes to the parent and marks that child as failed; done is saved only after cleanup. Interrupted unfinished children remain cancelled. The corrected test passes; final read-only review confirms all3findings fixed. Fresh final controls and model/soak checks use `release-post-review.json`. Earlier timing runs remain evidence for unchanged model/flags/payloads; their exact source snapshots are retained rather than rewritten.
+
+### Corrected-source soak and controls
+
+Final reviewed source (`release-post-review.json`) passes **16/16 control scripts**, including all3review regressions, previous phase controls and routing persistence. The fresh `child-soak-reviewed/` observation passes **600.042s**,121samples = **118normal/3warning/0critical**, against historical25/96/0.48real child tasks in24batches completed over619.804s. Peak Lane A process RSS **13,163,429,888B**; device-wide GPU in-use **14,209,581,056B** and allocated **15,121,711,104B**.
+
+Child inference p50 **24.970s**, p99 **28.941s**;3013generated tokens and **4.861tok/s** over full load time, including actual retrieval/memory/executor work.64-token cap; this workload is distinct from the fixed32-token HTTP scaling protocol. Source and frozen hashes held; owned runtimes stopped. Prior soak results remain intact and are not substituted for this final revision.
+
+### Corrected-source quality and delivery checks — 2026-09-28
+
+`regressions-reviewed/`, `recall-slot-reviewed/` and `final-verification-reviewed.json`
+use the final source snapshot `release-post-review.json`.
+
+| Gate | Required | Measured |
+|---|---:|---:|
+| Recall, unmodified frozen harness on one slot |20/20|20/20|
+| Recall, identical requests on each production slot |20/20|20/20 on slot0 and slot1|
+| Abstention |20/20|20/20|
+| Product category / final lane |20/20 each|20/20 each|
+| Callable JSON |20/20|20/20|
+| Tools, first pass / post-retry |17/20 /20/20|17/20 /20/20|
+| CLI |18/18|18/18|
+| Hook items |5/5|5/5|
+| Prior phase and new control scripts |all|16/16 exit0|
+| Nuke paths outside the allowed root |0|0 (30,030 entries;0 rejected)|
+| `check.sh` |exit0|exit0|
+
+The original two-slot frozen recall run remains **FAILED0/20** because its
+single-slot metadata assertion rejects before scoring. The separate verifier
+replays the frozen one-slot run's complete requests, with only trusted `id_slot`
+transport metadata added, and checks the actual two-slot response,4096-token
+context and effective greedy sampling. It uses the same aliases/normalization;
+no frozen file, question, expected answer or score was edited. Requests match the
+accepted baseline after only the previously authorized vault-path normalization.
+This is a documented harness compatibility qualification, not a claim that the
+unchanged single-slot harness itself passes against a two-slot server.
+
+The corrected-source product routing mean is **6.737s** (p99 **17.885s**), versus
+historical5.06s. The earlier6.720s measurement/cache analysis remains above.
+Both classification and final lane stay20/20, and r17 still returns
+`formal_reasoning:X` and falls back to LaneC. t07/t09/t12 remain the only first-pass
+tool misses and all pass their unchanged retries. No prompt/routing/schema/catalog
+tuning was attempted. Both installed commands work; frozen hashes and protected
+vault files match the snapshot. No live destructive nuke test was performed.
+
+Group10's nine items are covered by controls and actual shared child load;
+separate-process execution is implemented but **refused at the measured cap0**.
+The failed real dual-model GPU probe is not certification of successful parallel
+model processes. The opt-in parent exact-once delegation smoke also remains a
+failure, despite correct results after its second batch. All retained failures
+are described above; no passing run replaces their evidence.
+
+Deferred: Phase4.5 web/cloud/guard model, MCP, and all Phase4C computer use.
+The computer-use Never guard stays enforced and MLX stays closed. The measured
+shared configuration is2slots; adding more slots or enabling separate processes
+requires new memory and latency measurements.
+
+**FAILED corrected-source latency repeat (`candidate-zero-reviewed/`):**100requests, p506.015766s, p996.729532s,3200tokens/619.565700s=5.164908tok/s. The strict limit is6.725828s (+10% over6.114389s), so this run fails by0.003703s; rounding does not make it a pass. Sources/fixtures held and runtime stopped. Earlier passing runs remain recorded but do not replace this failure. Delivery is held pending diagnosis.
+
+### Final predefined paired latency check — measured 2026-09-28, reviewed 2026-10-04
+
+After the failed6.729532s repeat, one sequential baseline/candidate pair was
+specified in `latency-pair-reviewed/plan.json` before measurement. No production
+source, model, prompt, sampling or cache change;100requests and4warmups per point.
+The candidate had to pass **both** the original6.725828s limit and the fresh
+single-slot p99×1.1. This was one diagnostic pair, not a repeat-until-pass loop.
+
+| Configuration | p50 (s) | p99 (s) | Total tok/s |
+|---|---:|---:|---:|
+| Fresh single-slot baseline |5.964635|6.031705|5.392269|
+| Two slots, zero children |5.995245|6.242120|5.301770|
+
+**PASS:** candidate p99 is2.09% above the original baseline and3.49% above the
+paired baseline; below both6.725828s and6.634876s limits. All41source snapshot
+files and frozen fixtures held. Both runtimes stopped. Evidence:
+`latency-pair-reviewed/summary.json` and complete request records.
+
+The earlier failed run remains a failure, with its cause unproven. This pair
+establishes a pass for this run; sequential order cannot separate configuration
+effects from time-dependent host drift. For100samples, nearest-rank p99 is the
+second-largest observation. The metric includes rendering/HTTP/SSE inference,
+not CLI startup or memory I/O. No claim of a latency guarantee across host states.
+
+Delivery resumed on2026-10-04: code still matches the measured snapshot; external
+planning commits advanced the vault to v37 without expanding this slice. Wired
+limit read0 after the pause, so the final health check is held until the user
+restores20480. No model was loaded and no sudo command was run by the agent.
+
+**FAILED delivery health check,2026-10-04:** wired limit was restored to20480, but the per-login03:00 backup job was not registered correctly after the pause. Preserved `check-delivery-login-failed.stdout/stderr`; restoring the existing launchd registration before repeating the health check. No benchmark score or source changed.
+
+Final delivery checks PASS after restoring the existing per-login backup job: `check.sh` exits0, Python3.12.13 and wired20480 verified, both owned runtime ports closed, all41source hashes and frozen fixtures unchanged. Fresh nuke dry-run lists30090entries,0outside `~/Kildall/code`,0rejections, including the3outward Python link objects. No live deletion. See `delivery-verification.json`, `check-delivery.stdout` and `nuke-delivery.json`.

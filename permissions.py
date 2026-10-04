@@ -150,8 +150,15 @@ def decision(db_path, project, operation, arguments, task=None, *, requested=(),
                    "VALUES(?,?,?,?,?,'Never','checking',?,?,?,?)",
                    (ident, task, project, operation, json.dumps(arguments, ensure_ascii=True),
                     os.getpid(), process_start(os.getpid()), time.time(), time.time()))
+        child = db.execute('SELECT * FROM orbi_agents WHERE task=?', (task,)).fetchone()
+        if child is not None:
+            row['agent'] = dict(child)
+            row['requested'] &= frozenset(json.loads(child['requested']))
+            db.execute('INSERT INTO orbi_permission_parents VALUES(?,?)', (ident, child['parent_decision']))
     after_action = False
     try:
+        if child is not None and project != child['project']:
+            raise PermissionError('Child project differs from its parent')
         if hooks is not None:
             from hooks import run_stage
             run_stage(hooks, 'before', operation, arguments, row, project)
@@ -257,6 +264,41 @@ def staged(repo):
 
 def execute(operation, args, record, project):
     """The sole permission boundary; unknown names and command forms fail closed."""
+    agent = record.get('agent')
+    if agent is not None:
+        internal = ((operation == '_hook' and 'hook_capability' in record) or
+                    (operation == '_agent_memory' and record.get('transcript_capability') is True))
+        if project != agent['project'] or (not internal and operation not in json.loads(agent['tools'])):
+            raise PermissionError('Child action exceeds inherited tools or project')
+        if operation == 'spawn_agents':
+            raise PermissionError('A subagent cannot spawn a subagent')
+    if operation == 'spawn_agents':
+        if 'agent_capability' not in record:
+            raise PermissionError('Subagents require explicit --agents for this task')
+        return record['agent_capability'].spawn(args, record)
+    if operation in ('remember', 'recall', '_agent_memory'):
+        from kildall import BASE_TOOLS
+        from tool_grammar import validate_arguments
+        memory = record.get('memory_capability')
+        if memory is None:
+            raise PermissionError('Memory requires the trusted task capability')
+        if operation == '_agent_memory':
+            fields(args, 'text')
+            if agent is None or record.get('transcript_capability') is not True:
+                raise PermissionError('Child transcript capability required')
+            authorize(record, 'Auto')
+            return dict(saved=memory.add(args['text'], scope='project', project=project, tier='L0'))
+        definition = next(t['function'] for t in BASE_TOOLS if t['function']['name'] == operation)
+        validate_arguments(definition['parameters'], args)
+        if agent is not None and operation == 'remember' and args['scope'] != 'project':
+            raise PermissionError('Subagent memory writes must stay in the parent project')
+        authorize(record, 'Auto')
+        if operation == 'remember':
+            return dict(saved=memory.add(args['text'], scope=args['scope'],
+                project=project if args['scope'] == 'project' else None, tier=args['tier']))
+        recalled = memory.retrieve(args['query'], project=project, scope=args['scope'])
+        record['memory_text'] = recalled['text']
+        return dict(items=len(recalled['items']), context='Memory block replaced', truncated=recalled['truncated'])
     if operation == '_hook':
         fields(args)
         if 'hook_capability' not in record:
@@ -292,7 +334,7 @@ def execute(operation, args, record, project):
             fields(args)
         from kildall import TOOLS
         authorize(record, 'Auto')
-        available = {t['function']['name'] for t in TOOLS}
+        available = set(json.loads(agent['tools'])) if agent else {t['function']['name'] for t in TOOLS}
         return (instruction_skills.discover(project, available) if operation == 'skills' else
                 instruction_skills.load(args['name'], project, available))
     if operation in ('run_command', 'shell_job'):

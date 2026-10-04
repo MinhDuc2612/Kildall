@@ -320,6 +320,35 @@ Phase4.1 checks: `test_phase41.py`, `test_tool_grammar.py`, `test_tool_runtime.p
 `test_shell_lifecycle.py`, `test_image_reader.py` and `test_nuke.py`. Detailed
 results and retained failures are in [BENCHMARKS.md](BENCHMARKS.md).
 
+## Subagents
+
+`kildall --agents shared "Ask two independent assistants to review these files"`
+enables `spawn_agents` for that prompt. The usual twelve tools stay unchanged
+without this option. Each child gets fresh context and its parent's tools and
+Git intent; a child cannot delegate. Results return to the parent as tool data.
+Tools run through the same executor, with confirmations in the parent's terminal.
+Child memory writes stay in the parent project and child shell directories are
+independent. `kildall permissions ID` shows the linked child decisions/results.
+
+The measured shared configuration is two slots, each4096 tokens (`-np 2 -c 8192`),
+with continuous batching, one global768MiB prefix cache and three checkpoints per
+slot. The parent lends its slot while waiting for children. Interactive turns
+serialize on slot0; each slot has one owner, including during routing. A batch
+refuses unavailable slots or insufficient measured RAM headroom.
+
+Separate model processes require `--agents separate` and an explicit `mode:
+"separate"` child request. This machine's measured cap is **0**: the second model
+loaded, but concurrent generation failed with Metal out-of-memory. No user/model
+argument can bypass that failed certification. Re-measure before enabling it.
+Process RSS includes mmap pages and is not a measure of additional physical RAM.
+
+Ctrl-C interrupts child inference and reaps child shell jobs. A subsequent CLI
+start recovers crashed child tasks and their recorded processes. Background jobs
+created by children are confined to the batch lifetime; ordinary background shell
+commands retain their existing behavior. Unfinished child jobs cancelled at cleanup
+are returned to the parent and mark that child as failed. Run `test_phase44.py` for these controls;
+latency, pressure, frozen quality gates and failed probes are in `BENCHMARKS.md`.
+
 ## Rename compatibility
 
 The package and primary command are `kildall`. The `orbi` command and Python

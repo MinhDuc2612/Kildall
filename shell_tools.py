@@ -22,7 +22,7 @@ TOOLS = [tool('run_command', 'Run a confined read-only command: echo, printf, tr
     tool('shell_job', 'Inspect a background command, including stdout, stderr and actual exit code.', dict(id=dict(type='string')), ['id'])]
 
 
-def run_bounded(argv, cwd, timeout, *, limit=65536, pass_fds=(), started=None):
+def run_bounded(argv, cwd, timeout, *, limit=65536, pass_fds=(), started=None, alive=None):
     """Kernel denies writes, network, GUI IPC and any executable except this binary."""
     argv = [os.path.realpath(argv[0]), *argv[1:]]
     profile = '(version 1)(deny default)(allow file-read*)(allow sysctl-read)(allow process-exec (literal ' + json.dumps(argv[0]) + '))'
@@ -40,6 +40,8 @@ def run_bounded(argv, cwd, timeout, *, limit=65536, pass_fds=(), started=None):
             for name in chunks:
                 selector.register(getattr(proc, name), selectors.EVENT_READ, name)
             while selector.get_map():
+                if alive is not None and not alive():
+                    raise KeyboardInterrupt('Agent parent ended')
                 if not timed_out and time.monotonic() >= deadline and proc.poll() is None:
                     timed_out = True
                     try:
@@ -159,8 +161,8 @@ def execute(operation, args, record, project):
     with database(db_path) as db:
         tables(db)
         if operation == 'shell_job':
-            row = db.execute('SELECT j.*, p.status,p.pid,p.owner_start FROM orbi_shell_jobs j JOIN orbi_permissions p ON j.id=p.id WHERE j.id=? AND j.project=?', (args['id'], project)).fetchone()
-            if row is None:
+            row = db.execute('SELECT j.*, p.status,p.pid,p.owner_start,p.task FROM orbi_shell_jobs j JOIN orbi_permissions p ON j.id=p.id WHERE j.id=? AND j.project=?', (args['id'], project)).fetchone()
+            if row is None or (record.get('agent') and row['task'] != record['task']):
                 raise PermissionError('No background job belongs to this project')
             authorize(record, 'Auto')
             result = json.loads(row['result']) if row['result'] else None
@@ -172,7 +174,8 @@ def execute(operation, args, record, project):
                 if result is None:
                     stop_owned_child(row['child_pid'], row['child_start'])
             return dict(id=row['id'], status=row['status'], result=result)
-        row = db.execute('SELECT cwd FROM orbi_shell_cwd WHERE project=?', (project,)).fetchone()
+        row = (db.execute('SELECT cwd FROM orbi_agents WHERE task=?', (record['task'],)).fetchone()
+               if record.get('agent') else db.execute('SELECT cwd FROM orbi_shell_cwd WHERE project=?', (project,)).fetchone())
     cwd = row['cwd'] if row else project
     argv = command_args(args['command'], cwd)
     timeout, background = args.get('timeout', 30), args.get('background', False)
@@ -187,11 +190,23 @@ def execute(operation, args, record, project):
             cwd = str(path)
         authorize(record, 'Auto')
         with database(db_path) as db:
-            db.execute('INSERT INTO orbi_shell_cwd VALUES(?,?) ON CONFLICT(project) DO UPDATE SET cwd=excluded.cwd', (project, cwd))
+            if record.get('agent'):
+                db.execute('UPDATE orbi_agents SET cwd=? WHERE task=?', (cwd, record['task']))
+            else:
+                db.execute('INSERT INTO orbi_shell_cwd VALUES(?,?) ON CONFLICT(project) DO UPDATE SET cwd=excluded.cwd', (project, cwd))
         return dict(stdout=cwd+'\n', stderr='', exit_code=0, cwd=cwd, timed_out=False, truncated=False)
     authorize(record, 'Auto')
     if not background:
-        result = run_bounded(argv, cwd, timeout)
+        def started(pid):
+            if record.get('agent'):
+                with database(db_path) as db:
+                    db.execute('INSERT INTO orbi_agent_processes VALUES(?,?,?,?)', (ident, record['task'], pid, process_start(pid)))
+        try:
+            result = run_bounded(argv, cwd, timeout, started=started)
+        finally:
+            if record.get('agent'):
+                with database(db_path) as db:
+                    db.execute('DELETE FROM orbi_agent_processes WHERE permission=?', (ident,))
         record['update'](status='timed_out' if result['timed_out'] else 'done' if result['exit_code'] == 0 else 'failed', reason=result['stderr'] or None)
         return dict(result, cwd=cwd)
     with database(db_path) as db:
@@ -231,10 +246,19 @@ def worker(db_path, ident):
         raise RuntimeError('Missing parent handoff')
     with database(db_path) as db:
         row = db.execute('SELECT * FROM orbi_shell_jobs WHERE id=? AND result IS NULL', (ident,)).fetchone()
+        parent = db.execute('SELECT t.pid,t.owner_start FROM orbi_permissions p JOIN orbi_agents a ON a.task=p.task '
+                            'JOIN orbi_tasks t ON t.id=a.parent_task WHERE p.id=?', (ident,)).fetchone()
     if row is None:
         raise RuntimeError('Missing pending job')
     try:
-        result = run_bounded(command_args(row['command'], row['cwd']), row['cwd'], row['timeout'], started=started)
+        last_check = 0
+        def alive():
+            nonlocal last_check
+            if parent is None or time.monotonic() - last_check < 1:
+                return True
+            last_check = time.monotonic()
+            return process_start(parent['pid']) == parent['owner_start']
+        result = run_bounded(command_args(row['command'], row['cwd']), row['cwd'], row['timeout'], started=started, alive=alive)
     except BaseException as error:
         result = dict(stdout='', stderr=str(error), exit_code=None, timed_out=False, truncated=False,
                       cancelled=isinstance(error, (KeyboardInterrupt, SystemExit)))
