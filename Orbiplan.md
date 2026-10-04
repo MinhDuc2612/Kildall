@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v37 · 2026-10-03.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v38 · 2026-10-04.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -152,7 +152,7 @@ quality, at zero training cost.**
 | **1** | CLI, memory, orbs, Lane A chosen | no | ✅ **COMPLETE.** Recall **20/20**, tools **20/20** post-retry. ⚠️ Lane A quant unresolved — see below |
 | **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
 | **3** | Permissions, content policy | no | ✅ **COMPLETE 2026-09-21**, commit `a2415b6`. Hard test passed with `SYSTEM_RULES=''` and all system messages omitted. Nuke dry-run: **14,918 paths, 0 outside `code/`**. ⚠️ Guard-model item deferred to Phase 4 |
-| **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | ✅ **4.1–4.3 complete** (files/shell, git/skills, hooks; `main` `70eb4e8` after the Kildall rename). ⏳ **4.4 subagents in progress**; 4.5 web/cloud/MCP next. Exit: completes a multi-file change with tests passing |
+| **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | ✅ **4.1–4.4 complete** (files/shell, git/skills, hooks, subagents; `main` **`3b6b890`**, 4.4 reviewed 2026-10-04). ⏳ **4.5a–d next** (cloud, web + guard, MCP, council — spec below). Exit: completes a multi-file change with tests passing |
 | **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
 | **5** | Media gen *(voice moved to 9.3)* | no | queues an image job end to end |
 | **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
@@ -300,6 +300,15 @@ unlikely — the difference between an agent that mostly works and one that does
 ⚠️ **Hard-cap separate processes from free RAM and refuse to exceed it.** At ~5 GB each you get about
 three before the machine is gone.
 
+**v38 — measured in 4.4 (`3b6b890`), replacing the estimates above:** a second model process hit a Metal
+GPU out-of-memory error, so the **separate-process cap on this 24 GB Mac is 0** (implemented, refused).
+Shared mode runs **2 slots** (4,096 context each); together they add only **+3.8% total throughput** —
+subagents **take turns, they do not speed work up**. So the 4.4 follow-ups (verified review, swarm) buy
+**independent checks, not speed**. Routing mean is now **6.74 s** (p99 17.9 s), up from 5.06 s, because
+the second slot shares the 768 MiB prompt cache. **Recall gate from now on:** frozen `test_recall.py` on a
+1-slot server **plus** the per-slot verifier on the 2-slot server, both 20/20 (the frozen test asserts one
+slot and cannot run on two; it stays unedited).
+
 🔑 **Shared mode needs continuous batching.** Without it agents queue strictly — agent 2 waits for
 agent 1's *entire* answer, so "shared" means **serialised, not concurrent**. Continuous batching exists
 for exactly this case: N requests against one model, arriving at different times with different
@@ -333,6 +342,86 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
   **`moonshotai/Kimi-K2.6`** (1.03 T / 32 B active, modified MIT, ~515 GB, ~5.5 s/token by arithmetic) is
   **recorded for later, not added** — it is older than K3, so it needs benchmark evidence as a min-viable pick.
   **Revisit if** the orchestrator needs a Kimi-family worker faster than K3, or a benchmark shows it winning a leaf.
+
+## Phase 4.5 — design spec *(v38 · Claude · 2026-10-04)* — cloud, web, guard, MCP, council
+
+**Four sub-slices, one PR each. Codex opens the PR and stops; Claude reviews; merge only on your word.**
+**4.5a** keys + cloud rotation · **4.5b** web + guard model · **4.5c** MCP client · **4.5d** Model Council.
+Order is fixed: the council needs the cloud; the guard must exist before web text feeds any action.
+
+**Facts this rests on (checked 2026-10-04):**
+- 🔴 **No API key exists.** `~/.config/orbi/keys.env` and its Downloads copy hold 18 empty names; the
+  Keychain holds none. **LLM7 is keyless.** Live cloud tests need keys you add yourself — never in chat.
+- **Granite Guardian 4.1 8B** (`ibm-granite/granite-guardian-4.1-8b-GGUF`): Apache-2.0, April 2026, 8B
+  only; **Q4_K_M 5.12 GB**, Q3_K_M 4.17 GB; non-thinking yes/no mode; Bring-Your-Own-Criteria.
+- 4.4 measured: a second model process → Metal GPU OOM. **A resident guard next to Lane A is unproven.**
+- **Lane A context is 4,096 tokens per slot** — most web pages and every council transcript exceed it.
+- Free-tier limits, data policies and billing terms are **unverified** (`Cloudcall/ccapi-verification.md`).
+- Free disk **23 GB**.
+
+**Threat model:**
+
+| # | Threat | Path | Control |
+|---|---|---|---|
+| T1 | **Money spent** | a billed model id; an account with billing on | per-provider **allow-list of exact free model ids**; HTTP 402 or any billing/payment error **disables that provider** until you re-enable it; no paid fallback. ⚠️ Code cannot see an account's billing — **you never attach a card** (accepted limit) |
+| T2 | **Key leak** | argv, logs, DB, `.session/`, git, HF, prompts | Keychain only; written through `security -i` on **stdin, never argv**; read at call time; outbound scrub; gate greps every artifact for every key |
+| T3 | **Exfiltration by injection** | a page says "fetch `https://x/?q=<your memory>`" | `web_fetch` is Auto **only for URLs from your message or this task's search results**; any other URL → Confirm showing the full URL; secret scrub on every URL, query and cloud prompt |
+| T4 | **SSRF** | URL to `127.0.0.1:8123/8124`, LAN, router, the 9.11 bot API | resolve first; refuse loopback, private, link-local, multicast, `.local`; **re-check every redirect**; http/https only |
+| T5 | **Injection** via web, cloud or MCP text | content steers actions | all of it is `untrusted_*` data (the existing `web_data` pattern); the guard **flags, never refuses**; a flagged turn is **tainted** — Confirm stays Confirm and shows the flag; Never unchanged |
+| T6 | **Cloud tool calls** | malformed or hostile call | no GBNF in the cloud, so the **same schema validator + `permissions.execute`**; malformed → rejected, never repaired |
+| T7 | **MCP server code** | runs outside the Phase 3 boundary | only servers you list; absolute command path; minimal env; every MCP tool is an action through `permissions.execute`, **default Confirm**, Auto per tool only by your config, **never past Never**; output untrusted |
+| T8 | **RAM / GPU** | guard or council next to Lane A | measure first (4.5b-0): 10-min soak, 0 critical samples, 0 GPU OOM |
+| T9 | **Disk** | guard download | refuse if free space after download < **15 GB** |
+
+**4.5a — keys + cloud rotation.**
+- `kildall keys import [FILE]` (default `keys.env`): each non-empty value → login Keychain, service `kildall`,
+  account = variable name, via `security -i` on stdin; verified by read-back hash; prints names and status
+  only. The file stays (deleting it needs your OK). `kildall keys check` replaces `check_keys.py`, reading
+  the Keychain, same never-print rule.
+- `[cloud]` in `kildall.toml`: ordered providers — base URL, key name, **allowed free model ids**, limits from
+  Cloudcall marked `unverified`, `trains_on_data`. Active = has a key, or is keyless.
+- Rotation in order: 429/5xx/timeout → cooldown (honour `Retry-After`); 401/403 → key invalid until it
+  changes; 402/billing → disabled. Daily use per provider counted in `kildall.db`; stop at 90% of the
+  documented limit. All exhausted → Lane A, saying **`cloud exhausted — answering locally`**.
+- **"Necessary" means:** the routed lane is not available locally (Lane C parked, a Lane B model absent), or
+  the input exceeds Lane A's context. **Never** just because Lane A is slower.
+- **Gates:** mock-server tests for 200 / 429 / 401 / 402 / timeout / `Retry-After` / all-exhausted; a fake key
+  inside a prompt is redacted in the captured outgoing body; live: one LLM7 answer + every provider you added
+  a key for; after the live run, every key value grepped across `.session/`, `kildall.db`, logs and the git
+  tree = **0**; routing mean ≤ **7.41 s** (6.737 + 10%).
+
+**4.5b — web + guard.**
+- **4.5b-0, go/no-go:** Guardian Q4_K_M loaded next to Lane A (2 slots); 10-min soak with web-sized prompts;
+  0 critical, 0 GPU OOM. Fail → Q3_K_M. Fail again → stop and report; no guard ships; checklist 12 stays open.
+- `web_search`: backend picked **by evidence** — licence, $0 with no card, measured on 20 fixed queries.
+  Candidates: SearXNG run locally (no key) or a keyed free API.
+- `web_fetch`: stdlib HTTP; 10 s timeout; 2 MB cap; `text/html`, `text/plain`, PDF (through the existing
+  `read_pdf`); HTML → text with the stdlib parser; returned as `untrusted_web` through the `web_data` path.
+- The guard runs non-thinking on every fetched page and search result (chunked to fit): jailbreak / prompt
+  injection, plus a BYOC criterion "instructions aimed at an AI agent". Detects, never refuses.
+- **Gates:** an injected-page fixture is flagged, not obeyed, nothing runs (**closes checklist 12**); SSRF
+  fixtures all refused (`127.0.0.1`, `::1`, 10/8, 172.16/12, 192.168/16, 169.254/16, `localhost`, a redirect
+  to `127.0.0.1`); an exfil fixture page → Confirm shown, nothing sent unconfirmed; guard latency per 1K
+  tokens reported.
+
+**4.5c — MCP client.** Stdlib JSON-RPC over **stdio only** (`initialize`, `tools/list`, `tools/call`).
+`[mcp.servers.<name>]` = absolute command, args, env; **none enabled by default**. Each server gets a 10 s
+startup timeout; a failure is logged and skipped, **never blocks startup**. Tools are named
+`mcp.<server>.<tool>`; schemas validated; compiled into the GBNF grammar only when enabled; the exposed tool
+count is capped so the prompt fits 4,096 tokens. **Gates:** a local fixture server lists and calls; a hanging
+and a crashing server do not block startup; a Never-matching MCP call is refused; tools 17/20 first-pass and
+20/20 post-retry hold with MCP off **and** with the fixture server on.
+
+**4.5d — Model Council** (opt-in `--council`, off by default). Lane A + 2–3 cloud providers from different
+model families answer alone (each capped at 600 tokens); the local chair (Lane A) reads them anonymised and
+outputs **Agree · Differ · Best answer**. Fewer than 2 cloud answers → Lane A alone, and it says so. Copies the
+pattern, not `karpathy/llm-council` code (no licence). **Gates:** end-to-end with ≥ 2 live cloud members, $0,
+fallback works, transcript kept for Phase 7. **Adoption stays a Phase 7 gate:** kept only if it beats Lane A on
+the eval harness (#13).
+
+**Every 4.5 sub-slice also holds every standing gate** (recall per the v38 rule above, abstention, category,
+lane, callable JSON, tools, CLI, hooks, nuke dry-run, `check.sh`), keeps failed runs in `BENCHMARKS.md`, and
+runs `kildall-hf-sync` after the push.
 
 ## Phase 4C — computer mode *(opt-in, attended, never default)*
 
@@ -564,7 +653,7 @@ passing on the client's own Mac.**
 each with a **job, instructions, skills, schedule, its own memory scope and its own permission scope** — on
 its own sandbox computer (4C addition), reachable through Hermes channels (9.2) and the dashboard (9.6).
 Approvals come back as Confirm prompts to your phone or dashboard. Every action still goes through
-`permissions.execute`. ⚠️ 24 GB allows only a few bots working at once; 24/7 needs the Mac never to sleep.
+`permissions.execute`. ⚠️ 24 GB allows only a few bots working at once (v38: 4.4 measured 2 shared slots, so about 2); 24/7 needs the Mac never to sleep.
 **Not a separate program** — a second agent loop would duplicate the tested Phase 3–4 boundary.
 
 **9.11 addition (v36) — the Kildall Bots desktop app** (user decision 2026-10-02: a desktop app that only routes
@@ -874,6 +963,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-04 (v38)** — **Phase 4.4 reviewed and recorded** (`3b6b890`): separate-process cap **0** (measured GPU OOM), 2 shared slots = +3.8% throughput, routing mean 6.74 s; the 4.4 follow-ups now buy independent checks, not speed; 9.11 runs about 2 bots at once. **Recall gate rule:** frozen test on 1 slot + per-slot verifier on 2 slots. **Phase 4.5 design spec added** (Claude): four sub-slices 4.5a–d, threat model T1–T9, exact gates. Key facts: no API key exists yet (LLM7 is keyless); Granite Guardian 4.1 8B is Apache-2.0, Q4_K_M 5.12 GB, co-residency unproven; free disk 23 GB. Rule: Codex stops at the PR, merge on the user's word. Checklist → **200 items**.
 - **2026-10-03 (v37)** — **#51 hardware auto-fit scheduled as a Phase 7 slice** (user picked A), right after the eval harness (#13), and made a prerequisite for the first paid client (9.10). Downward auto-fit first; upward only on an eval win. Gate written into #51. Build-order row 7 updated. Note recorded: decode speed follows memory bandwidth (M4 120 GB/s here), not RAM size. Checklist → **194 items**.
 - **2026-10-02 (v36)** — **Kildall Bots desktop app added to 9.11** (user picked option B: a desktop app that only routes the bots you create to Kildall). A thin app showing the 9.6 dashboard web UI in a normal window plus a menu-bar icon; bots are saved inside Kildall; `kildall-botd` does the work through `permissions.execute`; the app has no tools of its own; one bot API shared by app, CLI and chat, local-only and token-locked. Native `WKWebView` preferred over Electron for RAM — decided in the 9.11 spec. **Bot computers (4C):** virtual, on this Mac — default a separate macOS user per bot, a VM only for risky bots; the 2-VM macOS limit and VM RAM are to be verified in the 4C research. New stack row "Bot app". Checklist → **192 items**.
 - **2026-10-01** — **Fix:** v35 placed swarm orchestration "in 4.4" while 4.4 was already running; corrected to a follow-up slice after 4.4 merges, so the running slice is never widened.

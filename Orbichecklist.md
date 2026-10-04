@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **194** |
-| **Done now** | **14** of 194 *(ticks for 4.1–4.3 not yet recorded)* |
+| **Items** | **200** |
+| **Done now** | **14** of 200 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -157,6 +157,12 @@
 - [ ] Falls back to local when every free tier is exhausted, and says so
 - [ ] **Never spends money.** Spend cap defaults to 0
 - [ ] Per-provider rate limits tracked and respected
+- [ ] 🔴 **Keys live only in the Keychain** — written on stdin, never argv; after a live run every key grepped across `.session/`, DB, logs and git = 0 *(4.5a)*
+- [ ] 🔴 **Only allow-listed free model ids are called; HTTP 402 or a billing error disables that provider** *(4.5a)*
+- [ ] 🔴 **Outbound secret scrub** on every cloud prompt, fetch URL and search query *(4.5a/b)*
+- [ ] 🔴 **SSRF refused** — loopback, private, link-local, `.local`, and redirects to them *(4.5b)*
+- [ ] 🔴 **Fetching a URL that came from neither you nor this task's search results needs Confirm** *(4.5b)*
+- [ ] **Guard co-residency measured before it ships** — 10-min soak next to Lane A, 0 critical, 0 GPU OOM *(4.5b-0)*
 - [ ] **Model Council**: Lane A + 2–3 free-tier models, a local chair shows agreement and disagreement — kept only if it beats Lane A on the eval
 
 ## 13C. Computer mode — P2 *(Phase 4C)*
@@ -319,6 +325,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-04** — 6 safety items added to Group 13 from the Phase 4.5 design spec (Orbiplan v38): Keychain-only keys, free-model allow-list and billing stop, outbound secret scrub, SSRF refusal, Confirm for unseen URLs, guard co-residency soak: **200 items**.
 - **2026-10-03** — 2 items added to Group 17 for hardware auto-fit and evidence-only auto-expand (#51, now a Phase 7 slice, Orbiplan v37): **194 items**.
 - **2026-10-02** — 2 items added to Group 19 for the Kildall Bots desktop app (Orbiplan v36): the app itself and the local-only, token-locked bot API. Bot-computer item notes the v36 default (separate macOS user; VM only for risky bots): **192 items**.
 - **2026-10-01** — 7 items added for the features adopted from `sample3/6aifeatures.md` (Groups 10, 13, 13C, 19): **190 items**. Kimi K2.6 recorded for later in the plan, not added.
