@@ -349,7 +349,7 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
 **4.5a** keys + cloud rotation · **4.5b** web + guard model · **4.5c** MCP client · **4.5d** Model Council.
 Order is fixed: the council needs the cloud; the guard must exist before web text feeds any action.
 
-**Facts this rests on (checked 2026-10-04):**
+**Facts this rests on (checked 2026-10-04; update 2026-10-05: `GEMINI_API_KEY` and `GROQ_API_KEY` now exist in `keys.env` and test WORKS — still to be imported to the Keychain and rotated afterwards; free disk now 94 GB):**
 - 🔴 **No API key exists.** `~/.config/orbi/keys.env` and its Downloads copy hold 18 empty names; the
   Keychain holds none. **LLM7 is keyless.** Live cloud tests need keys you add yourself — never in chat.
 - **Granite Guardian 4.1 8B** (`ibm-granite/granite-guardian-4.1-8b-GGUF`): Apache-2.0, April 2026, 8B
@@ -420,8 +420,8 @@ fallback works, transcript kept for Phase 7. **Adoption stays a Phase 7 gate:** 
 the eval harness (#13).
 
 **Every 4.5 sub-slice also holds every standing gate** (recall per the v38 rule above, abstention, category,
-lane, callable JSON, tools, CLI, hooks, nuke dry-run, `check.sh`), keeps failed runs in `BENCHMARKS.md`, and
-runs `kildall-hf-sync` after the push.
+lane, callable JSON, tools, CLI, hooks, nuke dry-run, `check.sh`) and keeps failed runs in `BENCHMARKS.md`.
+⏸ **No `kildall-hf-sync`** — the Hugging Face mirror is paused (2026-10-05).
 
 ## Phase 4C — computer mode *(opt-in, attended, never default)*
 
@@ -963,6 +963,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-05** — **Fix:** the 4.5 spec still told Codex to run `kildall-hf-sync` after every push; removed (Hugging Face paused). Spec facts updated: Gemini and Groq keys exist; free disk 94 GB. Routing-fix slice written (pin the router slot; brief in `CLAUDE.md` log) — if it lands before 4.5a, the 4.5a routing gate becomes the new main mean + 10%.
 - **2026-10-05** — **Hugging Face mirror paused** at user instruction ("no need hugging face"). Briefs no longer run `kildall-hf-sync`; the script stays at `~/.local/bin/kildall-hf-sync` unused. GitHub stays the only remote.
 - **2026-10-04 (v38)** — **Phase 4.4 reviewed and recorded** (`3b6b890`): separate-process cap **0** (measured GPU OOM), 2 shared slots = +3.8% throughput, routing mean 6.74 s; the 4.4 follow-ups now buy independent checks, not speed; 9.11 runs about 2 bots at once. **Recall gate rule:** frozen test on 1 slot + per-slot verifier on 2 slots. **Phase 4.5 design spec added** (Claude): four sub-slices 4.5a–d, threat model T1–T9, exact gates. Key facts: no API key exists yet (LLM7 is keyless); Granite Guardian 4.1 8B is Apache-2.0, Q4_K_M 5.12 GB, co-residency unproven; free disk 23 GB. Rule: Codex stops at the PR, merge on the user's word. Checklist → **200 items**.
 - **2026-10-03 (v37)** — **#51 hardware auto-fit scheduled as a Phase 7 slice** (user picked A), right after the eval harness (#13), and made a prerequisite for the first paid client (9.10). Downward auto-fit first; upward only on an eval win. Gate written into #51. Build-order row 7 updated. Note recorded: decode speed follows memory bandwidth (M4 120 GB/s here), not RAM size. Checklist → **194 items**.
