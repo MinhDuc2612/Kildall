@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **200** |
-| **Done now** | **14** of 200 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **203** |
+| **Done now** | **14** of 203 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -164,6 +164,9 @@
 - [ ] 🔴 **Fetching a URL that came from neither you nor this task's search results needs Confirm** *(4.5b)*
 - [ ] **Guard co-residency measured before it ships** — 10-min soak next to Lane A, 0 critical, 0 GPU OOM *(4.5b-0)*
 - [ ] **Model Council**: Lane A + 2–3 free-tier models, a local chair shows agreement and disagreement — kept only if it beats Lane A on the eval
+- [ ] **Deep research job** (`kildall research`, 4.5e): angles → search → fetch + guard → claims → 3-vote verify → cited report; queued, never blocks the terminal
+- [ ] Every claim in a research report has a reachable source URL and quote; refuted and unverified claims listed separately
+- [ ] 🔴 A failed or quota-limited vote counts as **unverified**, never merged as fact — fixture passes
 
 ## 13C. Computer mode — P2 *(Phase 4C)*
 
@@ -325,6 +328,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-06** — 3 items added to Group 13 for deep research (4.5e): **203 items**.
 - **2026-10-04** — 6 safety items added to Group 13 from the Phase 4.5 design spec (Orbiplan v38): Keychain-only keys, free-model allow-list and billing stop, outbound secret scrub, SSRF refusal, Confirm for unseen URLs, guard co-residency soak: **200 items**.
 - **2026-10-03** — 2 items added to Group 17 for hardware auto-fit and evidence-only auto-expand (#51, now a Phase 7 slice, Orbiplan v37): **194 items**.
 - **2026-10-02** — 2 items added to Group 19 for the Kildall Bots desktop app (Orbiplan v36): the app itself and the local-only, token-locked bot API. Bot-computer item notes the v36 default (separate macOS user; VM only for risky bots): **192 items**.

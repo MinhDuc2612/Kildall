@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v38 · 2026-10-04.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v39 · 2026-10-06.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -345,9 +345,9 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
 
 ## Phase 4.5 — design spec *(v38 · Claude · 2026-10-04)* — cloud, web, guard, MCP, council
 
-**Four sub-slices, one PR each. Codex opens the PR and stops; Claude reviews; merge only on your word.**
-**4.5a** keys + cloud rotation · **4.5b** web + guard model · **4.5c** MCP client · **4.5d** Model Council.
-Order is fixed: the council needs the cloud; the guard must exist before web text feeds any action.
+**Five sub-slices, one PR each. Codex opens the PR and stops; Claude reviews; merge only on your word.**
+**4.5a** keys + cloud rotation · **4.5b** web + guard model · **4.5c** MCP client · **4.5d** Model Council · **4.5e** deep research.
+Order is fixed: the council needs the cloud; the guard must exist before web text feeds any action; deep research needs web, guard and council.
 
 **Facts this rests on (checked 2026-10-04; update 2026-10-05: `GEMINI_API_KEY` and `GROQ_API_KEY` now exist in `keys.env` and test WORKS — still to be imported to the Keychain and rotated afterwards; free disk now 94 GB):**
 - 🔴 **No API key exists.** `~/.config/orbi/keys.env` and its Downloads copy hold 18 empty names; the
@@ -418,6 +418,23 @@ outputs **Agree · Differ · Best answer**. Fewer than 2 cloud answers → Lane 
 pattern, not `karpathy/llm-council` code (no licence). **Gates:** end-to-end with ≥ 2 live cloud members, $0,
 fallback works, transcript kept for Phase 7. **Adoption stays a Phase 7 gate:** kept only if it beats Lane A on
 the eval harness (#13).
+
+**4.5e — Deep research** *(added v39, user: "add the single feature")*. `kildall research "<question>"` — a
+**queued job** (Lane C job machinery), never blocks the terminal. Uses 4.5b web + guard, 4.5d council members as
+voters, 4.4 subagents for parallel fetch/verify. Same pipeline Claude's `/deep-research` uses:
+1. **Scope** — split the question into 3–5 search angles.
+2. **Search + fetch** — `web_search` per angle; dedupe URLs; fetch the top N (default 12) via `web_fetch`; the guard
+   scans every page; all text stays `untrusted_web`.
+3. **Extract** falsifiable claims, each with source URL + exact quote (pages chunked to fit 4,096 tokens).
+4. **Verify** each claim with **3 independent votes** (Lane A + cloud council members when available); **2 of 3
+   refutes kill it**; a vote that failed (quota, timeout, error) counts as **unverified — never as a pass**.
+5. **Synthesize** — merge duplicates, rank by confidence, cite every claim; refuted and unverified claims and
+   coverage gaps listed separately.
+Output: a Markdown report in the vault `outputs/` once 9.4 exists; until then a git-ignored folder under `code/`.
+Per-run caps on angles, fetches and cloud calls; the T1 $0 rule applies. **Gates:** 5 fixed questions with known
+answers — every final claim has a reachable source URL + quote; a planted false claim is refuted; a quota-failure
+fixture yields "unverified", never merged; an injected page is flagged and its instructions not followed; $0 spent;
+report written. Deep research ≠ more context — it reads many pages in 4K chunks.
 
 **Every 4.5 sub-slice also holds every standing gate** (recall per the v38 rule above, abstention, category,
 lane, callable JSON, tools, CLI, hooks, nuke dry-run, `check.sh`) and keeps failed runs in `BENCHMARKS.md`.
@@ -963,6 +980,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-06 (v39)** — **Deep research added as one feature, sub-slice 4.5e** (user: "for deep-research add the single feature"): `kildall research` — angles → search → fetch + guard → claims with quotes → 3-vote verification (failed votes = unverified) → cited report; a queued job; after 4.5b and 4.5d. Checklist +3 → **203 items**.
 - **2026-10-05** — **Fix:** the 4.5 spec still told Codex to run `kildall-hf-sync` after every push; removed (Hugging Face paused). Spec facts updated: Gemini and Groq keys exist; free disk 94 GB. Routing-fix slice written (pin the router slot; brief in `CLAUDE.md` log) — if it lands before 4.5a, the 4.5a routing gate becomes the new main mean + 10%.
 - **2026-10-05** — **Hugging Face mirror paused** at user instruction ("no need hugging face"). Briefs no longer run `kildall-hf-sync`; the script stays at `~/.local/bin/kildall-hf-sync` unused. GitHub stays the only remote.
 - **2026-10-04 (v38)** — **Phase 4.4 reviewed and recorded** (`3b6b890`): separate-process cap **0** (measured GPU OOM), 2 shared slots = +3.8% throughput, routing mean 6.74 s; the 4.4 follow-ups now buy independent checks, not speed; 9.11 runs about 2 bots at once. **Recall gate rule:** frozen test on 1 slot + per-slot verifier on 2 slots. **Phase 4.5 design spec added** (Claude): four sub-slices 4.5a–d, threat model T1–T9, exact gates. Key facts: no API key exists yet (LLM7 is keyless); Granite Guardian 4.1 8B is Apache-2.0, Q4_K_M 5.12 GB, co-residency unproven; free disk 23 GB. Rule: Codex stops at the PR, merge on the user's word. Checklist → **200 items**.
