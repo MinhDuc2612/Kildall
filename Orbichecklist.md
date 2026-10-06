@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **203** |
-| **Done now** | **14** of 203 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **205** |
+| **Done now** | **14** of 205 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -235,6 +235,8 @@
 - [ ] Every benchmark run **10 minutes minimum**, watching memory pressure
 - [ ] **Hardware auto-fit (#51, Phase 7, v37)** — reads chip, RAM and memory bandwidth; derives quant, context, batch, cache and lane; propose → short gate → adopt. Passes on this Mac and on a smaller RAM budget (10-minute soak, zero critical samples, every frozen gate held). Required before the first paid client
 - [ ] **Auto-expand upward only on an eval-harness (#13) win** — never on arithmetic alone
+- [ ] **Per-slot context raised to 16K** (32K only if 16K passes) — KV/RSS/GPU per slot and prefill time measured; soak 0 critical, 0 GPU OOM
+- [ ] Long prompts show progress and an estimated read time; every 4,096-token assumption is config-driven
 
 ## 18. Operations — P1 *(throughout)*
 
@@ -328,6 +330,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-07** — 2 long-context items added to Group 17: **205 items**.
 - **2026-10-06** — 3 items added to Group 13 for deep research (4.5e): **203 items**.
 - **2026-10-04** — 6 safety items added to Group 13 from the Phase 4.5 design spec (Orbiplan v38): Keychain-only keys, free-model allow-list and billing stop, outbound secret scrub, SSRF refusal, Confirm for unseen URLs, guard co-residency soak: **200 items**.
 - **2026-10-03** — 2 items added to Group 17 for hardware auto-fit and evidence-only auto-expand (#51, now a Phase 7 slice, Orbiplan v37): **194 items**.

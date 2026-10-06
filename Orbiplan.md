@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v39 · 2026-10-06.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v40 · 2026-10-07.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -342,6 +342,21 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
   **`moonshotai/Kimi-K2.6`** (1.03 T / 32 B active, modified MIT, ~515 GB, ~5.5 s/token by arithmetic) is
   **recorded for later, not added** — it is older than K3, so it needs benchmark evidence as a min-viable pick.
   **Revisit if** the orchestrator needs a Kimi-family worker faster than K3, or a benchmark shows it winning a leaf.
+
+## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
+
+**User decision: raise the per-slot context now (option 1); a faster Mac later (option 5).** Runs after the
+routing-fix slice, because that slice sets the slot count and every slot's window multiplies KV memory.
+- **Steps:** 4,096 → **16,384 per slot first**; **32,768 only if 16K passes every gate**. Q8 KV stays. Read the
+  model card for Gemma 4 26B-A4B's real maximum first — never guess it.
+- **Measure:** KV/RSS/GPU per slot (4,096 measured 175.31 MiB Q8 KV); prefill tok/s and wall time for 8K/16K/32K
+  prompts (~85 tok/s measured → **32K ≈ 6 min to read**); a ≥600 s soak with real children, **0 critical, 0 GPU OOM**.
+- **Behaviour:** long prompts show progress and an estimated read time; the limit stays configurable.
+- **Every 4,096-token assumption becomes config-driven** — 4.5c MCP tool cap, 4.5d council caps, 4.5e chunk size.
+- **Gates:** all standing gates hold; routing mean ≤ the routing-fix result + 10%; interactive p99 ≤ the routing-fix
+  baseline + 10%; memory retrieval caps (12 items / 4,000 chars / 300 ms) unchanged.
+- **Later (option 5):** a faster Mac — the 2026-10-04 answer recommended an M5 Max 40-core GPU, 64 GB (614 GB/s,
+  ≈5× this M4's 120 GB/s) — raises prefill and decode together. Not scheduled; user decision for later.
 
 ## Phase 4.5 — design spec *(v38 · Claude · 2026-10-04)* — cloud, web, guard, MCP, council
 
@@ -980,6 +995,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-07 (v40)** — **Long-context slice added** (user: "1 for now 5 later"): per-slot context 4,096 → 16K, then 32K only if 16K passes; runs after the routing fix; prefill time is the real limit (~85 tok/s, 32K ≈ 6 min); all 4K assumptions become config. **A faster Mac is recorded for later**, not scheduled. Checklist +2.
 - **2026-10-06 (v39)** — **Deep research added as one feature, sub-slice 4.5e** (user: "for deep-research add the single feature"): `kildall research` — angles → search → fetch + guard → claims with quotes → 3-vote verification (failed votes = unverified) → cited report; a queued job; after 4.5b and 4.5d. Checklist +3 → **203 items**.
 - **2026-10-05** — **Fix:** the 4.5 spec still told Codex to run `kildall-hf-sync` after every push; removed (Hugging Face paused). Spec facts updated: Gemini and Groq keys exist; free disk 94 GB. Routing-fix slice written (pin the router slot; brief in `CLAUDE.md` log) — if it lands before 4.5a, the 4.5a routing gate becomes the new main mean + 10%.
 - **2026-10-05** — **Hugging Face mirror paused** at user instruction ("no need hugging face"). Briefs no longer run `kildall-hf-sync`; the script stays at `~/.local/bin/kildall-hf-sync` unused. GitHub stays the only remote.
