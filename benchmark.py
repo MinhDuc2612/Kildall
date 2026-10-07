@@ -32,11 +32,13 @@ def chat(url, messages, **options):
     if body.get("tools"):
         from tool_runtime import chat as constrained_chat
         return constrained_chat(url, body)
-    request = urllib.request.Request(
-        url + "/v1/chat/completions", json.dumps(body).encode(),
-        {"Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=180) as response:
-        result = strict_json(response.read())
+    from subagents import inference_body, request_slot
+    endpoint = url + "/v1/chat/completions"
+    with request_slot(url):
+        request = urllib.request.Request(endpoint,
+            json.dumps(inference_body(endpoint, body)).encode(), {"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=180) as response:
+            result = strict_json(response.read())
     if "error" in result or not result.get("choices"):
         raise RuntimeError(f"Invalid server completion: {result}")
     if result["choices"][0].get("finish_reason") not in ("stop", "length", "tool_calls"):

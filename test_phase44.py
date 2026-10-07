@@ -53,7 +53,7 @@ def main():
         target.write_text('original')
         budget = dict(available_bytes=4*1024**3, reserve_bytes=a.RESERVE, pressure=1,
                       memory_cap=0, separate_cap=0, separate_certified=False)
-        barrier = threading.Barrier(2)
+        inference_lock = threading.Lock()
         seen = []
         main_thread = threading.get_ident()
         confirmations = []
@@ -62,12 +62,15 @@ def main():
             confirmations.append(preview)
             return True
         def infer(child, cancel):
+            assert child['slot'] == 1, 'A child must never use the router slot'
+            assert inference_lock.acquire(blocking=False), 'One work slot cannot run two inferences'
+            time.sleep(.02)
+            inference_lock.release()
             assert 'PARENT PRIVATE HISTORY' not in json.dumps(child['messages'])
             assert [t['function']['name'] for t in manager.tools] == [t['function']['name'] for t in kildall.BASE_TOOLS]
             assert len({c['task'].id for c in seen} | {child['task'].id}) <= 2
             if len(child['messages']) == 1:
                 seen.append(child)
-                barrier.wait(timeout=3)
                 return dict(role='assistant', content='', tool_calls=[dict(id=child['task'].id, type='function',
                     function=dict(name='write', arguments=json.dumps(dict(path=str(root/(child['prompt']+'.txt')), content=child['prompt']))))])
             return dict(role='assistant', content='result '+child['prompt'])
@@ -83,7 +86,7 @@ def main():
         assert len(confirmations) == 2 and all(r['before'] == '' for r in confirmations), confirmations
         assert (root/'ALPHA.txt').read_text() == 'ALPHA' and (root/'BETA.txt').read_text() == 'BETA'
         assert len({c['task'].id for c in seen}) == 2
-        passed('1/2/8: separate contexts overlap on one runtime, parent receives both results and owns confirmations')
+        passed('1/2/8: independent child contexts serialize on workslot1; parent receives both results and owns confirmations')
 
         with kildall.database(db_path) as db:
             agents = [dict(r) for r in db.execute('SELECT * FROM orbi_agents')]
@@ -224,7 +227,8 @@ def main():
         cancel=a.Cancellation();errors=[]
         def request():
             try:
-                with patch.object(tool_runtime,'prepare',return_value=dict(stream=True)):
+                with patch.object(tool_runtime,'prepare',return_value=dict(stream=True)), \
+                     a.bind_slot(f'http://127.0.0.1:{server.server_port}',1,2):
                     tool_runtime.chat(f'http://127.0.0.1:{server.server_port}',{},cancel=cancel)
             except Exception as error:errors.append(error)
         worker=threading.Thread(target=request);worker.start()
@@ -237,6 +241,10 @@ def main():
         for stage in ('fit-template', 'fit-tokenize', 'tool-template'):
             connected=threading.Event();release=threading.Event();errors=[];templates=[]
             class PreflightHandler(BaseHTTPRequestHandler):
+                def do_GET(self):
+                    assert self.path=='/slots'
+                    self.send_response(200);self.send_header('Content-Type','application/json');self.end_headers()
+                    self.wfile.write(json.dumps([dict(id=0,n_ctx=4096,is_processing=False)]).encode())
                 def do_POST(self):
                     self.rfile.read(int(self.headers['Content-Length']))
                     if self.path=='/apply-template':templates.append(self.path)

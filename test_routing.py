@@ -44,6 +44,7 @@ def latest(path, session):
 
 
 def controls():
+    from subagents import bind_slot
     fixtures()
     from skill_catalog import BY_ID
     settings = dict(lanes=dict(a=dict(model=Path("installed-gemma.gguf"))))
@@ -86,7 +87,8 @@ def controls():
     valid_codes = ("memory_lookup:056", "formal_reasoning:X", "model3d_generation:168")
     for emitted in valid_codes + ("unknown:001", "text_edit:999", "text_edit:1", "{}"):
         response = dict(choices=[dict(finish_reason="stop", message=dict(content=emitted))])
-        with patch.object(kildall, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1]), response]):
+        with patch.object(kildall, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1]), response]), \
+                bind_slot('http://127.0.0.1:8123', 0, 1):
             try:
                 routing.classify_catalog(compact_settings, "An independent request")
                 assert emitted in valid_codes
@@ -99,7 +101,8 @@ def controls():
     for response in (valid, dict(choices=[]),
                      dict(choices=[dict(finish_reason="length")]),
                      dict(choices=[dict(finish_reason="stop", message=dict(content='{"group":"unknown"}'))])):
-        with patch.object(kildall, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1]), response]):
+        with patch.object(kildall, "json_request", side_effect=[dict(prompt="template"), dict(tokens=[1]), response]), \
+                bind_slot('http://127.0.0.1:8123', 0, 1):
             try:
                 routing.classify(dict(runtime=dict(port=8123, context_size=4096)), "policy", "request",
                                  {"group": {"type": "string", "enum": ["known"]}})

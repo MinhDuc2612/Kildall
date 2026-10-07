@@ -2102,3 +2102,136 @@ restores20480. No model was loaded and no sudo command was run by the agent.
 **FAILED delivery health check,2026-10-04:** wired limit was restored to20480, but the per-login03:00 backup job was not registered correctly after the pause. Preserved `check-delivery-login-failed.stdout/stderr`; restoring the existing launchd registration before repeating the health check. No benchmark score or source changed.
 
 Final delivery checks PASS after restoring the existing per-login backup job: `check.sh` exits0, Python3.12.13 and wired20480 verified, both owned runtime ports closed, all41source hashes and frozen fixtures unchanged. Fresh nuke dry-run lists30090entries,0outside `~/Kildall/code`,0rejections, including the3outward Python link objects. No live deletion. See `delivery-verification.json`, `check-delivery.stdout` and `nuke-delivery.json`.
+
+## Routing slot isolation slice — 2026-10-06
+
+Evidence: `.session/routing-slot-fix-20261006/`. Fresh baseline at main3b6b890; candidates A/B/C in user order, stop at first full pass. One predefined100-request interactive latency run per candidate; failed runs remain failures. No HF sync; PR only, no merge.
+
+**FAILED before inference:** baseline setup omitted `bench_cases.json` from the source manifest (the snapshot collected Python files), causing KeyError in fixture verification. `baseline-setup-failed/`, its log and the original manifest are retained. Added the missing hash only after checking the frozen expected SHA; no model loaded, no fixture or production source changed. Corrected baseline follows.
+
+Fresh main3b6b890 baseline: mean6.467455s,p500.890151s,p9917.538660s;7cold(mean17.013346s),13warm(mean0.788898s);category/lane20/20,r17X→C. Outgoing capture shows all27route/answer generation requests bound toslot0. The source audit corrects the initial diagnosis: the production router already inherits whole-turn slot0, but answers overwrite it; direct unbound generation was an additional escape. Sources/fixtures/wired20480 held and runtimes stopped.
+
+CandidateA deterministic wire isolation passes: compact/fallback router calls use0; JSON/native-tool/benchmark requests use1; unowned or mismatched slot overrides are refused, and competing work requests serialize. **FAILED control adaptation:** the old cancellation-stream test used an unconfigured fake endpoint without a trusted slot, so the new admission guard correctly refused it before connection. Retained `controls-a-phase44.log`; the test now binds its fake endpoint inside its worker before exercising the unchanged real-socket cancellation assertion. No production bypass was added.
+
+**FAILED initial control batch (`controls-a/`):** routing mocked-response tests supplied only template/tokenize/completion responses; the new router lease made a real slot-idle metadata call against that mocked sequence. Added trusted fake-slot bindings to those two response-validation unit blocks, preserving every assertion and fixture. Wire-level ownership is separately tested through actual local HTTP in test_slot_isolation.py.
+
+Corrected deterministic control batch passes all17scripts (slot isolation, Phase3/4.1/4.2/4.3/4.4, grammar, transport, routing, benchmark, shell, image, nuke, rename, health and memory controls). Both earlier test-setup failures remain recorded. CandidateA is under final read-only review before source freeze and live gates.
+
+- CandidateA review found a failed-stream handoff gap before live measurement: serialized children could reuse a busy pinned slot before cancellation drained. Added cancellable idle drain before each child inference; focused local HTTP test covers truncated stream followed by queued child and cancellation during idle wait. Phase4.4 controls pass after updating the fake preflight server to expose its slot metadata.
+
+CandidateA paired routing PASS: mean1.8547578999999998s,p500.951048s,p9919.150323s; {"cold": 1, "warm": 19}; group means {"cold": 19.150323, "warm": 0.9444650000000001}s. Category/lane20/20,r17X→C. All20router request bodies match baseline byte-content after removing only id_slot. No routing/prompt change. Runtime stopped and hashes/wired held.
+
+Retained child-drain test evidence: `audit/child-drain-review.md`. Initial control failed because cancelling an in-flight metadata HTTP request raised RemoteDisconnected rather than InterruptedError; the corrected assertion accepts transport errors only with cancellation set. Corrected test exits0; deliberately removing the drain exits1 at the queued-child overlap assertion. This intentional negative control is evidence the regression detects the bug, not a product pass.
+
+CandidateA latency setup FAILED during the first warmup: original request intentionally lacks transport metadata (native_request owns id_slot), so a harness assertion raised KeyError. Zero measured samples; stopped runtime and retained candidate-a-latency-setup-failed/, its log and latency_a_setup_failed.py. Corrected only instrumentation to observe admitted wire slots; same predeclared100 measured requests/4warmups/6.726s gate, unchanged production source. This is not a failed percentile re-run.
+
+CandidateA interactive latency FAILED its one100-request measured run: p50=6.3340627499856055s,p99=7.0369937919895165s >6.726s; 4.9200661913853425tok/s. No repeat. Routing remains a pass1.854758s mean; no winner. CandidateA soak/remaining live regressions skipped after hard latency failure; deterministic controls passed. Full source snapshot/diff retained. Proceeding to candidateB: np3,c12288,router0/work1-2, unchanged cache768 and4096 per slot.
+
+CandidateB controls pass: actual local HTTP shows simultaneous children on1and2, router0 untouched; A/one-slot and child-drain controls retained. Phase4.4 controls exit0. Froze B source before measurement. np3/c12288, cache768/checkpoints3/Q8 KV/4096 per slot unchanged otherwise; separate-process cap0. Starting same20-case routing protocol; then one100-sample latency run and600s real-child memory soak.
+
+CandidateB routing PASS: {"exit": 0, "category": 20, "lane": 20, "mean_s": 1.6175913000000002, "p50_s": 0.829976, "p99_s": 16.613006000000002, "counts": {"cold": 1, "warm": 19}, "group_mean_s": {"cold": 16.613006000000002, "warm": 0.8283589473684211}, "r17_X_to_C": true, "quality_passed": true, "paired_baseline_mean_s": 6.46745475, "speed_passed": true}. All20router bodies identical to baseline after removing only slot metadata. No source or fixture drift.
+
+CandidateB single predefined interactive run PASS: {"n": 100, "p50_s": 6.003025332989637, "p99_s": 6.263291249983013, "total_tokens": 3200, "wall_s": 601.0925327500154, "total_tok_s": 5.323639582345017, "passed": true, "limit_s": 6.726, "children": 0, "work_slot": 1}. All104 warmup/measured native requests used workslot1; no retries. Sequential host variation is not separated from configuration effects. The candidate meets the fixed6.726s gate; A remains failed.
+
+CandidateB real-child soak PASS: {"passed": true, "observation_s": 600.0354559999832, "load_wall_s": 614.5797110410058, "counts": {"normal": 18, "warning": 103, "critical": 0}, "peak_process_rss_bytes": 13207650304, "peak_device_gpu_in_use_bytes": 14655586304, "peak_device_gpu_allocated_bytes": 15628763136, "batches": 25, "children": 50, "inference_p50_s": 24.77534566700342, "inference_p99_s": 25.687578000011854, "total_generated_tokens": 3178, "total_tok_s": 5.171012930540654, "max_tokens_per_reply": 64, "actual_memory_and_executor": true}. Requested4.4 comparison121normal/0warning/0critical; warning pressure is higher, critical remains0. Device-wide GPU figures are separate from process RSS, and shared-machine pressure cannot isolate configuration effects. Actual wire capture uses router0 and child work1/2 only; child audit parents and terminal outcomes verified. Router prefix after soak: {"cache_n": 3888, "prompt_n": 1, "prompt_ms": 70.091, "prompt_per_token_ms": 70.091, "prompt_per_second": 14.267166968655035, "predicted_n": 6, "predicted_ms": 375.724, "predicted_per_token_ms": 75.1448, "predicted_per_second": 13.307640714992921}. Owned runtimes stopped, source/frozen hashes and wired20480 held.
+
+CandidateB v38 recall PASS: frozen harness20/20 on one slot; identical requests20/20 on each production answer slot1and2. Source/frozen hashes held, only historical vault-path normalization allowed, actual slot metadata confirms4096 per slot and sampling. Owned runtimes stopped. Resumed with wired20480 verified; remaining quality/CLI gates next.
+
+Evidence-writer failure after CandidateB quality completed: t07 regex_examples are Python tuples, so atomic_json compared decoded arrays against tuples and failed its read-back check. Complete40-case quality.json.tmp retained and recovered byte-identically as quality.recovered.json; frozen argument scores independently recomputed without inference: category20,callable20,tools17first/20retry,accepted20. Original runner exits1 and stays a failure; CLI had not started. Corrected only evidence serialization to canonical JSON as the prior Phase4.4 runner did. CLI will run separately.
+
+CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1and2 each20/20; abstention20/20; product category/lane20/20,r17X->C; callable20/20; tools17/20first,20/20post-retry and accepted20 (same t07/t09/t12 misses); CLI18/18. Quality evidence publication failure remains retained separately; no inference rerun. CLI-owned runtimes stopped; running final17 deterministic control scripts, then nuke dry-run/check.sh/delivery verification. C will not run if final controls pass.
+
+### Qualified result — candidate B, completed 2026-10-07
+
+**All required gates pass.** Keep three slots (`-np 3 -c 12288`), 4096 tokens per
+slot, router-only slot0 and workslots1–2. The parent lends its workslot while
+waiting: **two concurrent shared children**, at most two tasks per batch;
+**separate-process cap0**. A's two-slot option reduces work concurrency to one
+and failed the fixed interactive latency gate. C was not tried, following the
+stop-at-first-full-pass rule. No merge is authorized; delivery stops at the PR.
+
+| Paired product routing, same20cases | Fresh main | A:2slots | B:3slots |
+|---|---:|---:|---:|
+| Mean(s) |6.467455|1.854758|1.617591|
+| p50(s) |0.890151|0.951048|0.829976|
+| p99(s), nearest rank |17.538660|19.150323|16.613006|
+| Cold / warm |7 / 13|1 / 19|1 / 19|
+| Cold mean(s) |17.013346|19.150323|16.613006|
+| Warm mean(s) |0.788898|0.944465|0.828359|
+| Category / final lane |20 / 20|20 / 20|20 / 20|
+| r17 no-match |X→C|X→C|X→C|
+
+B's routing mean is below both5.06s and the fresh paired main result. The full
+20router request bodies match after removing only `id_slot`; prompts, sampling,
+GBNF, model and catalog/selection logic did not change. Native completion, JSON
+and benchmark transports all enforce ownership, including direct callers.
+The pinned b10809 audit is in `audit/runtime-audit.md`: production previously
+bound the whole turn to slot0, so answers displaced its router prefix. Non-unified
+idle live KV survives eviction of its global768MiB saved-cache snapshot.
+
+| Single predefined interactive run, zero children | A | B |
+|---|---:|---:|
+| Measured requests / warmups |100 / 4|100 / 4|
+| p50(s) |6.334063|6.003025|
+| p99(s) |7.036993792|6.263291250|
+| Fixed limit(s) |6.726|6.726|
+| Verdict |**FAIL**|**PASS**|
+| End-to-end total tok/s |4.920066|5.323640|
+
+No failed percentile run was repeated. A's separate instrumentation failure
+stopped during its first warmup with0measured samples and is retained separately.
+The timing covers template rendering/HTTP/SSE, not CLI launch or memory I/O.
+Sequential host variation is not isolated: these results do not show that adding
+a slot itself makes interactive inference faster, or guarantee p99 on every host state.
+
+**Memory cost:** B's600.035456s observation has **18normal /103warning /0critical**,
+compared with the requested4.4 reference **121 /0 /0**. The zero-critical gate
+passes; warning pressure is materially higher. Fifty real children in25batches
+completed over614.579711s with actual retrieval, project memory writes and linked
+executor audit rows. Child inference p50/p99=24.775346/25.687578s;3178generated
+tokens,5.171013tok/s over the full load interval. All25native requests per workslot
+were pinned to1or2; only the two routing probes used0. The post-soak router kept
+3888cached tokens and completed in0.669361s.
+
+Peak Lane A process RSS=13,207,650,304B (13.208GB).
+Device-wide GPU in-use=14,655,586,304B (14.656GB),
+allocated=15,628,763,136B (15.629GB), reported separately.
+Fresh ready-state A→B process RSS rose84,312,064B; device-wide GPU in-use rose
+178,143,232B and allocated311,115,776B. These are sequential observations,
+not an isolated per-slot physical-RAM estimate: mmap, paging and other GPU users
+make RSS/device deltas different quantities. See `candidate-b-memory-ready-comparison.json`.
+
+| Remaining gate | Result |
+|---|---|
+| Untouched frozen recall, one slot |20/20|
+| Same recall requests, every answer slot |slot1:20/20; slot2:20/20|
+| Abstention |20/20|
+| Additional frozen category/callable JSON |20/20 each|
+| Exact tools |17/20 first-pass;20/20 post-retry;20/20 accepted|
+| Known first-pass misses |t07,t09,t12 unchanged|
+| Real CLI/control |18/18|
+| Hooks |5/5|
+| Phase3/4.1/4.2/4.4 and transport controls |PASS;17deterministic scripts total|
+| Live nuke dry-run |30504entries;0outside `~/Kildall/code`;0rejections;all3outward Python link objects included|
+| `check.sh`, installed `kildall` and `orbi` help |exit0 each|
+| Fixtures/source and runtime cleanup |Frozen hashes hold;40measured Python/config files unchanged;owned runtimes stopped;wired20480|
+
+Recall's complete request bodies match the accepted run with only the already
+authorized vault-path normalization. The frozen test file remains unchanged;
+production answer slots were checked through actual server metadata. No prompt,
+model, catalog, grammar, Q8 KV, embedding flags or per-slot context change.
+
+**Retained failures:** baseline manifest setup; cancellation/routing mock setup;
+child-drain cancellation exception expectation and the intentional no-drain
+negative control; A latency instrumentation setup and its measured p99 failure;
+B's evidence writer after completed quality inference. That last run remains
+exit1: its complete temporary JSON was recovered byte-identically, argument
+scores recomputed, and CLI run separately. No quality inference was repeated.
+A's later live gates were skipped after its latency failure. Full files and
+SHA-linked aggregate: `final-gates.json`, under this slice's evidence directory.
+
+Deferred: C (B passed first), long context,4.5/deep research,MCP and4C. Computer-use
+Never guard remains enforced; MLX remains closed; HF sync remains paused. External
+vault commits33c39a7/674cc4e/69ff785 advanced planning through v41 during this run;
+this slice did not author planning or research changes. Router warmth, ops
+hardening and other newly queued improvements remain separate work.

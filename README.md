@@ -330,11 +330,14 @@ Tools run through the same executor, with confirmations in the parent's terminal
 Child memory writes stay in the parent project and child shell directories are
 independent. `kildall permissions ID` shows the linked child decisions/results.
 
-The measured shared configuration is two slots, each4096 tokens (`-np 2 -c 8192`),
-with continuous batching, one global768MiB prefix cache and three checkpoints per
-slot. The parent lends its slot while waiting for children. Interactive turns
-serialize on slot0; each slot has one owner, including during routing. A batch
-refuses unavailable slots or insufficient measured RAM headroom.
+The shared configuration is three slots, each4096 tokens (`-np 3 -c 12288`),
+with continuous batching, one global768MiB prefix cache and up to three checkpoints
+per slot. Slot0 is reserved for routing. Answers, tools and direct generation use
+workslot1; interactive turns serialize there. While the parent waits, up to two
+shared children run concurrently on workslots1–2. Each slot has one owner, and
+failed or cancelled requests drain before reuse. A batch refuses unavailable
+slots or insufficient measured RAM headroom. See `BENCHMARKS.md` for the paired
+routing, latency and memory-pressure results, including the failed two-slot option.
 
 Separate model processes require `--agents separate` and an explicit `mode:
 "separate"` child request. This machine's measured cap is **0**: the second model

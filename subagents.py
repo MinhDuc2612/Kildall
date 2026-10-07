@@ -49,7 +49,7 @@ def capacity():
 
 @contextmanager
 def bind_slot(endpoint, slot, count):
-    if type(slot) is not int or type(count) is not int or not 0 <= slot < count <= 2:
+    if type(slot) is not int or type(count) is not int or not 0 <= slot < count <= 3:
         raise ValueError('Invalid measured slot id/count')
     token = _SLOT.set((endpoint, slot, count))
     try:
@@ -64,18 +64,53 @@ def inference_body(endpoint, body):
         if 'id_slot' in body and body['id_slot'] != selected[1]:
             raise ValueError('Request attempted to change its owned slot')
         return dict(body, id_slot=selected[1])
-    if 'id_slot' in body:
-        raise ValueError('Explicit slots require validated ownership')
-    return body
+    raise ValueError('Inference requires validated slot ownership')
 
 
-def wait_idle(config, slot):
+def work_slots(config):
+    count = config['runtime'].get('parallel', 1)
+    return tuple(range(1, count)) if count > 1 else (0,)
+
+
+@contextmanager
+def request_slot(endpoint):
+    """Direct generation clients borrow work capacity, never the router slot."""
+    from kildall import settings, url
+    endpoint = endpoint.removesuffix('/v1/chat/completions').removesuffix('/completion')
+    selected = _SLOT.get()
+    if selected and selected[0] == endpoint:
+        yield
+        return
+    config = settings()
+    if endpoint != url(config):
+        raise ValueError('Unbound inference must use the configured local runtime')
+    with turn_slot(config):
+        yield
+
+
+@contextmanager
+def router_slot(config):
+    if 'runtime' not in config:
+        yield
+        return
+    from kildall import url
+    count = config['runtime'].get('parallel', 1)
+    if _SLOT.get() == (url(config), 0, count):
+        yield  # The one-slot recall/control configuration already owns slot0.
+        return
+    with lease(config, 0), bind_slot(url(config), 0, count):
+        yield
+
+
+def wait_idle(config, slot, *, cancel=None):
     """A disconnected client may end before llama.cpp has processed its cancellation."""
     from kildall import json_request, url
     deadline = time.monotonic() + 30
     while True:
+        if cancel is not None:
+            cancel.check()
         try:
-            rows = json_request(url(config) + '/slots', timeout=1)
+            rows = json_request(url(config) + '/slots', timeout=1, cancel=cancel)
         except URLError as error:
             if getattr(error.reason, 'errno', None) == errno.ECONNREFUSED:
                 return  # Cold start; ensure_runtime will establish ownership.
@@ -94,7 +129,7 @@ def wait_idle(config, slot):
 def lease(config, slot, *, blocking=True):
     from kildall import ROOT
     count = config['runtime'].get('parallel', 1)
-    if type(slot) is not int or not 0 <= slot < count <= 2:
+    if type(slot) is not int or not 0 <= slot < count <= 3:
         raise ValueError('Slot exceeds measured capacity')
     directory = ROOT / '.session'
     directory.mkdir(exist_ok=True)
@@ -121,9 +156,10 @@ def turn_slot(config):
         yield
         return
     from kildall import url
-    # ponytail: interactive turns reserve slot0; batch children borrow it while
-    # the parent waits. More interactive admission needs a measured scheduler.
-    with lease(config, 0), bind_slot(url(config), 0, config['runtime'].get('parallel', 1)):
+    # ponytail: turns share the first work slot; children borrow it while the
+    # parent waits. Wider work admission requires a measured configuration.
+    slot = work_slots(config)[0]
+    with lease(config, slot), bind_slot(url(config), slot, config['runtime'].get('parallel', 1)):
         yield
 
 
@@ -273,7 +309,7 @@ class Manager:
         task = child['task']
         config = child['config']
         with bind_slot(kildall.url(config), child['slot'], config['runtime'].get('parallel', 1)):
-            cancel.check()
+            wait_idle(config, child['slot'], cancel=cancel)
             messages = kildall.fit_messages(config, kildall.system_prompt(self.project), child['memory'], [], child['messages'], tools=self.tools, cancel=cancel)
             partial = dict(role='assistant', content='')
             ident = task.message(partial)
@@ -315,15 +351,17 @@ class Manager:
                 raise PermissionError(f"Separate-process cap is {budget['separate_cap']}: dual-model Metal OOM; remeasurement required")
         count = self.config['runtime'].get('parallel', 1)
         shared = len(args['tasks']) - separate
+        work = work_slots(self.config)
+        active_shared = min(shared, len(work))
         # Shared KV is already allocated by the resident server. Budget observed
         # per-slot overhead for active children; the new-model reserve above is
         # for separate-process admission, not a second reservation of resident KV.
-        if shared > count or budget['pressure'] == 4 or budget['available_bytes'] < len(args['tasks']) * SLOT_RSS:
+        if budget['pressure'] == 4 or budget['available_bytes'] < (active_shared + separate) * SLOT_RSS:
             raise PermissionError('Measured shared slot/RAM capacity would be exceeded')
         if any(not t['prompt'].strip() or len(t['prompt']) > 65536 for t in args['tasks']):
             raise ValueError('Expected nonempty bounded child prompts')
         selected = _SLOT.get()
-        if selected != (kildall.url(self.config), 0, count):
+        if selected != (kildall.url(self.config), work[0], count):
             raise PermissionError('Child tasks require the parent slot lease')
         children, pending = [], {}
         cancel = Cancellation()
@@ -338,10 +376,10 @@ class Manager:
                     raise PermissionError('Another parent owns separate-process admission') from error
                 if separate > capacity()['separate_cap']:
                     raise PermissionError('Separate-process RAM capacity changed before admission')
-            for slot in range(1, shared):
+            for slot in work[1:active_shared]:
                 leases.enter_context(lease(self.config, slot, blocking=False))
             authorize(record, 'Auto')
-            pool = ThreadPoolExecutor(max_workers=len(args['tasks']), thread_name_prefix='kildall-child')
+            pool = ThreadPoolExecutor(max_workers=active_shared + separate, thread_name_prefix='kildall-child')
             try:
                 shared_slot = 0
                 for spec in args['tasks']:
@@ -349,7 +387,7 @@ class Manager:
                     task = kildall.Task(self.parent.path, self.parent.session, parent=dict(parent_task=self.parent.id,
                         parent_decision=record['id'], project=self.project, tools=[t['function']['name'] for t in self.tools],
                         requested=self.requested, mode=mode))
-                    child = dict(task=task, slot=shared_slot if mode == 'shared' else 0, config=self.config,
+                    child = dict(task=task, slot=work[shared_slot % len(work)] if mode == 'shared' else 0, config=self.config,
                                  prompt=spec['prompt'], memory='', messages=[dict(role='user', content=spec['prompt'])],
                                  answer=[], turns=0, retry=False, pending_copy=False, stopped=False, timings=[])
                     children.append(child)
@@ -433,7 +471,7 @@ class Manager:
                     if not child['task'].finished.is_set():
                         outcome = 'error' if child.get('error') else 'done'
                         child['task'].finish(outcome if child.get('completed') else 'cancelled')
-                for slot in range(shared):
+                for slot in work[:active_shared]:
                     wait_idle(self.config, slot)
         results = []
         for child in children:

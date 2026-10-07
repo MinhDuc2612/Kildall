@@ -65,16 +65,23 @@ def prepare(endpoint, body, *, cancel=None):
                   # WORD becomes a special-token trigger; PATTERN also catches ordinary-token spellings.
                   grammar_triggers=[{'type': 1, 'value': TOOL_START}, {'type': 2, 'value': r'<\|tool_call>'}],
                   preserved_tokens=PRESERVED, return_tokens=True)
-    from subagents import inference_body
     if 'id_slot' in body:
         native['id_slot'] = body['id_slot']
-    return inference_body(endpoint + '/completion', native)
+    return native
 
 
 def chat(endpoint, body, *, on_text=None, cancel=None):
     """Return the existing callable JSON protocol; no fallback to unconstrained tools."""
+    from subagents import request_slot
+    with request_slot(endpoint):
+        return _chat(endpoint, body, on_text=on_text, cancel=cancel)
+
+
+def _chat(endpoint, body, *, on_text=None, cancel=None):
     from kildall import strict_json
-    native = prepare(endpoint, body, **({'cancel': cancel} if cancel is not None else {}))
+    from subagents import inference_body
+    native = inference_body(endpoint + '/completion',
+        prepare(endpoint, body, **({'cancel': cancel} if cancel is not None else {})))
     request = urllib.request.Request(endpoint + '/completion', json.dumps(native).encode(),
                                      {'Content-Type': 'application/json'})
     raw, shown, tokens, completed = '', '', [], None

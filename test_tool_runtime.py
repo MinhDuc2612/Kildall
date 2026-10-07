@@ -54,4 +54,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    from subagents import bind_slot
+    with bind_slot('http://127.0.0.1', 1, 2):
+        main()

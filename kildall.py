@@ -99,8 +99,13 @@ def url(config, embedding=False):
 
 def json_request(endpoint, body=None, timeout=30, *, cancel=None):
     if body is not None and endpoint.endswith(('/completion', '/v1/chat/completions')):
-        from subagents import inference_body
-        body = inference_body(endpoint, body)
+        from subagents import inference_body, request_slot
+        with request_slot(endpoint):
+            return _json_request(endpoint, inference_body(endpoint, body), timeout, cancel=cancel)
+    return _json_request(endpoint, body, timeout, cancel=cancel)
+
+
+def _json_request(endpoint, body, timeout, *, cancel=None):
     request = urllib.request.Request(endpoint,
         None if body is None else json.dumps(body).encode(), {"Content-Type": "application/json"})
     with (cancel or _OPENER).open(request, timeout=timeout) as response:
@@ -141,8 +146,8 @@ def owns_server(record):
 
 def ensure_runtime(config, stop=False, *, lane_only=False):
     slots = config['runtime'].get('parallel', 1)
-    if type(slots) is not int or not 1 <= slots <= 2:
-        raise ValueError('This machine has measured capacity for at most two shared slots')
+    if type(slots) is not int or not 1 <= slots <= 3:
+        raise ValueError('This machine is limited to at most three shared slots')
     directory = config["paths"]["code_dir"] / ".session"
     directory.mkdir(parents=True, exist_ok=True)
     state_file = directory / "services.json"
