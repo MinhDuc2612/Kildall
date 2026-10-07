@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v40 · 2026-10-07.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v41 · 2026-10-07.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -342,6 +342,16 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
   **`moonshotai/Kimi-K2.6`** (1.03 T / 32 B active, modified MIT, ~515 GB, ~5.5 s/token by arithmetic) is
   **recorded for later, not added** — it is older than K3, so it needs benchmark evidence as a min-viable pick.
   **Revisit if** the orchestrator needs a Kimi-family worker faster than K3, or a benchmark shows it winning a leaf.
+
+## Queued small slices *(v41 · 2026-10-07)*
+
+Codex order, one PR each, each holding every standing gate; Codex stops at the PR. Order changes only on your word.
+1. **4.5a** keys + cloud (in progress) → 2. **routing fix** → 3. **router warmth** (#62 save router prompt to disk,
+#63 idle re-warm) → 4. **ops hardening** (#52 wired-limit boot daemon — you install it with sudo; #53 permanent
+backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is mounted) → 5. **long context** →
+6. **4.5b–4.5e** → 7. **quality slice** (#57 copy by reference — first-pass must rise with frozen fixtures
+untouched; #58 code-built delegation prompts — the exact-once smoke must pass) → 8. **Gemma vision** (#59, RAM
+measured, before 4C) → 9. **4C** → Phases 5, 7, 8, 9.
 
 ## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
 
@@ -709,7 +719,7 @@ and logged; nothing runs.**
 
 ---
 
-# 🔮 BEYOND THE PLAN — 51 improvements, after Phase 8
+# 🔮 BEYOND THE PLAN — 75 improvements, after Phase 8 *(#52–#75 added v41; 9 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -831,6 +841,37 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **51** | 🔑 **Hardware auto-fit, and auto-expand** | **Orbi currently runs on exactly one computer.** Every number in this plan — 26.637 tok/s, 96/121 pressure warnings, 5.06 s routing, the 120 GB/s ceiling — is a property of this Mac mini, and none of it is read from the machine at setup. Make it portable in both directions. **Downward (auto-fit):** read the machine, then derive the quant, GPU layers, batch, context, cache budget and **which lane each model belongs in** — because lane assignment is already a hardware function (`active_bytes` vs usable RAM), just hardcoded. **Upward (auto-expand):** on a bigger machine, promote models up lanes. **A model moved C→B is free quality** — identical weights, no longer read off a disk 41× slower than RAM. 🔑 **The catalog already carries the data for this**: `skill_catalog.py` holds an *original* and a *preferred* pick per leaf, so small machines take the min-viable and large ones take the best-benchmarked. Nobody called it auto-expand. ⚠️ **But the axis is thin — only 13 leaves have a named alternative** (56 exist in sample 1's research), so ~250 of 302 have nothing to expand into | 🔴 **Shrink on arithmetic, grow only on evidence.** Auto-fit downward is safe — if it does not fit, it does not fit. **Auto-expand upward is dangerous without #13**, because only **46 of 302 leaves are benchmark-verified**: on a big machine Orbi would reach for a "better" pick that is a reasoned default for ~256 leaves, getting slower *and* possibly worse with no way to tell. 🔴 **Second trap: bigger ≠ faster.** A 32 GB base M4 still runs at 120 GB/s, so extra capacity promotes lanes but speeds up nothing already resident — only the M4 Pro's 273 GB/s does that. ⚠️ **Third trap, and this project already proved it: active params are not residency.** Lane A is **4 B active — ~2 GB by arithmetic — but 12.23 GB measured RSS**, a 6× error. So the shape must be **propose, then verify**: compute candidates, run a short gate, adopt what passes, fall through on failure — the Phase 1 Lane A loop, automated. Supersedes and absorbs **#5**. Needs **#13**. ✅ **v37 (user decision 2026-10-03): now a Phase 7 slice, right after #13, and required before the first paid client (9.10).** Downward auto-fit first; upward only on an eval win. **Gate:** on this Mac it derives settings that match or beat the hand-picked ones on every frozen gate; under a smaller RAM budget set in config (e.g. 16 GB) it picks settings that pass a 10-minute soak with zero critical memory samples and keep every frozen gate. 🔑 **Speed follows memory bandwidth, not RAM size** — read the chip's bandwidth, never assume it |
 
 ---
+
+## Added v41 — from measured problems (2026-10-07, user: "add all of them")
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **52** | ⏩ **Wired limit restored at every boot** — a LaunchDaemon you install once with sudo sets `iogpu.wired_limit_mb=20480` | The limit reset to 0 after reboots at least 3 times and blocked runs | One sudo install by you; Codex only writes the plist, never runs sudo |
+| **53** | ⏩ **Permanent backup job** in `~/Library/LaunchAgents` instead of per-login registration | The backup job broke twice; 3 nights were lost | Small |
+| **54** | ⏩ **Off-machine backup** of `kildall.db` to `KildallC` | Today every backup is on the same disk as the database | Needs the drive mounted |
+| **55** | ⏩ **Secret-scanner git hook** — refuses any commit containing a key | Keys were pasted in chat twice | Small |
+| **56** | **Slim `CLAUDE.md`** — history moves to `CLAUDE-history.md`; rules, state and recent entries stay | ~260 KB loaded into every session | A Claude task, not code |
+| **57** | ⏩ **Copy by reference** — tools accept a source-span id instead of retyped text | t07/t09/t12 survived four fixes; grammar cannot fix copying, a pointer can | Frozen fixtures untouched; must lift first-pass without editing them |
+| **58** | ⏩ **Code-built delegation prompts** — the parent fills fields; code assembles the child prompt | Fixes 4.4's failed exact-once smoke | Small |
+| **59** | ⏩ **Gemma 4 vision** — load its image projector (mmproj) | Kildall reads text in images but cannot understand them; 4C layer B needs this | RAM next to Lane A; measured |
+| **60** | **Your own good answers as examples** — retrieved past successes in the prompt | Teaches your conventions without training | Context budget |
+| **61** | **Vietnamese test set** | Frozen tests are nearly all English; you will use Vietnamese | Needs #13 |
+| **62** | ⏩ **Router prompt saved to disk** (`--slot-save-path`), reloaded after restarts | Removes the 12–18 s cold route after every restart | Disk; verify in b10809 |
+| **63** | ⏩ **Idle re-warm** of the router prefix after eviction | Fewer cold routes during use | Idle compute |
+| **64** | **Only the tools a request needs** in the prompt | Prefill is ~85 tok/s; shorter prompts read faster and tool choice improves | Router must name tool sets |
+| **65** | **Prompt diet** — measure and trim system and tool text | Same: prefill is the bottleneck | Must hold every gate |
+| **66** | **Memory conflict detection** — a new fact that contradicts an old one asks which is right | Stops wrong facts piling up | Small |
+| **67** | **Automatic session summaries** into memory | Runs start with context; pairs with #48 | Small |
+| **68** | **Hash-chained audit log** | Proves the log was not edited afterwards | Small |
+| **69** | **Growing attack test set** — every new injection trick becomes a permanent fixture | Defences only get stronger | Upkeep |
+| **70** | **Permission profiles per project** | A client folder can be stricter than yours | Pairs with 9.10 |
+| **71** | **Daily real use now**, before Phase 9 | Real use finds gaps frozen tests miss and feeds #14 | Your time |
+| **72** | **Code-only tests on GitHub** for every PR (no models) | Catches breaks before Claude's review | CI minutes |
+| **73** | **Gate trend chart** over time | Shows slow drifts like the 4.4 routing slowdown early | Pairs with 9.6 |
+| **74** | **Checklist auto-ticked from evidence files** | The checklist says 14 done; far more is | Small |
+| **75** | **Codex briefs as reusable skills** | Faster, consistent briefs; seeds 9.7 | Small |
+
+⏩ = scheduled early (see "Queued small slices"). The rest follow the normal Phase 7–9 order.
 
 ## The honest shape of this list
 
@@ -995,6 +1036,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-07 (v41)** — **24 improvements added, #52–#75** (user: "add all of them"); 9 scheduled early as small slices in a new "Queued small slices" order: router warmth (#62, #63), ops hardening (#52–#55), quality (#57, #58), Gemma vision (#59) before 4C. #56 (slim `CLAUDE.md`) approved as a Claude task. Checklist +9.
 - **2026-10-07 (v40)** — **Long-context slice added** (user: "1 for now 5 later"): per-slot context 4,096 → 16K, then 32K only if 16K passes; runs after the routing fix; prefill time is the real limit (~85 tok/s, 32K ≈ 6 min); all 4K assumptions become config. **A faster Mac is recorded for later**, not scheduled. Checklist +2.
 - **2026-10-06 (v39)** — **Deep research added as one feature, sub-slice 4.5e** (user: "for deep-research add the single feature"): `kildall research` — angles → search → fetch + guard → claims with quotes → 3-vote verification (failed votes = unverified) → cited report; a queued job; after 4.5b and 4.5d. Checklist +3 → **203 items**.
 - **2026-10-05** — **Fix:** the 4.5 spec still told Codex to run `kildall-hf-sync` after every push; removed (Hugging Face paused). Spec facts updated: Gemini and Groq keys exist; free disk 94 GB. Routing-fix slice written (pin the router slot; brief in `CLAUDE.md` log) — if it lands before 4.5a, the 4.5a routing gate becomes the new main mean + 10%.

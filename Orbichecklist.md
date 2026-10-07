@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **205** |
-| **Done now** | **14** of 205 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **214** |
+| **Done now** | **14** of 214 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -28,6 +28,7 @@
 - [ ] Piped input works (`cat f | orbi "summarise"`)
 - [ ] Piped output is clean — no orbs, no colour codes
 - [ ] Non-zero exit code on failure
+- [ ] **Copy by reference (#57):** tools accept a source-span id; tool first-pass rises above 17/20 with frozen fixtures untouched
 
 ## 2. Orbs — P1 *(Phase 1)*
 
@@ -63,6 +64,8 @@
 - [ ] Lane A answers unless the task provably needs better
 - [ ] Routing decision is logged and inspectable
 - [ ] **18 of 20 varied requests route correctly**
+- [ ] **Router prompt saved to disk (#62)** and reloaded after restarts; no cold route after a restart
+- [ ] **Idle re-warm (#63)** of the router prefix after eviction
 
 ## 5. Files — P0 *(Phase 4)*
 
@@ -128,6 +131,7 @@
 - [ ] A subagent cannot spawn another subagent
 - [ ] **Verified review** (Ultrareview pattern): parallel reviewer subagents; every finding reproduced before it is reported — a 4.4 follow-up slice
 - [ ] **Swarm orchestration**: a task split across a few Lane A subagents (RAM-capped), hardest step sent to Lane C
+- [ ] **Code-built delegation prompts (#58):** the exact-once delegation smoke passes
 
 ## 11. MCP — P1 *(Phase 4)*
 
@@ -187,6 +191,7 @@
 - [ ] 🔴 **OCR'd screenshot text is data, never instructions** — injections hide in images invisibly to humans
 - [ ] Refuses to act on a page carrying an injected instruction, in a real test fixture
 - [ ] **Each bot gets its own computer** — a separate macOS user or a lightweight VM, never your desktop session; VM tool licences checked first. *(v36: default = separate macOS user; VM only for bots that browse untrusted sites or open unknown files; verify the 2-VM macOS limit and VM RAM)*
+- [ ] **Gemma 4 vision (#59)** loaded with RAM measured next to Lane A, before 4C
 
 ## 14. Voice — P2 *(Phase 5)*
 
@@ -264,6 +269,10 @@
 - [ ] `code/` excluded from Obsidian indexing (Settings → Files & Links → Excluded files)
 - [ ] `pip install -e ~/Kildall/code`, Python pinned `<3.13`
 - [ ] Multi-session safe — SQLite WAL plus `busy_timeout`
+- [ ] **Wired limit set at every boot (#52)** by a LaunchDaemon you install once with sudo
+- [ ] **Permanent backup job (#53)** in `~/Library/LaunchAgents`; survives logout and pauses
+- [ ] **Off-machine backup (#54)** of `kildall.db` to `KildallC`
+- [ ] **Secret-scanner git hook (#55)** refuses commits containing a key
 
 ## 19. Agentic OS — P2 *(Phase 9 — Kildall 100%)*
 
@@ -330,6 +339,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-07** — 9 items for the early-scheduled improvements #52–#55, #57–#59, #62–#63: **214 items**.
 - **2026-10-07** — 2 long-context items added to Group 17: **205 items**.
 - **2026-10-06** — 3 items added to Group 13 for deep research (4.5e): **203 items**.
 - **2026-10-04** — 6 safety items added to Group 13 from the Phase 4.5 design spec (Orbiplan v38): Keychain-only keys, free-model allow-list and billing stop, outbound secret scrub, SSRF refusal, Confirm for unseen URLs, guard co-residency soak: **200 items**.
