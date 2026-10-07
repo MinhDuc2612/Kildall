@@ -357,6 +357,10 @@ measured, before 4C) → 9. **4C** → Phases 5, 7, 8, 9.
 
 **User decision: raise the per-slot context now (option 1); a faster Mac later (option 5).** Runs after the
 routing-fix slice, because that slice sets the slot count and every slot's window multiplies KV memory.
+- ⚠️ **After PR #5 (3 slots: router 0, work 1–2) memory is already tight: soak 18 normal / 103 warning / 0 critical,
+  peak RSS 13.21 GB, GPU allocated 15.63 GB.** llama-server gives every slot the same window, so first verify in
+  b10809 whether **unified KV** lets the router slot use only what it needs; otherwise 16K × 3 slots reserves
+  router memory for nothing. **Extra gate: warning samples must not exceed the PR #5 soak (103/121).**
 - **Steps:** 4,096 → **16,384 per slot first**; **32,768 only if 16K passes every gate**. Q8 KV stays. Read the
   model card for Gemma 4 26B-A4B's real maximum first — never guess it.
 - **Measure:** KV/RSS/GPU per slot (4,096 measured 175.31 MiB Q8 KV); prefill tok/s and wall time for 8K/16K/32K
@@ -410,10 +414,7 @@ Order is fixed: the council needs the cloud; the guard must exist before web tex
   documented limit. All exhausted → Lane A, saying **`cloud exhausted — answering locally`**.
 - **"Necessary" means:** the routed lane is not available locally (Lane C parked, a Lane B model absent), or
   the input exceeds Lane A's context. **Never** just because Lane A is slower.
-- **Gates:** mock-server tests for 200 / 429 / 401 / 402 / timeout / `Retry-After` / all-exhausted; a fake key
-  inside a prompt is redacted in the captured outgoing body; live: one LLM7 answer + every provider you added
-  a key for; after the live run, every key value grepped across `.session/`, `kildall.db`, logs and the git
-  tree = **0**; routing mean ≤ **7.41 s** (6.737 + 10%).
+- **Gates:** mock-server tests for 200 / 429 / 401 / 402 / timeout / `Retry-After` / all-exhausted; routing mean ≤ **1.78 s** once PR #5 merges (routing fix 1.618 s + 10%; was 7.41 s).
 
 **4.5b — web + guard.**
 - **4.5b-0, go/no-go:** Guardian Q4_K_M loaded next to Lane A (2 slots); 10-min soak with web-sized prompts;
@@ -1036,6 +1037,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-07** — **Routing fix reviewed (PR #5, `d82609a`, not merged): accepted.** Option B — 3 slots, router on slot 0, work on 1–2: routing mean **1.618 s** (from 6.467 s), cold 1/20, all gates held, option A failed and is recorded. Cost: soak **18/103/0** (was 121/0/0), peak RSS 13.21 GB. Plan updated: 4.5a routing gate → 1.78 s; long-context slice must check unified KV first and must not exceed 103/121 warnings. 4.5a was never started; it is next in the queue.
 - **2026-10-07 (v41)** — **24 improvements added, #52–#75** (user: "add all of them"); 9 scheduled early as small slices in a new "Queued small slices" order: router warmth (#62, #63), ops hardening (#52–#55), quality (#57, #58), Gemma vision (#59) before 4C. #56 (slim `CLAUDE.md`) approved as a Claude task. Checklist +9.
 - **2026-10-07 (v40)** — **Long-context slice added** (user: "1 for now 5 later"): per-slot context 4,096 → 16K, then 32K only if 16K passes; runs after the routing fix; prefill time is the real limit (~85 tok/s, 32K ≈ 6 min); all 4K assumptions become config. **A faster Mac is recorded for later**, not scheduled. Checklist +2.
 - **2026-10-06 (v39)** — **Deep research added as one feature, sub-slice 4.5e** (user: "for deep-research add the single feature"): `kildall research` — angles → search → fetch + guard → claims with quotes → 3-vote verification (failed votes = unverified) → cited report; a queued job; after 4.5b and 4.5d. Checklist +3 → **203 items**.
