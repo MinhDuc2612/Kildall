@@ -155,6 +155,9 @@ def main():
     database = work / "kildall.db"
     config = tomllib.loads((root / "kildall.toml").read_text())
     source = (root / "kildall.toml").read_text()
+    # Keep the existing local-context failure gate; cloud overflow is tested separately.
+    source = source.replace('[cloud]\nenabled = true', '[cloud]\nenabled = false')
+    assert not tomllib.loads(source).get('cloud', {}).get('enabled', False)
     paths = [(value, str((root / value).resolve())) for value in config["paths"].values()]
     paths += [(config["lanes"]["a"]["model"], str(root / config["lanes"]["a"]["model"])),
               (config["memory"]["embedding_model"], str(root / config["memory"]["embedding_model"])),

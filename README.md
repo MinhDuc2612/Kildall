@@ -31,7 +31,7 @@ three retries**. The separate DWQ benchmark retains **18/20 first-pass, 20/20
 after two retries**. Historical IQ3 also scored18/20; keep each run and backend distinct.
 Product routing overhead averages **5.057 seconds**, including five cache misses;
 the15 cache hits average **0.888 seconds**. Longer replies can evict the cached
-catalog, so sub-second routing is not guaranteed. B/C execution is unavailable.
+catalog, so sub-second routing is not guaranteed. B/C local execution remains unavailable.
 
 Phase 3 permissions validated on 2026-09-22: prompt-independent refusals,
 terminal-confirmed diffs and a scoped nuke dry-run. Recall, abstention, routing,
@@ -118,7 +118,7 @@ Model files, databases, backups and runtime logs stay out of Git.
 Requests too long for that compact catalog use the existing three-call hierarchy
 within the4,096-token context; requests are never silently shortened. Neither path
 verifies the proposed leaf match, and either can report an unmatched operation.
-`ask --lane a` skips classification. Oversized requests fail visibly.
+`ask --lane a` skips classification. Oversized requests can use the free cloud fallback below.
 Legacy `kildall "..."` and `kildall --continue` retain their
 direct Lane A behavior. `ask --continue` resumes with routing enabled.
 
@@ -131,15 +131,16 @@ the companion plan's named defaults. Specialist operations use the explicit
 catalog pick and explaining any difference in the log. Ordinary assistance stays on resident
 Lane A. Specialist lane estimates are not RAM or quality qualifications.
 
-Only Lane A executes. B/C choices print `would route to <model> (Lane B) — not
-installed` (or Lane C) and exit **3**, without executing or substituting another
-model. `job submit` forces C and exits **0 once its deferred intent is saved**;
-Lane C remains parked pending external storage. No background execution or
-automatic completion is scheduled. A job ID is its decision ID.
+Only Lane A is installed locally. With `[cloud].enabled = true`, unavailable B/C
+choices and inputs exceeding local context may use the ordered free cloud providers.
+An ordinary Lane A request stays local regardless of speed. With cloud disabled,
+B/C choices retain the recorded `not installed` result; `job submit` records a
+deferred Lane C intent. With cloud enabled, `job submit` attempts its cloud answer
+synchronously. No background job scheduler or local Lane C model is installed.
 
 Every routed request records its task, project/session, skill, lane, model,
 reason, source status and outcome in SQLite `orbi_routes`. `succeeded` is true
-only after Lane A finishes, false on failure/cancellation/crash, and null for
+only after an answer finishes, false on failure/cancellation/crash, and null for
 unexecuted decisions/jobs. These records are included in the existing database
 backups. No learning or reweighting uses the log.
 
@@ -154,6 +155,49 @@ Run `.venv/bin/python test_routing.py` for persistence and failure controls;
 `test_routing.py --live` measures all 20 unchanged r-cases through the product
 path using isolated data. It reports final lane accuracy separately from the
 classifier's category accuracy.
+
+## Free cloud and Keychain
+
+```sh
+kildall keys import                    # reads ~/.config/orbi/keys.env; keeps it
+kildall keys import /path/to/keys.env
+kildall keys check                     # Keychain availability, not an API charge/probe
+kildall cloud enable llm7              # explicit reset of a billing lockout
+```
+
+Imports use login Keychain service `kildall`, variable names as accounts, stdin-only
+credential writes and read-back hash verification. Output contains names/statuses.
+Excluded Google/Gemini and Groq accounts are never imported or called. `keys check`
+also remembers custom account names imported by this CLI, without storing values
+in SQLite. Keys are read at call time; outgoing bodies and returned text are scrubbed.
+
+Provider order and exact IDs live in `kildall.toml`: LLM7 (anonymous or free token),
+anonymous OVH, then OpenRouter's exact free variants. A provider with no key is
+inactive unless explicitly keyless. Anonymous LLM7 returned a live answer on2026-10-07,
+despite current documentation requiring a token. This measured access may change.
+Its free-token daily ceiling is applied conservatively to anonymous requests;
+the anonymous service does not document that allowance.
+Other researched providers remain unconfigured
+until their exact free models and access requirements are established. Quotas and
+data policies remain labelled `unverified`; an undocumented quota is not a promise
+of unlimited use. No paid model fallback or automatic model discovery is enabled.
+
+SQLite records per-provider attempts and token usage. Admission reserves usage
+before sending, stopping at90% of documented daily limits (LLM7 uses rolling24h).
+Uncertain requests retain conservative usage reservations. Token admission uses
+a UTF-8 byte upper bound, so some long inputs may be rejected conservatively.
+429/5xx/timeouts cause cooldown; Retry-After is honored. 401/403 invalidates that
+credential until it changes. Billing errors disable the provider until the explicit
+`cloud enable` command. Exhaustion reports `cloud exhausted — answering locally`.
+If that input also exceeds Lane A's context, the existing context error remains
+visible; the input is never silently shortened.
+
+Cloud tool calls have no GBNF. They must match the same schema and enter
+`permissions.execute`; malformed or credential-bearing calls are rejected without
+repair. Confirm and Never tiers, hook boundaries and the computer-use guard hold.
+Local regression runners explicitly disable cloud for their original fixtures;
+`test_cloud.py` verifies cloud admission, rotation and executor boundaries with a
+localhost mock server. No guard model, web fetcher or MCP is added in this slice.
 
 Python is pinned to `>=3.12,<3.13`; `requirements.lock` pins the packages.
 See [BASELINE.md](BASELINE.md) for the recorded measurements and

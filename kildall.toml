@@ -41,3 +41,48 @@ port = 8123
 embedding_port = 8124
 context_size = 4096
 parallel = 3 # Routing candidate B: router0/work1-2; total12288, 4096 per slot.
+
+[cloud]
+enabled = true
+
+# Ordered exact free-access IDs. Quotas and data policies remain unverified.
+# Anonymous LLM7 chat returned200 on2026-10-07; current docs say token required.
+[cloud.providers.llm7]
+base_url = "https://api.llm7.io/v1"
+key_name = "LLM7_API_KEY"
+keyless = true
+allowed_models = ["codestral-latest"]
+context_tokens = 32000
+daily_tokens = 100000
+quota_window = "rolling_24h"
+requests_per_minute = 60
+requests_per_hour = 250
+min_interval_seconds = 1
+limits_status = "unverified"
+limits_source = "https://docs.llm7.io/limits (Cloudcall daily limit unspecified)"
+trains_on_data = "unknown"
+
+# Anonymous only: never attach an authenticated, billed OVH account.
+[cloud.providers.ovh]
+base_url = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+key_name = ""
+keyless = true
+allowed_models = ["gpt-oss-20b"]
+context_tokens = 131072
+daily_requests = 0 # undocumented, not an unlimited-service claim
+requests_per_minute = 2
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/ovhcloudccapi.md; official anonymous access 2 RPM"
+trains_on_data = false
+
+[cloud.providers.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+key_name = "OPENROUTER_API_KEY"
+allowed_models = ["nvidia/nemotron-3-super-120b-a12b:free", "nvidia/nemotron-3-ultra-550b-a55b:free", "poolside/laguna-s-2.1:free", "cohere/north-mini-code:free"]
+context_tokens = 32000 # conservative client ceiling
+daily_requests = 50
+quota_window = "utc_day"
+requests_per_minute = 20
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/freellmapiccapi.md"
+trains_on_data = true

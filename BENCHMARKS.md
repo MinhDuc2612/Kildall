@@ -2235,3 +2235,52 @@ Never guard remains enforced; MLX remains closed; HF sync remains paused. Extern
 vault commits33c39a7/674cc4e/69ff785 advanced planning through v41 during this run;
 this slice did not author planning or research changes. Router warmth, ops
 hardening and other newly queued improvements remain separate work.
+
+## Phase 4.5a — keys and cloud (2026-10-07)
+
+PR #5 merged by ordinary fast-forward; independent ls-remote confirmed main d82609ac6c14c5b97b7bd0832a2058fe3287743c. Work branches from it on phase4.5a-keys-cloud. Evidence: `.session/phase4.5a-20261007/`.
+
+Provider capability audit found stale Cloudcall LLM7 keyless guidance: current [models](https://docs.llm7.io/guides/models) and [limits](https://docs.llm7.io/limits) require a free token for turbo models. Exact codestral-latest is eligible; free quota100000 tokens/rolling24h. LLM7_API_KEY is empty. Live gate is pending a user-supplied free token, not passed or silently substituted. Excluded Gemini/Groq values were neither displayed nor imported; both remain included in the final leak audit. OVH anonymous gpt-oss-20b and exact OpenRouter free IDs have primary-source evidence; other Cloudcall candidates lack sufficient free-entitlement/ID evidence and stay unconfigured. Audit details in provider-audit.md. No inference performed during this audit; HF remains paused.
+
+Retained failure: cloud-controls-01.log exited1,10/11 groups passed. Cooldown HTTP-date fixture rewinds its clock between cases; minimum interval0 was still compared against a future request timestamp, skipping admission rather than applying Retry-After. Corrected the optional minimum-interval guard to run only when configured; original failed log retained. This was a deterministic control failure, no live inference.
+
+Fresh paired-protocol routing gate: category20/20, lane20/20, r17 X→C=True; mean 1.6542225000000002s, p50 0.856715s, p99 16.669059s; cold/warm {'cold': 1, 'warm': 19}. Mean<=1.78s: True. One predefined run, no repeated percentile selection. Evidence routing/summary.json; local fixture execution explicitly cloud-disabled.
+
+LLM7 live anonymous probe: {"http_status": 200, "passed": false, "seconds": 0.8771921250154264, "error_type": "ValueError"}. Exact codestral-latest,16max output tokens, no credentials or Authorization header. Evidence llm7-anonymous-live.json. This records the actual live result separately from the documentation audit.
+
+Correction from actual live evidence: LLM7 anonymous request returned HTTP200, READY,14tokens. The earlier docs-only conclusion that a token was required was not true for this endpoint today. The live adapter run remains failed: standard tool_calls:null was rejected. Accepting that nullable no-call field fixes protocol compatibility without changing any tool arguments; strict duplicate-field rejection was also added for raw cloud JSON. LLM7 now explicitly keyless in config with optional Keychain token. No excluded provider or other cloud endpoint called. Failed llm7-anonymous-live.json retained; corrected production-client verification will be a separate artifact.
+
+Frozen recall passed20/20 on one slot and20/20 each on slots1/2, requests identical after authorized historical path normalization. Source-v1.json retained for routing/recall; subsequent changes affect only cloud parsing/tests and keyless metadata, all local runtime/lanes/memory configuration identical to main. Local regression configs disable cloud, so those measured local requests are unaffected. Source.json now pins corrected cloud revision for remaining gates.
+
+- Retained cloud-controls-03.log: anonymous LLM7 control failed because absent optional key remained None at fingerprinting. Canonicalized the absent credential to empty string for anonymous admission; no credential value or tool argument changed. Fixed before further inference.
+
+Corrected production Client live gate: True; LLM7 codestral-latest returned READY via one anonymous request in 1.1385310409823433s. No Authorization/account credential or billing identity, free anonymous access; $0 basis is that anonymous path (no account-billing visibility). Usage rows retained in llm7-live.db; llm7-client-live.json records request and result. No other provider called because no eligible non-excluded key exists.
+
+### Final Phase4.5a gates
+
+| Gate | Result |
+|---|---|
+| Real login-Keychain stdin import/read-back and cleanup | PASS; temporary canary removed and absence verified |
+| Installed keys import/check | exit0; source unchanged; excluded accounts skipped; no eligible populated source keys |
+| Mock HTTP and cloud integration | 11/11 groups;200/429/401/403/402/5xx/timeout/Retry-After/exhaustion;90% quotas and persistent states |
+| T2 fake-key outbound body + response scrub | PASS; all imported/configured account values covered; no credentials in argv |
+| T6 schema and executor | PASS; malformed/duplicate/altered calls rejected without repair; SYSTEM_RULES empty Never checks hold |
+| Live LLM7 | PASS: anonymous codestral-latest returned READY,14tokens; $0 anonymous path, no account/billing identity |
+| Other live providers | Not called: no eligible non-excluded key exists; no substitute OVH live gate |
+| Full source-key scan after live | 0hits for every populated source value, including excluded Gemini/Groq;14275files/982319638bytes plus logical liveDB scan; integrity_check=ok |
+| Product routing | category20/20, lane20/20, r17X→C; mean1.6542225s<=1.78s; p50=0.856715s,p99=16.669059s;1cold/19warm |
+| Frozen recall, one slot | 20/20 |
+| Identical recall on answer slots | slot1:20/20; slot2:20/20 |
+| Abstention / extra category / callable JSON | 20/20 each |
+| Exact tools | 17/20 first-pass;20/20 post-retry; t07/t09/t12 unchanged |
+| CLI / hooks | 18/18;5/5 |
+| Phase3/4.1/4.2/4.4 + slot isolation | PASS;19final scripts including two new credential/cloud suites |
+| Nuke dry-run | 30715entries;0outside ~/Kildall/code;0outward rejections; all3Python link objects included |
+| check.sh / installed kildall and orbi help | exit0 each |
+| Frozen files / runtime / read-only vault | SHA checks hold;44source/config hashes verified; owned servers stopped; wired20480; planning/logo hashes unchanged |
+
+Failed runs remain failures: initial cooldown control, first live-response nullable-field rejection, and optional-key fingerprint control. Corrected runs are separate artifacts. No local score/latency run was repeated to obtain a pass. The local routing/CLI harness changes only disable cloud in isolated test configuration; frozen requests/scoring remain unchanged. Source-v1 records the completed routing/recall build; subsequent cloud-only parsing/keyless corrections do not affect cloud-disabled local requests or any runtime flags. Final controls and quality/CLI use the corrected source manifest.
+
+LLM7 docs currently require tokens but the live endpoint accepted anonymous chat. Anonymous availability and quota are unverified; the documented free-token90k/24h client stop is applied conservatively to anonymous use, not claimed as its service allowance. Other Cloudcall providers without verified exact free IDs/entitlements remain unconfigured. Unknown daily quotas remain explicitly unknown. Key checks report storage availability, not remote key validity;401/403 validity is tracked during calls. On exhausted cloud plus an oversized local prompt, Kildall prints the fallback notice and then the existing context error, without silently truncating input.
+
+Evidence and SHA-linked aggregate: `.session/phase4.5a-20261007/final-gates.json`. Web/guard4.5b, MCP, council/deep research and4C are deferred. The computer-use placeholder remains; MLX remains closed; no models downloaded or HF sync invoked.

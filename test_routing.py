@@ -198,6 +198,8 @@ def live(*, stop_runtime=True):
     directory.mkdir()
     assert directory.is_dir()
     config = kildall.settings()
+    # Standing local-model scores must never dispatch these fixtures to a provider.
+    config['cloud'] = dict(config.get('cloud', {}), enabled=False)
     config["paths"]["db_path"] = directory / "routing.sqlite3"
     kildall.initialize(config["paths"]["db_path"])
     project = str(directory)

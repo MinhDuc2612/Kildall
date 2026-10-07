@@ -76,6 +76,8 @@ def strict_json(text):
 def settings():
     path = Path(os.environ.get("KILDALL_CONFIG", os.environ.get("ORBI_CONFIG", ROOT / "kildall.toml"))).resolve()
     config = tomllib.loads(path.read_text())
+    from cloud import providers
+    providers(config)
     for key, value in config["paths"].items():
         if not value:
             raise ValueError(f"Configure paths.{key} in {path}")
@@ -401,6 +403,12 @@ def history(path, session):
     return groups
 
 
+class ContextOverflow(ValueError):
+    def __init__(self, messages):
+        super().__init__('This request exceeds the 4,096-token context; shorten it')
+        self.messages = messages
+
+
 def fit_messages(config, system, memory_text, previous, current, *, tools=None, cancel=None):
     tools = BASE_TOOLS if tools is None else tools
     transport = {'cancel': cancel} if cancel is not None else {}
@@ -419,7 +427,7 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
         elif memory_text:
             memory_text = memory_text[:len(memory_text) // 2]
         else:
-            raise ValueError("This request exceeds the 4,096-token context; shorten it")
+            raise ContextOverflow(messages)
 
 
 def stream_reply(config, messages, task, *, tools=None):
@@ -471,6 +479,18 @@ def system_prompt(project):
 
 
 def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None, agents=None):
+    cloud_enabled = config.get('cloud', {}).get('enabled', False)
+    if cloud_enabled:
+        from cloud import credential_names, providers
+        from cloud_keys import KeychainError, get_key, redact
+        try:
+            names = credential_names(config['paths']['db_path'],
+                                     (p['key_name'] for p in providers(config).values() if p['key_name']))
+            secrets = tuple(get_key(name) for name in names)
+        except KeychainError:
+            secrets = ()  # Cloud admission separately fails closed; local answers remain available.
+        prompt = redact(prompt, tuple(s for s in secrets if s))
+    cloud_needed, cloud_client, cloud_exhausted = False, None, False
     task = Task(config["paths"]["db_path"], session)
     # Extra schemas change model behavior even on unrelated requests. Keep the
     # established surface until the user explicitly requests a Git/skill task.
@@ -500,7 +520,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
             ensure_runtime(config)
             decision = decide(config, prompt, forced_lane={"a": "A", "job": "C"}.get(route_mode))
             route_status = ("deferred_not_installed" if route_mode == "job" else "not_installed") \
-                if decision["lane"] != "A" else "running"
+                if decision["lane"] != "A" and not cloud_enabled else "running"
             with database(task.path) as db:
                 if db.execute("UPDATE orbi_routes SET skill=?,lane=?,model=?,status=?,decision=?,updated=? WHERE task=?",
                               (decision["skill"], decision["lane"], decision["model"], route_status,
@@ -508,7 +528,10 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                     raise RuntimeError("Routing decision disappeared while saving")
             if explain:
                 print(f"Decision {task.id}: {describe(decision)}", file=sys.stderr, flush=True)
-            if decision["lane"] != "A":
+            if decision["lane"] != "A" and cloud_enabled:
+                cloud_needed = True
+                route_status = 'running'
+            elif decision["lane"] != "A":
                 text = f'would route to {decision["model"] or "unassigned model"} (Lane {decision["lane"]}) — not installed'
                 text += f"\n{'Job deferred' if route_mode == 'job' else 'Decision'}: {task.id}"
                 if route_mode == "job":
@@ -527,8 +550,33 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
         recalled = memory.retrieve(prompt, project=project)
         memory_text = recalled["text"]
         for _ in range(8):
-            messages = fit_messages(config, system, memory_text, previous, current, **tool_options)
-            reply = stream_reply(config, messages, task, **tool_options)
+            overflow = None
+            try:
+                messages = fit_messages(config, system, memory_text, previous, current, **tool_options)
+            except ContextOverflow as error:
+                if not cloud_enabled or cloud_exhausted:
+                    raise
+                messages, overflow, cloud_needed = error.messages, error, True
+            cloud_reply = False
+            reply = None
+            if cloud_needed and not cloud_exhausted:
+                from cloud import Client, EXHAUSTED
+                if cloud_client is None:
+                    cloud_client = Client(config)
+                task.set('waiting')
+                reply = cloud_client.reply(messages, tool_options.get('tools', BASE_TOOLS), task.id)
+                if reply is None:
+                    cloud_exhausted = True
+                    print(EXHAUSTED, file=sys.stderr, flush=True)
+                    task.message(dict(role='assistant', content=EXHAUSTED))
+                    if overflow is not None:
+                        raise overflow
+                else:
+                    cloud_reply = True
+                    task.message(reply)
+                    print(reply['content'], end='', flush=True)
+            if reply is None:
+                reply = stream_reply(config, messages, task, **tool_options)
             current.append(reply)
             answer.append(reply["content"])
             if not reply.get("tool_calls"):
@@ -560,6 +608,9 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                             raise ValueError("Invalid remember arguments")
                         issues = copy_issues(prompt, function, args)
                         if issues:
+                            if cloud_reply:
+                                permission['update'](status='rejected', reason='Cloud verbatim argument rejected; no repair')
+                                raise ValueError('Cloud tool call rejected: verbatim argument differs')
                             if copy_retry_used:
                                 raise ValueError("Verbatim copy still differs after one retry")
                             copy_feedback = retry_feedback(issues)
@@ -652,6 +703,8 @@ def schedule_backups(config):
 
 def main():
     argv = sys.argv[1:]
+    if argv[:1] in (["keys"], ["cloud"]):
+        return cloud_main(argv)
     if argv[:1] in (["tool"], ["permissions"], ["nuke"], ["skills"]):
         return permission_main(argv)
     route_mode = None
@@ -768,6 +821,41 @@ def main():
         return 141
     except (OSError, ValueError, RuntimeError, sqlite3.Error, subprocess.SubprocessError) as error:
         print(f"kildall: {error}", file=sys.stderr)
+        return 1
+
+
+def cloud_main(argv):
+    from cloud_keys import DEFAULT_SOURCE, check_keys, import_keys
+    from cloud import Client, credential_names, providers
+    parser = argparse.ArgumentParser(description='Keychain credentials and free cloud providers')
+    commands = parser.add_subparsers(dest='action', required=True)
+    if argv[0] == 'keys':
+        commands.add_parser('import').add_argument('file', nargs='?', type=Path, default=DEFAULT_SOURCE)
+        commands.add_parser('check')
+    else:
+        commands.add_parser('enable').add_argument('provider')
+    args = parser.parse_args(argv[1:])
+    os.umask(0o077)
+    try:
+        if args.action == 'import':
+            rows = import_keys(args.file)
+            path = settings()['paths']['db_path']
+            credential_names(path)
+            with database(path) as db:
+                db.executemany('INSERT OR IGNORE INTO cloud_accounts(name) VALUES(?)',
+                               [(r['name'],) for r in rows if r['status'] == 'verified'])
+        elif args.action == 'check':
+            config = settings()
+            rows = check_keys(credential_names(config['paths']['db_path'],
+                              (p['key_name'] for p in providers(config).values() if p['key_name'])))
+        else:
+            Client(settings()).enable(args.provider)
+            rows = [dict(name=args.provider, status='enabled')]
+        for row in rows:
+            print(f"{row['name']}: {row['status']}")
+        return int(any(row['status'] in ('failed', 'unreadable') for row in rows))
+    except (OSError, ValueError, RuntimeError, sqlite3.Error):
+        print('kildall: credential/provider operation failed; no secret details logged', file=sys.stderr)
         return 1
 
 
