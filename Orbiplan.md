@@ -445,7 +445,7 @@ and a crashing server do not block startup; a Never-matching MCP call is refused
 **4.5d — Model Council** (opt-in `--council`, off by default). Lane A + 2–3 cloud providers from different
 model families answer alone (each capped at 600 tokens); the local chair (Lane A) reads them anonymised and
 outputs **Agree · Differ · Best answer**. Fewer than 2 cloud answers → Lane A alone, and it says so. Copies the
-pattern, not `karpathy/llm-council` code (no licence). **Gates:** end-to-end with ≥ 2 live cloud members, $0,
+pattern, not `karpathy/llm-council` code (no licence). **Gates:** first prove OVHcloud answers live, keyless (configured in 4.5a, never called); end-to-end with ≥ 2 live cloud members, $0,
 fallback works, transcript kept for Phase 7. **Adoption stays a Phase 7 gate:** kept only if it beats Lane A on
 the eval harness (#13).
 
@@ -1041,6 +1041,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-07** — **4.5a reviewed (PR #6, `10bad9b`): accepted.** Exclusions enforced in code, keys via stdin, leak scan 0, routing 1.654 s, live LLM7 $0. Gap: OVHcloud configured but never called live — added as the first 4.5d gate.
 - **2026-10-07** — **Google Gemini and Groq removed from the cloud plan** (user decision). 4.5a must never list, import or call them. ⚠️ Consequences: keyless providers left are **LLM7 and OVHcloud AI Endpoints** (both anonymous per `Cloudcall/`; limits undocumented, throttled first) — so **4.5d can still reach 2 live cloud members** if their model families differ; more keys widen it. The large-context cloud fallback loses Gemini's ~1M window. *(Corrected same day: an earlier note said only LLM7 was keyless.)* Research files in `Researchhub/` are unchanged.
 - **2026-10-07** — **Routing fix reviewed (PR #5, `d82609a`, not merged): accepted.** Option B — 3 slots, router on slot 0, work on 1–2: routing mean **1.618 s** (from 6.467 s), cold 1/20, all gates held, option A failed and is recorded. Cost: soak **18/103/0** (was 121/0/0), peak RSS 13.21 GB. Plan updated: 4.5a routing gate → 1.78 s; long-context slice must check unified KV first and must not exceed 103/121 warnings. 4.5a was never started; it is next in the queue.
 - **2026-10-07 (v41)** — **24 improvements added, #52–#75** (user: "add all of them"); 9 scheduled early as small slices in a new "Queued small slices" order: router warmth (#62, #63), ops hardening (#52–#55), quality (#57, #58), Gemma vision (#59) before 4C. #56 (slim `CLAUDE.md`) approved as a Claude task. Checklist +9.
