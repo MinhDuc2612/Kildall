@@ -407,6 +407,8 @@ Order is fixed: the council needs the cloud; the guard must exist before web tex
   account = variable name, via `security -i` on stdin; verified by read-back hash; prints names and status
   only. The file stays (deleting it needs your OK). `kildall keys check` replaces `check_keys.py`, reading
   the Keychain, same never-print rule.
+- **Keyless now:** LLM7 and OVHcloud AI Endpoints (anonymous; limits undocumented). Kilo Code needs no key but is not an
+  inference provider — include it only if its endpoint serves chat completions.
 - 🔴 **Excluded providers: Google Gemini and Groq** (user decision 2026-10-07). Never listed in `[cloud]`, never imported
   to the Keychain, never called — even though `keys.env` still holds their values.
 - `[cloud]` in `kildall.toml`: ordered providers — base URL, key name, **allowed free model ids**, limits from
@@ -1039,7 +1041,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
-- **2026-10-07** — **Google Gemini and Groq removed from the cloud plan** (user decision). 4.5a must never list, import or call them. ⚠️ Consequences: with only LLM7 (keyless) active, **4.5d Model Council cannot reach its ≥ 2 live cloud members** and 4.5e gets fewer verification votes until you add keys for other providers; the large-context cloud fallback loses Gemini's ~1M window. Research files in `Researchhub/` are unchanged.
+- **2026-10-07** — **Google Gemini and Groq removed from the cloud plan** (user decision). 4.5a must never list, import or call them. ⚠️ Consequences: keyless providers left are **LLM7 and OVHcloud AI Endpoints** (both anonymous per `Cloudcall/`; limits undocumented, throttled first) — so **4.5d can still reach 2 live cloud members** if their model families differ; more keys widen it. The large-context cloud fallback loses Gemini's ~1M window. *(Corrected same day: an earlier note said only LLM7 was keyless.)* Research files in `Researchhub/` are unchanged.
 - **2026-10-07** — **Routing fix reviewed (PR #5, `d82609a`, not merged): accepted.** Option B — 3 slots, router on slot 0, work on 1–2: routing mean **1.618 s** (from 6.467 s), cold 1/20, all gates held, option A failed and is recorded. Cost: soak **18/103/0** (was 121/0/0), peak RSS 13.21 GB. Plan updated: 4.5a routing gate → 1.78 s; long-context slice must check unified KV first and must not exceed 103/121 warnings. 4.5a was never started; it is next in the queue.
 - **2026-10-07 (v41)** — **24 improvements added, #52–#75** (user: "add all of them"); 9 scheduled early as small slices in a new "Queued small slices" order: router warmth (#62, #63), ops hardening (#52–#55), quality (#57, #58), Gemma vision (#59) before 4C. #56 (slim `CLAUDE.md`) approved as a Claude task. Checklist +9.
 - **2026-10-07 (v40)** — **Long-context slice added** (user: "1 for now 5 later"): per-slot context 4,096 → 16K, then 32K only if 16K passes; runs after the routing fix; prefill time is the real limit (~85 tok/s, 32K ≈ 6 min); all 4K assumptions become config. **A faster Mac is recorded for later**, not scheduled. Checklist +2.
