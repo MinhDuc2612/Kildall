@@ -77,15 +77,17 @@ def request_slot(endpoint):
     """Direct generation clients borrow work capacity, never the router slot."""
     from kildall import settings, url
     endpoint = endpoint.removesuffix('/v1/chat/completions').removesuffix('/completion')
-    selected = _SLOT.get()
-    if selected and selected[0] == endpoint:
-        yield
-        return
-    config = settings()
-    if endpoint != url(config):
-        raise ValueError('Unbound inference must use the configured local runtime')
-    with turn_slot(config):
-        yield
+    from router_warmth import foreground
+    with foreground(endpoint):
+        selected = _SLOT.get()
+        if selected and selected[0] == endpoint:
+            yield
+            return
+        config = settings()
+        if endpoint != url(config):
+            raise ValueError('Unbound inference must use the configured local runtime')
+        with turn_slot(config):
+            yield
 
 
 @contextmanager
@@ -126,14 +128,15 @@ def wait_idle(config, slot, *, cancel=None):
 
 
 @contextmanager
-def lease(config, slot, *, blocking=True):
-    from kildall import ROOT
+def lease(config, slot, *, blocking=True, cancel=None):
+    from kildall import ROOT, url
+    from router_warmth import foreground
     count = config['runtime'].get('parallel', 1)
     if type(slot) is not int or not 0 <= slot < count <= 3:
         raise ValueError('Slot exceeds measured capacity')
     directory = ROOT / '.session'
     directory.mkdir(exist_ok=True)
-    with (directory / f"slot-{config['runtime']['port']}-{slot}.lock").open('a') as lock:
+    with foreground(url(config)), (directory / f"slot-{config['runtime']['port']}-{slot}.lock").open('a') as lock:
         while True:
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -143,7 +146,7 @@ def lease(config, slot, *, blocking=True):
                     raise PermissionError('Shared slot is owned by another task')
                 time.sleep(.05)
         try:
-            wait_idle(config, slot)
+            wait_idle(config, slot, **({'cancel': cancel} if cancel is not None else {}))
             yield
         finally:
             fcntl.flock(lock, fcntl.LOCK_UN)

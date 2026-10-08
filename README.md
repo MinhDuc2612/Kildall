@@ -82,6 +82,16 @@ limit is 4,096 tokens. Generation uses a bounded native prefix cache
 (`--cache-ram 768 --ctx-checkpoints 3`); embeddings keep caching disabled.
 After updating from the old runtime flags, run `kildall --stop` before restarting.
 
+The router's system/catalog prefix is saved under the git-ignored
+`.session/router-prefix/`. Startup validates the full model, prompt, catalog and
+server configuration before restoring it. The pinned b10809 runtime does not save
+SWA checkpoints, so startup still rebuilds those with a prefix-only request before
+becoming ready; disk restore alone does not remove that prefill cost. No user
+request is saved in this file. An owned idle worker rebuilds a missing prefix and
+cancels its HTTP request when foreground work arrives. An already executing Metal
+batch cannot be preempted; pinned-slot cancellation is drained before reuse.
+`kildall --stop` stops the maintenance worker and both model servers.
+
 Memory uses SQLite WAL, BM25 and real semantic vectors, with hard limits of
 12 items, 4,000 rendered characters and 300 ms. Personal facts are global;
 project facts and sessions use the current directory. Ask Kildall to remember a

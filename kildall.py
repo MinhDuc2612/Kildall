@@ -100,10 +100,18 @@ def url(config, embedding=False):
 
 
 def json_request(endpoint, body=None, timeout=30, *, cancel=None):
+    from router_warmth import completed, foreground
     if body is not None and endpoint.endswith(('/completion', '/v1/chat/completions')):
         from subagents import inference_body, request_slot
         with request_slot(endpoint):
-            return _json_request(endpoint, inference_body(endpoint, body), timeout, cancel=cancel)
+            admitted = inference_body(endpoint, body)
+            completed(endpoint, admitted, None)
+            result = _json_request(endpoint, admitted, timeout, cancel=cancel)
+            completed(endpoint, admitted, result)
+            return result
+    if body is not None and endpoint.endswith(('/apply-template', '/tokenize')):
+        with foreground(endpoint):
+            return _json_request(endpoint, body, timeout, cancel=cancel)
     return _json_request(endpoint, body, timeout, cancel=cancel)
 
 
@@ -147,6 +155,7 @@ def owns_server(record):
 
 
 def ensure_runtime(config, stop=False, *, lane_only=False):
+    import router_warmth
     slots = config['runtime'].get('parallel', 1)
     if type(slots) is not int or not 1 <= slots <= 3:
         raise ValueError('This machine is limited to at most three shared slots')
@@ -157,6 +166,7 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
         fcntl.flock(lock, fcntl.LOCK_EX)
         state = strict_json(state_file.read_text()) if state_file.exists() else {}
         if stop:
+            router_warmth.stop_monitor(config)
             for record in state.values():
                 if owns_server(record):
                     os.kill(record["pid"], signal.SIGINT)
@@ -185,6 +195,8 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                                for flag, value in (("--cache-ram", "768"), ("--ctx-checkpoints", "3"),
                                                    ("-np", str(slots)), ("-c", str(config['runtime']['context_size'] * slots)))):
                             raise RuntimeError("Lane A runtime settings changed; run kildall --stop before restarting")
+                        if slots > 1:
+                            router_warmth.start_monitor(config, state[name])
                     continue
                 binary = config["runtime"]["server"]
                 if not binary.is_file() or not model.is_file():
@@ -204,6 +216,13 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
                         "-c", str(config["runtime"]["context_size"] * slots), "-b", "128", "-ub", "128",
                         "--jinja", "--reasoning", "off", "--perf"]
+                    if slots > 1:
+                        router_warmth.stop_monitor(config)
+                        prefix_dir = directory / 'router-prefix'
+                        prefix_dir.mkdir(mode=0o700, exist_ok=True)
+                        if prefix_dir.is_symlink() or prefix_dir.resolve() != prefix_dir.absolute():
+                            raise ValueError('Router prefix directory must not follow symlinks')
+                        command += ['--slot-save-path', str(prefix_dir)]
                 environment = dict(os.environ, XDG_CACHE_HOME=str(directory.parent / ".cache"),
                                    TMPDIR=str(directory.parent / ".tmp"))
                 Path(environment["TMPDIR"]).mkdir(exist_ok=True)
@@ -225,15 +244,20 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     if time.monotonic() >= deadline:
                         raise TimeoutError(f"{name} did not become healthy in 120 seconds")
                     time.sleep(.2)
+                if not embedding and slots > 1:
+                    router_warmth.initialize(config, state[name], command)
         except BaseException:
-            for process in created:
-                if process.poll() is None:
-                    process.send_signal(signal.SIGINT)
-                    try:
-                        process.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
-                        process.wait()
+            try:
+                router_warmth.stop_monitor(config)
+            finally:
+                for process in created:
+                    if process.poll() is None:
+                        process.send_signal(signal.SIGINT)
+                        try:
+                            process.wait(timeout=10)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.wait()
             raise
 
 

@@ -2284,3 +2284,58 @@ Failed runs remain failures: initial cooldown control, first live-response nulla
 LLM7 docs currently require tokens but the live endpoint accepted anonymous chat. Anonymous availability and quota are unverified; the documented free-token90k/24h client stop is applied conservatively to anonymous use, not claimed as its service allowance. Other Cloudcall providers without verified exact free IDs/entitlements remain unconfigured. Unknown daily quotas remain explicitly unknown. Key checks report storage availability, not remote key validity;401/403 validity is tracked during calls. On exhausted cloud plus an oversized local prompt, Kildall prints the fallback notice and then the existing context error, without silently truncating input.
 
 Evidence and SHA-linked aggregate: `.session/phase4.5a-20261007/final-gates.json`. Web/guard4.5b, MCP, council/deep research and4C are deferred. The computer-use placeholder remains; MLX remains closed; no models downloaded or HF sync invoked.
+
+## Router warmth — source, failures and gates (2026-10-08)
+
+PR#6 fast-forwarded; remote main10bad9b verified. Native probe01 failed its saved-token assertion: outer file token-count3866 includes server_tokens metadata around3862actual prefix tokens. Raw artifacts retained under `.session/router-warmth-20261007/native-probe-01`; runtime stopped. The request contained only system/catalog text, n_predict0, and b10809 still sampled one output token; saved n_saved=3862,153504636bytes. Decode packed format from pinned source before claiming token privacy or restore efficacy. No frozen fixtures or production behavior changed in this probe.
+
+Native diagnostic02 (failed warmth): packed token decoding passed, saved153504636bytes with exactly3862system/catalog tokens; restore API succeeded but first route16.596738291s/cache0. Pinned server tokenization always adds BOS for string/chat requests; diagnostic token array incorrectly omitted BOS. Retained evidence; corrected probe03 adds the same BOS without changing any production request.
+
+Native diagnostic03 (failed disk-only warmth): corrected BOS and exact3863-token prefix saved153515532bytes; restore succeeded, first route16.417823625s/cache0. b10809 save/restore omits SWA checkpoints. Probe04 tests prefix-only checkpoint rebuilding after restore; its startup prefill cost is measured separately, never attributed as a disk-cache speedup.
+
+Native diagnostic04: restore + prefix-only checkpoint rebuild15.828568166s; first route0.792636166s/cache3863. This moves prefill into startup readiness; it is **not** a disk-restore prefill speedup. Saved prefix153515532bytes,3863tokens including the native BOS. b10809 does not persist SWA checkpoints or offer their import API.
+
+Deterministic-control development: warmth-controls-01 failed because its Popen mock intercepted the ps ownership query; corrected only the test mock seam. Warmth controls02/03 pass (key invalidation, exact prefix, failed restore, foreground priority, real worker lifecycle with mock HTTP). Integration01 passes real startup, restart, canary immutability and idle erase recovery. All failed artifacts retained in .session/router-warmth-20261007/.
+
+Final-source fresh-restart routing: {"exit": 0, "category": 20, "lane": 20, "mean_s": 0.8240852000000001, "p50_s": 0.823324, "p99_s": 0.9888579999999999, "counts": {"cold": 0, "warm": 20}, "group_mean_s": {"cold": null, "warm": 0.8240852000000001}, "r17_X_to_C": true, "quality_passed": true, "first_route_s": 0.86365, "zero_cold": true, "speed_passed": true, "limit_s": 1.78}; same20-case product protocol. Evidence router-warmth-20261007/routing/.
+
+Single predefined interactive run (100requests,4warmups,0children) passed: {"n": 100, "p50_s": 5.935651667008642, "p99_s": 5.982443832966965, "total_tokens": 3200, "wall_s": 593.5239212079905, "total_tok_s": 5.391526584955645, "passed": true, "limit_s": 6.726, "children": 0, "work_slot": 1}; unchanged Phase4.4 prompts and protocol, no rerun.
+
+Frozen v38 recall passed: one-slot20/20; exact requests on answer slot1:20/20, slot2:20/20. Canonical fixture888ef490698581f985dc8e2486b321d32bc1bc5bc231dc93614c7a309889090d; before/after frozen file hashes hold. Full requests match accepted IQ3 baseline after historical vault path normalization only.
+
+Standing final-source quality/CLI gates passed: abstention20/20, category20/20, callable20/20, tools17/20first and20/20post-retry, CLI18/18; accepted t07/t09/t12 unchanged. Runtime argv compared to frozen baseline: only already-approved3slots/12288context and this slice's --slot-save-path addition; all other flags identical. Evidence regressions/.
+
+Final-source child soak passed: {"passed": true, "observation_s": 600.0276210000156, "load_wall_s": 623.5551022920408, "counts": {"normal": 52, "warning": 69, "critical": 0}, "peak_process_rss_bytes": 13236273152, "peak_device_gpu_in_use_bytes": 14568046592, "peak_device_gpu_allocated_bytes": 15302115328, "batches": 26, "children": 52, "inference_p50_s": 24.247692458040547, "inference_p99_s": 25.08661616698373, "total_generated_tokens": 2932, "total_tok_s": 4.7020699848962915, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; compare PR#5 pressure18normal/103warning/0critical. Separate-process cap remains0; two shared children remain available on workslots1-2.
+
+**Failed final-source idle cancellation gate:** privacy-preemption first run closed the client socket (RemoteDisconnected recorded), but native non-streaming prefill continued beyond5s; assertion failed, runtimes stopped. Canary and real stale-key rebuild had passed before this failure. Earlier passing latency/quality/soak runs remain valid recorded measurements of source-v1, not evidence that cancellation passed. Investigating pinned streaming/progress transport; no repeat-until-pass interactive run.
+
+Corrected idle-only transport: b10809 stream+return_progress exposes socket failure after prefill batches (pinned server-http.cpp sink.write/on_complete and server-context.cpp progress path). Source-v2 changes only this idle warm branch and tests; startup and foreground request paths remain byte-for-byte behaviorally unchanged. Real privacy-preemption-v2 passes: admission0.000126250s, HTTPcancel0.007760791s, serverdrain1.504614458s. Native batches are not instantly preemptible. Raw source-v1 gates and failed cancellation are retained; no interactive latency rerun.
+
+
+### Router warmth final gate report
+
+| Gate | Result |
+| --- | --- |
+| Fresh restart,20product routes | PASS:0cold/20warm; first0.863650s,mean0.8240852s<=1.78,p50=0.823324s,p99=0.988858s |
+| Category / final lane / r17 | 20/20,20/20; r17 formal_reasoning:X -> C |
+| Prefix file privacy | PASS:153515532bytes; exactly3863system/catalog token IDs including BOS; user canary absent, file unchanged after user request |
+| Stale key | PASS: all six component mutations bypass restore in controls; real stale prompt hash rejected and rebuilt |
+| Interactive0children | PASS: one100-request run,4warmups; p50=5.935651667s,p99=5.982443833s<=6.726 |
+| Real-child soak | PASS:600.027621s observation,52children/26batches;52normal/69warning/0critical (PR#5:18/103/0) |
+| Soak process / device GPU peaks | RSS13236273152bytes; GPU in-use14568046592bytes; GPU allocated15302115328bytes, reported separately |
+| Recall v38 | 20/20 frozen one-slot;20/20 on answer slot1 and20/20 on slot2; full requests identical after established path normalization |
+| Abstention / callable / extra category | 20/20 each |
+| Tools | 17/20first-pass,20/20post-retry; accepted t07/t09/t12 unchanged |
+| CLI / hooks / standing controls | 18/18;5/5;20final control scripts pass including Phase3/4.1/4.2/4.4,slot isolation,cloud and new warmth controls |
+| Idle recovery | PASS: real streaming prefix rebuild finishes, following route is warm, saved file unchanged |
+| Foreground priority | admission0.126ms; HTTP cancellation7.761ms; native server drain1.504614s; no wait for the full16s warm-up |
+| Nuke / health | dry-run31173entries,0outside ~/Kildall/code,0outward rejections;check.sh0; both installed commands0 |
+| Frozen fixtures / source / protected vault | SHA checks held; final47Python/config files verified; planning files/logos unchanged; owned runtimes stopped,wired20480 |
+
+**Startup limitation:** matching disk files restore successfully, but b10809 omits SWA checkpoints and still requires a prefix-only rebuild. The measured rebuild is15.850813125s; complete router initialization is19.953080458s including full model hashing/save/validation, in addition to model-server startup. This relocates cold prefill before readiness; it does **not** speed up the first CLI invocation including startup. The disk file is a validated prefix artifact, not a demonstrated prefill shortcut. Native Metal batches also cannot be instantly interrupted; the1.505s drain bound above must not be described as zero GPU delay.
+
+Measurement provenance: routing, recall, quality/CLI, interactive latency and soak used source-v1. The subsequent failed real cancellation test exposed non-streaming prefill continuing after socket closure. Source-v2 changes only the idle branch of `router_warmth.warm` and its controls: all other production files and all other functions in that module match v1; an executable comparison confirms the startup request/result is unchanged. Final-source tests re-ran all20control scripts, real stale/canary/preemption, complete real SSE idle recovery, nuke and health. The single passing interactive run was not repeated. Both source manifests and `source-provenance.json` are retained; these revisions are not conflated.
+
+Pinned source: [slot restore clears checkpoints](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-context.cpp#L2619), [SWA reuse/reset](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-context.cpp#L3333), [stream writes and completion cleanup](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-http.cpp#L550). Downloaded missing source blobs were checked against the pinned Git tree; no runtime build changed.
+
+Capacity stays one resident model, router0, work1-2, two shared children, and zero additional model processes. The idle Python worker is not a model process. No cloud config, prompts, catalog, sampling, grammar or frozen server flags changed; only `--slot-save-path` was added. No later slice, computer mode, MCP, model download, MLX or HF sync. Evidence aggregate: `.session/router-warmth-20261007/final-gates.json`.
