@@ -861,7 +861,7 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **59** | ⏩ **Gemma 4 vision** — load its image projector (mmproj) | Kildall reads text in images but cannot understand them; 4C layer B needs this | RAM next to Lane A; measured |
 | **60** | **Your own good answers as examples** — retrieved past successes in the prompt | Teaches your conventions without training | Context budget |
 | **61** | **Vietnamese test set** | Frozen tests are nearly all English; you will use Vietnamese | Needs #13 |
-| **62** | ⏩ **Router prompt saved to disk** (`--slot-save-path`), reloaded after restarts | Removes the 12–18 s cold route after every restart | Disk; verify in b10809 |
+| **62** | ⏩ **Router prompt saved to disk** (`--slot-save-path`), reloaded after restarts — ⚠️ **partial (PR #7):** b10809 does not save SWA checkpoints, so startup still rebuilds the prefix (~20 s before ready); revisit when llama.cpp saves them | Removes the 12–18 s cold route after every restart | Disk; verify in b10809 |
 | **63** | ⏩ **Idle re-warm** of the router prefix after eviction | Fewer cold routes during use | Idle compute |
 | **64** | **Only the tools a request needs** in the prompt | Prefill is ~85 tok/s; shorter prompts read faster and tool choice improves | Router must name tool sets |
 | **65** | **Prompt diet** — measure and trim system and tool text | Same: prefill is the bottleneck | Must hold every gate |
@@ -1041,6 +1041,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-08** — **Router warmth reviewed (PR #7, `aef3d02`): accepted.** In use: 0 cold routes, mean 0.824 s, p99 0.989 s; soak 52/69/0 (better than 103). #62 partial — restore works but b10809 omits SWA checkpoints, so ~20 s rebuild moves to startup. Scores/latency/soak measured on source-v1; v2 changed only the idle branch (controls re-run, startup path proven unchanged).
 - **2026-10-07** — **4.5a reviewed (PR #6, `10bad9b`): accepted.** Exclusions enforced in code, keys via stdin, leak scan 0, routing 1.654 s, live LLM7 $0. Gap: OVHcloud configured but never called live — added as the first 4.5d gate.
 - **2026-10-07** — **Google Gemini and Groq removed from the cloud plan** (user decision). 4.5a must never list, import or call them. ⚠️ Consequences: keyless providers left are **LLM7 and OVHcloud AI Endpoints** (both anonymous per `Cloudcall/`; limits undocumented, throttled first) — so **4.5d can still reach 2 live cloud members** if their model families differ; more keys widen it. The large-context cloud fallback loses Gemini's ~1M window. *(Corrected same day: an earlier note said only LLM7 was keyless.)* Research files in `Researchhub/` are unchanged.
 - **2026-10-07** — **Routing fix reviewed (PR #5, `d82609a`, not merged): accepted.** Option B — 3 slots, router on slot 0, work on 1–2: routing mean **1.618 s** (from 6.467 s), cold 1/20, all gates held, option A failed and is recorded. Cost: soak **18/103/0** (was 121/0/0), peak RSS 13.21 GB. Plan updated: 4.5a routing gate → 1.78 s; long-context slice must check unified KV first and must not exceed 103/121 warnings. 4.5a was never started; it is next in the queue.
