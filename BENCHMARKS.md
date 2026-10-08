@@ -2339,3 +2339,41 @@ Measurement provenance: routing, recall, quality/CLI, interactive latency and so
 Pinned source: [slot restore clears checkpoints](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-context.cpp#L2619), [SWA reuse/reset](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-context.cpp#L3333), [stream writes and completion cleanup](https://github.com/ggml-org/llama.cpp/blob/5266f24da75dc449bd56cbed7addb9c8e4a6a73e/tools/server/server-http.cpp#L550). Downloaded missing source blobs were checked against the pinned Git tree; no runtime build changed.
 
 Capacity stays one resident model, router0, work1-2, two shared children, and zero additional model processes. The idle Python worker is not a model process. No cloud config, prompts, catalog, sampling, grammar or frozen server flags changed; only `--slot-save-path` was added. No later slice, computer mode, MCP, model download, MLX or HF sync. Evidence aggregate: `.session/router-warmth-20261007/final-gates.json`.
+
+
+## 2026-10-08 — Ops hardening #52–55 (daemon installation pending)
+
+Base `aef3d02` was fast-forwarded to main for PR #7 and independently checked with `git ls-remote`; work is on `ops-hardening`. Evidence: `.session/ops-hardening-20261008/`. No inference prompts, model, routing, grammar, sampling, server flags, cloud configuration or frozen fixtures changed. No sudo or HF sync.
+
+- #52: source boot plist passes `plutil -lint`; `install_wiredlimit.py` only prints privileged commands. Health controls require exactly20480, root-owned non-writable daemon plist, matching loaded job and last exit0. User installation pending; current limit20480 alone does not satisfy the new daemon check.
+- #53: permanent `~/Library/LaunchAgents/local.kildall.backup.plist` verified with `launchctl print`, 03:00 plus RunAtLoad login catch-up. Old job retained until migration verification; rollback tested for bootstrap and post-bootstrap validation failure. Explicit live kickstart created a new verified SQLite/Markdown snapshot, exit0. Snapshot SHA-256 `112cb26ba94c21a9120eaa64d255f068a73956e943171b81c81d600711fbf2c2`, integrity_check=ok. The plist persists across logout/reboot; a LaunchAgent cannot run while logged out, and RunAtLoad catches up at next login.
+- #54: temporary volume copy matched SQLite and Markdown hashes and passed integrity_check. Namespace-only14-day retention, corrupt/symlink rejection, and copy-failure isolation pass. The actual absent KildallC drive logged a warning; main backup still exited0. Physical-drive validation remains pending.
+- #55: hooks installed in both repositories. Native exact-service metadata enumeration succeeded (0 current Keychain kildall accounts); scanner also reads all nonempty keys.env values privately, including excluded providers. Real temporary commits: all5 credential patterns, planted env and simulated Keychain values blocked; clean commits allowed; staged/full-tree/binary/chunk-boundary scans, redacted filename/errors, fail-closed key reads and custom-hook preservation pass. No secret values emitted. Hooks remain local Git safeguards, not a server-side prevention of --no-verify.
+
+Retained development failure: initial credential regexes matched four ordinary-word file/rule occurrences (e.g. a suffix inside a task identifier). `.session/ops-hardening-20261008/scanner-pattern-false-positive.json` preserves the failed diagnostics. Token-start boundaries fixed the false positives; no research or fixtures were edited. The corrected staged scans pass on both repos.
+
+Standing regressions start from a frozen source manifest. Routing uses one predefined20-case PR#7 protocol run with mean limit0.906s; v38 recall uses the frozen one-slot harness plus identical requests on answer slots1–2. Results below will be recorded without replacing failed runs.
+
+Routing predefined single run passed: category20/20, lane20/20, r17X→C; mean 0.8313822s (limit0.906s), p50 0.8291609999999999s, p99 0.962646s, first route 0.871838s; 0cold/20warm. Evidence `routing/summary.json`; no repeat.
+
+All22 control scripts pass (20standing suites plus backup/scanner); Phase3/4.1/4.2/4.3/4.4, slot isolation, router warmth and cloud controls retained. No control-suite failure in this final-source run. Full per-script outputs are in `controls-final-v2/`.
+
+V38 recall passed: frozen harness20/20, exact replay slot1=20/20 and slot2=20/20; historical vault paths normalized only, both fixture hashes held.
+
+Final source-v2 closes an integration gap found during review: the existing typed Git executor intentionally bypasses arbitrary Git hooks and uses commit-tree. It now invokes the same scanner on its immutable private index before Confirm, using the existing constrained Git reader. A real temporary executor commit with a planted secret is refused before displaying its diff; a clean executor commit succeeds while an arbitrary failing Git hook stays disabled. Source-v1 routing/recall remain valid: only the commit branch, scanner and scanner tests changed; no inference/routing/recall path changed. Source manifests and `source-provenance.json` retain both versions; all controls are re-run on v2, followed by quality/CLI. This was a discovered coverage gap, not a failed model gate; no timing rerun.
+
+Final source-v2 controls: all22 scripts exit0. Health run `health-before-user-install.log` exits1: current wired limit20480 and permanent backup registration pass, but the root LaunchDaemon has not yet been installed by the user. This is an outstanding installation gate, not a successful check or a code exception; no sudo was executed.
+
+Final quality/CLI gate: abstention20/20, category20/20, callable JSON20/20; tools17/20 first-pass and20/20 post-retry (accepted t07/t09/t12 misses unchanged); CLI18/18. Hooks5/5 and all22 final control suites pass.
+
+Final inspection: nuke dry-run 31403entries, 0 outside ~/Kildall/code, 0 rejected outward paths; all3 outward Python link objects are listed for unlinking. Both installed commands run. The56-file final source/config manifest and frozen fixtures hold; owned model runtimes are stopped. Read-only planning files unchanged.
+
+`delivery-before-install/summary.json` explicitly reports passed=false because check.sh still exits1 for the missing boot daemon. All other health checks pass. This gate is NOT waived or marked green. The exact user-only commands are:
+
+```sh
+sudo /usr/bin/install -o root -g wheel -m 0644 /Users/minhduc/Kildall/code/launchd/local.kildall.wiredlimit.plist /Library/LaunchDaemons/local.kildall.wiredlimit.plist
+sudo /bin/launchctl bootstrap system /Library/LaunchDaemons/local.kildall.wiredlimit.plist
+sudo /bin/launchctl kickstart system/local.kildall.wiredlimit
+```
+
+Pending: live daemon installation/verification and resulting check.sh0; physical KildallC copy test remains deferred because the volume is absent. No sudo, reboot, migration, model download, prompt/flag/catalog change, HF sync or later slice was performed.

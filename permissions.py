@@ -384,14 +384,16 @@ def execute(operation, args, record, project):
         repo = git_repository(args["path"])
         before = staged(repo)
         head, branch, index, diff = before
-        authorize(record, "Confirm", dict(repository=str(repo), parent=head, branch=branch,
-            message=args["message"], diff=diff.decode("utf-8", errors="surrogateescape")))
-        if git_repository(repo) != repo or staged(repo) != before:
-            raise RuntimeError("Staged diff changed after approval")
         # Freeze the approved index; update-ref compares the reviewed parent atomically.
         with tempfile.TemporaryDirectory(prefix="kildall-index-", dir=repo / ".git") as directory:
             private = Path(directory) / "index"
             private.write_bytes(index)
+            from secret_scanner import enforce_commit
+            enforce_commit(repo, private)
+            authorize(record, "Confirm", dict(repository=str(repo), parent=head, branch=branch,
+                message=args["message"], diff=diff.decode("utf-8", errors="surrogateescape")))
+            if git_repository(repo) != repo or staged(repo) != before:
+                raise RuntimeError("Staged diff changed after approval")
             tree = git(repo, "write-tree", index=private).decode().strip()
             commit = git(repo, "commit-tree", tree, "-p", head, "-m", args["message"]).decode().strip()
             git(repo, "update-ref", "--no-deref", "-m", "kildall: approved commit", branch, commit, head)

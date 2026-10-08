@@ -106,18 +106,41 @@ Ctrl-C saves partial state and exits 130. Orbs appear only on a terminal.
 `kildall --backup` writes a verified SQLite snapshot and markdown mirror to
 `../backups`, with 14-day retention. `kildall --restore PATH` restores a snapshot
 after all active turns finish; it refuses to overwrite an active turn.
-`kildall --schedule-backups` registers a 03:00 macOS job for the current login;
-run it again after logging in. Its plist stays inside `.session/`.
+`kildall --schedule-backups` installs a permanent 03:00 LaunchAgent at
+`~/Library/LaunchAgents/local.kildall.backup.plist`. It also backs up at login,
+catching up after logout or reboot. A LaunchAgent cannot run while logged out;
+macOS runs a missed scheduled job after waking from sleep. Logs are under
+`~/Library/Logs/Kildall/`. Migration verifies the new registration and restores
+the old job if registration fails.
 
-After login, register backups with this exact command on this machine:
+Register backups once with this command:
 
 ```sh
 /Users/minhduc/Kildall/code/.venv/bin/kildall --schedule-backups
 ```
 
-`./check.sh` verifies the loaded 03:00 backup job against its plist and reports
-this command. It exits non-zero if registration is missing or mismatched, or
-if `iogpu.wired_limit_mb` is 0; it prints the manual sysctl command in that case.
+Each backup also copies its freshly verified SQLite snapshot and Markdown mirror
+to `/Volumes/KildallC/kildall-backups/` when the drive is mounted. The copy must
+match SHA-256 and pass SQLite `integrity_check` before publication; retention is
+14 days for that database's snapshots. An absent drive or failed copy logs a
+warning and leaves the successful local backup intact. The real-drive test is
+pending; the temporary-volume and absent-volume tests are in `test_backup_ops.py`.
+
+The boot daemon sets `iogpu.wired_limit_mb=20480`. Run
+`.venv/bin/python install_wiredlimit.py` to print the exact privileged installation
+commands, then execute them yourself. The script never runs sudo. `./check.sh`
+requires the limit to equal 20480, a root-owned registered boot daemon, and the
+permanent backup registration; missing checks print their installation commands.
+
+Run `.venv/bin/python secret_scanner.py --install` to install the pre-commit
+scanner in both the code and vault repositories. It checks staged file contents
+against non-empty `keys.env` values, every Keychain `kildall` service key, and
+common credential patterns. Diagnostics contain file and rule names only. Failed
+secret reads block the commit. Existing custom hooks are preserved by refusing
+to overwrite them. Kildall's closed Git executor checks the exact private index
+through the same scanner before confirmation; arbitrary hooks stay disabled.
+Git hooks are local safeguards and can be bypassed by Git's
+explicit `--no-verify`; they do not remove secrets from existing Git history.
 
 Run `.venv/bin/python test_memory.py` for deterministic memory checks.
 `test_cli.py` and `test_recall.py` use the installed models and isolated test data;

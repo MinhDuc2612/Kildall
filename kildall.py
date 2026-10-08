@@ -6,7 +6,6 @@ import fcntl
 import json
 import os
 from pathlib import Path
-import plistlib
 import re
 import signal
 import socket
@@ -699,30 +698,8 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
 
 
 def schedule_backups(config):
-    directory = config["paths"]["code_dir"] / ".session"
-    directory.mkdir(parents=True, exist_ok=True)
-    path = directory / "local.kildall.backup.plist"
-    interpreter = Path(sys.executable)
-    canonical = interpreter.with_name("python")
-    if canonical.is_file() and canonical.samefile(interpreter):
-        interpreter = canonical
-    payload = {"Label": "local.kildall.backup", "ProgramArguments": [str(interpreter), str(ROOT / "kildall.py"), "--backup"],
-        "WorkingDirectory": str(config["paths"]["code_dir"]),
-        "EnvironmentVariables": {"KILDALL_CONFIG": str(Path(os.environ.get("KILDALL_CONFIG", os.environ.get("ORBI_CONFIG", ROOT / "kildall.toml"))).resolve())},
-        "StartCalendarInterval": {"Hour": 3, "Minute": 0},
-        "StandardOutPath": str(directory / "backup.log"), "StandardErrorPath": str(directory / "backup.err")}
-    path.write_bytes(plistlib.dumps(payload))
-    if plistlib.loads(path.read_bytes()) != payload:
-        raise OSError("Could not verify backup schedule")
-    service = f"gui/{os.getuid()}/local.kildall.backup"
-    existing = subprocess.run(["launchctl", "print", service], text=True, capture_output=True)
-    if existing.returncode == 0:
-        if str(ROOT / "kildall.py") not in existing.stdout:
-            raise RuntimeError("A different service already owns local.kildall.backup")
-    else:
-        subprocess.run(["launchctl", "bootstrap", f"gui/{os.getuid()}", str(path)], check=True)
-    subprocess.run(["launchctl", "print", service], check=True, stdout=subprocess.DEVNULL)
-    print("Nightly backup scheduled at 03:00 for this login; run --schedule-backups after logging in again.")
+    from backup_ops import schedule_backups as schedule
+    return schedule(config, ROOT, sys.executable)
 
 
 def main():
@@ -788,7 +765,8 @@ def main():
         memory = Memory(path, url(config, True) + "/v1/embeddings", **{
             key: config["memory"][key] for key in ("max_items", "max_chars", "max_ms")})
         if args.backup:
-            print(memory.backup(config["paths"]["backup_dir"]))
+            from backup_ops import nightly_backup
+            print(nightly_backup(memory, config["paths"]["backup_dir"]))
             return 0
         if args.restore:
             with activity(path, restoring=True):

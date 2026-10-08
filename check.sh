@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
+import stat
 import subprocess
 import sys
 
@@ -33,36 +34,56 @@ print(f".venv: OK; MLX: {device}", flush=True)
 limit = int(subprocess.check_output(
     ["/usr/sbin/sysctl", "-n", "iogpu.wired_limit_mb"], text=True).strip())
 print(f"iogpu.wired_limit_mb: {limit}", flush=True)
-failed = limit <= 0
+failed = limit != 20480
 if failed:
-    print("WARNING: GPU wired limit has reset to 0. Run this yourself before benchmarking: "
+    print(f"WARNING: GPU wired limit is {limit}, expected 20480. Run this yourself before benchmarking: "
           "sudo sysctl iogpu.wired_limit_mb=20480", file=sys.stderr)
 free = shutil.disk_usage("/System/Volumes/Data").free
 print(f"Free disk (/System/Volumes/Data): {free / 1e9:.2f} GB ({free / 2**30:.2f} GiB)")
 print("Recorded baseline: 19.48 tok/s (qwen3:8b, 2026-09-06; not re-measured)")
 
 root = Path.cwd()
+try:
+    daemon = Path("/Library/LaunchDaemons/local.kildall.wiredlimit.plist")
+    expected_daemon = {"Label": "local.kildall.wiredlimit", "RunAtLoad": True,
+                       "ProgramArguments": ["/usr/sbin/sysctl", "iogpu.wired_limit_mb=20480"]}
+    metadata = daemon.lstat()
+    loaded = subprocess.run(["/bin/launchctl", "print", "system/local.kildall.wiredlimit"],
+                            text=True, capture_output=True)
+    live = {line.strip() for line in loaded.stdout.splitlines()}
+    required = {f"path = {daemon}", "program = /usr/sbin/sysctl",
+                "/usr/sbin/sysctl", "iogpu.wired_limit_mb=20480", "last exit code = 0"}
+    if not (stat.S_ISREG(metadata.st_mode) and metadata.st_uid == 0
+            and not metadata.st_mode & 0o022
+            and plistlib.loads(daemon.read_bytes()) == expected_daemon
+            and loaded.returncode == 0 and required <= live):
+        raise ValueError("Wired-limit daemon is missing or mismatched")
+except (OSError, ValueError, TypeError):
+    failed = True
+    print(f"WARNING: Boot wired-limit daemon is not verified. Print the installation commands: "
+          f"{root}/.venv/bin/python {root}/install_wiredlimit.py", file=sys.stderr)
+else:
+    print("Boot wired-limit daemon: installed, registered, last exit 0")
+if limit != 20480:
+    print(f"Print the installation commands: {root}/.venv/bin/python {root}/install_wiredlimit.py",
+          file=sys.stderr)
 registration = f"{root}/.venv/bin/kildall --schedule-backups"
 service = f"gui/{os.getuid()}/local.kildall.backup"
 job = subprocess.run(["/bin/launchctl", "print", service], text=True, capture_output=True)
 try:
-    path = root / ".session/local.kildall.backup.plist"
+    from backup_ops import backup_payload, registration_matches
+    path = Path.home() / "Library/LaunchAgents/local.kildall.backup.plist"
     schedule = plistlib.loads(path.read_bytes())
-    expected = [str(root / ".venv/bin/python"), str(root / "kildall.py"), "--backup"]
-    live = {line.strip() for line in job.stdout.splitlines()}
-    required = {f"path = {path}", f"program = {expected[0]}", *expected,
-                f"working directory = {root}", f"KILDALL_CONFIG => {root / 'kildall.toml'}",
-                '"Hour" => 3', '"Minute" => 0'}
-    if not (schedule["ProgramArguments"] == expected
-            and schedule["StartCalendarInterval"] == {"Hour": 3, "Minute": 0}
-            and schedule["WorkingDirectory"] == str(root)
-            and schedule["EnvironmentVariables"]["KILDALL_CONFIG"] == str(root / "kildall.toml")
-            and job.returncode == 0 and required <= live):
+    expected = backup_payload({"paths": {"code_dir": root}}, root, root / ".venv/bin/python")
+    metadata = path.lstat()
+    if not (stat.S_ISREG(metadata.st_mode) and metadata.st_uid == os.getuid()
+            and not metadata.st_mode & 0o022 and schedule == expected
+            and job.returncode == 0 and registration_matches(job.stdout, expected, path)):
         raise ValueError("Backup job does not match the configured schedule")
 except (OSError, ValueError, KeyError, TypeError):
     failed = True
     print(f"WARNING: Nightly backup registration is missing or mismatched. Run: {registration}", file=sys.stderr)
 else:
-    print(f"Nightly backup: verified 03:00 for this login; after login run: {registration}")
+    print("Nightly backup: verified permanent LaunchAgent, 03:00 plus login catch-up")
 raise SystemExit(1 if failed else 0)
 PY

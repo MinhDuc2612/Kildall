@@ -49,17 +49,16 @@ runpy.run_path(str(script),run_name='__main__')
         (root / 'python').symlink_to(binary.name)
         with patch.object(sys, 'executable', str(binary)), \
              patch.dict(os.environ, {'KILDALL_CONFIG': str(modern)}), \
-             patch.object(kildall.subprocess, 'run', side_effect=[
-                 subprocess.CompletedProcess([], 113, '', ''),
-                 subprocess.CompletedProcess([], 0),
-                 subprocess.CompletedProcess([], 0)]) as launchctl, \
+             patch('backup_ops.schedule_backups') as register, \
              redirect_stdout(io.StringIO()):
             kildall.schedule_backups({'paths': {'code_dir': root}})
-        schedule = plistlib.loads((root / '.session/local.kildall.backup.plist').read_bytes())
+            register.assert_called_once_with({'paths': {'code_dir': root}}, kildall.ROOT, str(binary))
+            from backup_ops import backup_payload
+            schedule = backup_payload({'paths': {'code_dir': root}}, kildall.ROOT, binary)
         assert schedule['ProgramArguments'] == [str(root / 'python'), str(kildall.ROOT / 'kildall.py'), '--backup']
         assert schedule['EnvironmentVariables'] == {'KILDALL_CONFIG': str(modern)}
         assert schedule['Label'] == 'local.kildall.backup'
-        assert launchctl.call_args_list[1].args[0][1] == 'bootstrap'
+        assert schedule['RunAtLoad'] is True
     print('PASS: shared alias/script state, legacy config fallback, new config precedence, canonical backup interpreter')
 
 
