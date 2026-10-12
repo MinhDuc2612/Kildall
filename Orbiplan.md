@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v41 · 2026-10-07.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v42 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -724,7 +724,7 @@ and logged; nothing runs.**
 
 ---
 
-# 🔮 BEYOND THE PLAN — 75 improvements, after Phase 8 *(#52–#75 added v41; 9 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 87 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42; 9 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -877,6 +877,23 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **75** | **Codex briefs as reusable skills** | Faster, consistent briefs; seeds 9.7 | Small |
 
 ⏩ = scheduled early (see "Queued small slices"). The rest follow the normal Phase 7–9 order.
+
+## Added v42 — safety, privacy and speed (2026-10-12, user: "add all the improvement ideas")
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **76** | 🔑 **Kill switch** — one command/hotkey stops every agent, bot, capture and cloud call at once | Full Workspace autonomy and full capture need an instant stop | Small |
+| **77** | 🔑 **"Local-only" memory tags** — tagged memories never reach any cloud model | You chose cloud "as now" with vault context; this protects the private parts | Must hold in every cloud path (4.5a scrub) |
+| **78** | **Daily action budget per bot** (9.11) | A confused 24/7 bot cannot send 500 emails | Small |
+| **79** | **Simulate mode** — show what an agent would do, without doing it | Safe tests for new bots, skills and automations | Every action needs a dry-run form |
+| **80** | **Resident model server** — kept running as a background service | Removes the ~20 s startup rebuild (b10809 omits SWA checkpoints) | RAM held while idle |
+| **81** | 🔑 **Warm prompts for answer slots** — reuse the shared system + tool prefix, like the router | Prefill is ~85 tok/s; every answer re-reads the same text | Slot memory; measured |
+| **82** | **`kildall doctor`** — one health command: models, keys, backups, daemons, disk, memory pressure | Easier than reading `check.sh` and logs | Small |
+| **83** | **Test-log retention** — keep summaries, prune raw `.session` logs older than N days | `.session` grew to 3.3 GB and keeps growing | Never prune evidence a review still needs |
+| **84** | **Model-update watcher** — weekly check for newer versions of every model in use | Automates the "latest versions only" rule | Small; suggests, never auto-swaps |
+| **85** | **Answer receipt** — lane, model, time, tokens, and whether the cloud was used | Shows what happened and where data went | Small |
+| **86** | **Unused-model report** | ~128 GB of unused weights stay visible | Small |
+| **87** | **Per-client licence tracker** — which model licences each client setup depends on | Required before paid clients; generated automatically | Pairs with 9.10 |
 
 ## The honest shape of this list
 
@@ -1041,6 +1058,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-12 (v42)** — **12 improvements added, #76–#87** (user: "add all the improvement ideas"): kill switch, local-only memory tags, bot action budgets, simulate mode, resident model server, warm answer slots, `kildall doctor`, test-log retention, model-update watcher, answer receipts, unused-model report, per-client licence tracker. Not scheduled early; they follow the normal Phase 7–9 order.
 - **2026-10-08** — **Router warmth reviewed (PR #7, `aef3d02`): accepted.** In use: 0 cold routes, mean 0.824 s, p99 0.989 s; soak 52/69/0 (better than 103). #62 partial — restore works but b10809 omits SWA checkpoints, so ~20 s rebuild moves to startup. Scores/latency/soak measured on source-v1; v2 changed only the idle branch (controls re-run, startup path proven unchanged).
 - **2026-10-07** — **4.5a reviewed (PR #6, `10bad9b`): accepted.** Exclusions enforced in code, keys via stdin, leak scan 0, routing 1.654 s, live LLM7 $0. Gap: OVHcloud configured but never called live — added as the first 4.5d gate.
 - **2026-10-07** — **Google Gemini and Groq removed from the cloud plan** (user decision). 4.5a must never list, import or call them. ⚠️ Consequences: keyless providers left are **LLM7 and OVHcloud AI Endpoints** (both anonymous per `Cloudcall/`; limits undocumented, throttled first) — so **4.5d can still reach 2 live cloud members** if their model families differ; more keys widen it. The large-context cloud fallback loses Gemini's ~1M window. *(Corrected same day: an earlier note said only LLM7 was keyless.)* Research files in `Researchhub/` are unchanged.
