@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **214** |
-| **Done now** | **14** of 214 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **217** |
+| **Done now** | **14** of 217 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -273,6 +273,9 @@
 - [ ] **Permanent backup job (#53)** in `~/Library/LaunchAgents`; survives logout and pauses
 - [ ] **Off-machine backup (#54)** of `kildall.db` to `KildallC`
 - [ ] **Secret-scanner git hook (#55)** refuses commits containing a key
+- [ ] **Platform layer** — keys, jobs, sandbox, OCR, computer mode, memory probe behind one interface; zero behaviour change on the Mac
+- [ ] **Linux port** (any mainstream systemd distro; tested on Fedora + Ubuntu LTS) passes every gate on real hardware, incl. the Phase 3 sandbox tests
+- [ ] **Windows via WSL2** passes every gate on real hardware; native Windows only if needed
 
 ## 19. Agentic OS — P2 *(Phase 9 — Kildall 100%)*
 
@@ -339,6 +342,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-12** — 3 cross-platform items added to Group 18: **217 items**.
 - **2026-10-07** — 9 items for the early-scheduled improvements #52–#55, #57–#59, #62–#63: **214 items**.
 - **2026-10-07** — 2 long-context items added to Group 17: **205 items**.
 - **2026-10-06** — 3 items added to Group 13 for deep research (4.5e): **203 items**.

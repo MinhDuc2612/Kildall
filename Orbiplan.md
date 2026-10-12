@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v42 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v43 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -349,9 +349,27 @@ Codex order, one PR each, each holding every standing gate; Codex stops at the P
 1. **4.5a** keys + cloud (in progress) → 2. **routing fix** → 3. **router warmth** (#62 save router prompt to disk,
 #63 idle re-warm) → 4. **ops hardening** (#52 wired-limit boot daemon — you install it with sudo; #53 permanent
 backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is mounted) → 5. **long context** →
+5b. **platform layer** (v43: Mac-only parts behind one interface; no behaviour change) →
 6. **4.5b–4.5e** → 7. **quality slice** (#57 copy by reference — first-pass must rise with frozen fixtures
 untouched; #58 code-built delegation prompts — the exact-once smoke must pass) → 8. **Gemma vision** (#59, RAM
 measured, before 4C) → 9. **4C** → Phases 5, 7, 8, 9.
+
+## Cross-platform *(v43 · 2026-10-12, user picked option 1)*
+
+**Goal:** Kildall runs on **macOS, Linux (any mainstream systemd distro — tested on Fedora and Ubuntu LTS) and
+Windows (through WSL2; native only if computer mode on Windows apps is needed).** Lane A's llama.cpp already runs
+on all three (Metal / CUDA / ROCm / Vulkan / CPU); ~90% of the code is portable Python.
+1. **Platform layer — right after the long-context slice.** Each Mac-only part goes behind one interface with the
+   current Mac code as its first implementation: **keys** (Keychain → `keyring`: Secret Service / Credential
+   Manager), **scheduled jobs** (launchd → systemd user timers / Task Scheduler), **shell sandbox** (macOS sandbox
+   → bubblewrap/Landlock), **OCR** (Vision → Tesseract or PaddleOCR), **computer mode** (AX → AT-SPI / UI
+   Automation), **memory probe** (`iogpu` is Mac-only). **Gate: zero behaviour change on the Mac — every standing
+   gate identical.**
+2. **Linux, then Windows via WSL2 — before the first paid client.** Each OS re-passes **every** gate on real
+   hardware, **above all the Phase 3 sandbox hard tests**. Settings (model size, slots, context) are re-tuned per
+   machine by #51 auto-fit.
+⚠️ **Needs a Linux or Windows PC with an NVIDIA GPU for the model gates** (GitHub runners cover code-only tests,
+#72). Not yet confirmed that one exists. An NVIDIA PC may read prompts far faster than this M4 (~85 tok/s).
 
 ## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
 
@@ -1058,6 +1076,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-12 (v43)** — **Cross-platform added** (user picked option 1): a platform layer right after long context (Mac-only parts behind one interface, zero behaviour change), then Linux (Fedora + Ubuntu tested) and Windows via WSL2 before the first paid client; every gate re-passed per OS. Needs an NVIDIA test PC. Checklist +3.
 - **2026-10-12 (v42)** — **12 improvements added, #76–#87** (user: "add all the improvement ideas"): kill switch, local-only memory tags, bot action budgets, simulate mode, resident model server, warm answer slots, `kildall doctor`, test-log retention, model-update watcher, answer receipts, unused-model report, per-client licence tracker. Not scheduled early; they follow the normal Phase 7–9 order.
 - **2026-10-08** — **Router warmth reviewed (PR #7, `aef3d02`): accepted.** In use: 0 cold routes, mean 0.824 s, p99 0.989 s; soak 52/69/0 (better than 103). #62 partial — restore works but b10809 omits SWA checkpoints, so ~20 s rebuild moves to startup. Scores/latency/soak measured on source-v1; v2 changed only the idle branch (controls re-run, startup path proven unchanged).
 - **2026-10-07** — **4.5a reviewed (PR #6, `10bad9b`): accepted.** Exclusions enforced in code, keys via stdin, leak scan 0, routing 1.654 s, live LLM7 $0. Gap: OVHcloud configured but never called live — added as the first 4.5d gate.
