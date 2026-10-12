@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v43 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v44 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -370,6 +370,23 @@ on all three (Metal / CUDA / ROCm / Vulkan / CPU); ~90% of the code is portable 
    machine by #51 auto-fit.
 ⚠️ **Needs a Linux or Windows PC with an NVIDIA GPU for the model gates** (GitHub runners cover code-only tests,
 #72). Not yet confirmed that one exists. An NVIDIA PC may read prompts far faster than this M4 (~85 tok/s).
+
+## Road to 7/10 *(v44 · 2026-10-12 · starts only once a 128 GB machine exists)*
+
+**Honest score today, if every phase were finished: ~3/10 as a Claude Code replacement** (Claude review, user asked
+for "ruthless"). **A 10 is not reachable locally at $0** — closed frontier models stay ahead of open ones; only
+paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic** with all four of these:
+1. **A 128 GB machine.** Candidates (2026-10-12, VN prices): AMD Ryzen AI Max+ 395 mini PC 128 GB (~$3,650 + import;
+   Claude's pick), a desktop with 2 used RTX 3090s (~120–145M), or a Mac Studio M5 Max 128 GB (140.99M; no port
+   needed). User wants **8 TB built in** — no Mac with 8 TB fits the budget; the 8 TB NVMe price (22M–83M seen) decides.
+   **A non-Mac machine needs the Linux port (cross-platform section) before Kildall runs on it.**
+2. **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
+   Lane C today) at ~3-bit ≈ 107 GB. ⚠️ Fit, speed and 3-bit quality loss are **unmeasured**; gate them like any
+   Lane A candidate (speed, routing, tools, 10-min soak).
+3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
+4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
+   Code) pass. **No new features until then.**
+Later, ~8 is possible as open models improve and #84 (model-update watcher) swaps them in.
 
 ## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
 
@@ -1076,6 +1093,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-12 (v44)** — **"Road to 7/10" added**, active only once a 128 GB machine exists (user decision): 128 GB machine + a strong open coding model resident (e.g. DeepSeek-V4-Flash ~3-bit, unmeasured) + ≥ 64K context + tests #3 and #1 passed, features frozen until then. 10/10 recorded as unreachable locally at $0. Hardware candidates and the 8 TB / Linux-port constraints recorded.
 - **2026-10-12 (v43)** — **Cross-platform added** (user picked option 1): a platform layer right after long context (Mac-only parts behind one interface, zero behaviour change), then Linux (Fedora + Ubuntu tested) and Windows via WSL2 before the first paid client; every gate re-passed per OS. Needs an NVIDIA test PC. Checklist +3.
 - **2026-10-12 (v42)** — **12 improvements added, #76–#87** (user: "add all the improvement ideas"): kill switch, local-only memory tags, bot action budgets, simulate mode, resident model server, warm answer slots, `kildall doctor`, test-log retention, model-update watcher, answer receipts, unused-model report, per-client licence tracker. Not scheduled early; they follow the normal Phase 7–9 order.
 - **2026-10-08** — **Router warmth reviewed (PR #7, `aef3d02`): accepted.** In use: 0 cold routes, mean 0.824 s, p99 0.989 s; soak 52/69/0 (better than 103). #62 partial — restore works but b10809 omits SWA checkpoints, so ~20 s rebuild moves to startup. Scores/latency/soak measured on source-v1; v2 changed only the idle branch (controls re-run, startup path proven unchanged).
