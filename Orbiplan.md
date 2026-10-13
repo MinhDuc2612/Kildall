@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v45 · 2026-10-13.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v46 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -17,8 +17,8 @@ this file = how it gets built.
 | **Replaces** | **Claude Code, entirely** — files, shell, git, skills, hooks, subagents, MCP |
 | **Adds** | **image gen · video gen · 3D · voice in and out** |
 | **100% complete** | 🎯 **Kildall is the core of a personal agentic OS** — engine · Obsidian memory · Google Workspace operating layer · local voice · wallpaper dashboard · self-improving skills. **Phase 9** |
-| **Whose weights** | ✅ **theirs, real, unmodified** — Kimi K3, DeepSeek-V4, GLM-5.2, Qwen |
-| **Training** | ✅ **NONE. Ever.** |
+| **Whose weights** | open models — Kimi K3, DeepSeek-V4, GLM-5.2, Qwen — **may be pruned, merged or fine-tuned** (rule removed 2026-10-13) |
+| **Training** | ✅ **Allowed since 2026-10-13** — LoRA / fine-tuning / distillation from open or local models; **never on Claude/GPT outputs** (their terms forbid it) |
 | **Params STORED** | **~9.1 T across 22 models · ~4.84 TB** |
 | **Params RUNNING** | **5–8 GB of RAM.** Every lane streams — nothing loads whole |
 | **Runs on your M4 24 GB?** | ✅ **yes** — see "stored ≠ running" |
@@ -137,7 +137,7 @@ difference between a Lane C job and an instant answer.
 weights do not combine — physics, not a missing tool (`sample3/LLMmerge.md`).
 
 **So Orbi is several models behind one interface, not one new model.** In exchange: **their real
-quality, at zero training cost.**
+quality, at zero training cost.** *(2026-10-13: training and weight changes are now allowed — see "Road to 7/10".)*
 
 ---
 
@@ -389,6 +389,11 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
 4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
    Code) pass. **No new features until then.**
+**Extra levers now allowed (2026-10-13, user removed three rules; paid APIs stay banned forever):**
+- **Expert pruning** of big MoE models (REAP-style) so a stronger model fits 128 GB — measure the quality loss first.
+- **Fine-tuning** (LoRA) on your own repos and accepted answers (#42 pairs) — from open/local model outputs only.
+- **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the AMD mini PC.
+- **Better hardware** may be proposed when it measurably raises the score.
 **Target 8/10 (written 2026-10-13):** everything above, plus open models catching up (#84 model-update watcher swaps them in), the free-cloud council for the hardest tasks (4.5d — **you add a free OpenRouter key, no card**), and skills built from your own work (9.7). 9–10 is not reachable locally at $0.
 
 ## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
@@ -958,7 +963,7 @@ changes what Orbi promises. #7 (clustering) costs hardware. Everything else is a
 |---|---|
 | **Secrets** | macOS Keychain. Never in config, DB, logs or backups. ⚠️ Cloud API keys currently wait in a plain holding file, `~/.config/orbi/keys.env` (chmod 600, outside every repo); **Phase 4.5 must import them into the Keychain** and never read the file at runtime |
 | **Publishing** | ⏸ **Hugging Face mirror PAUSED 2026-10-05 (user: "no need hugging face") — Codex skips `kildall-hf-sync`; GitHub only.** Kept for later: ~~every push to GitHub `main` is followed by `kildall-hf-sync`~~, which mirrors the same commit to Hugging Face `MinhDuc26121/kildall` (public, MIT). It uploads **only git-tracked files of `origin/main`** via `git archive` — never `models/` (154 GB of third-party weights), `.venv/`, `.session/` or memory databases — and refuses `*.gguf`, `*.safetensors`, `*.sqlite3`, `*.env` or any file over 20 MB. `--dry-run` lists the files without uploading. Script: `~/.local/bin/kildall-hf-sync`. **Never run `hf upload .` from `code/`** |
-| **Spend cap** | `orbi budget set --monthly N`. **Default 0 = free tiers and local only.** Hard stop at 100% |
+| **Spend cap** | 🔴 **Permanent: never a paid API key or paid cloud usage** (user, 2026-10-13: "never in a mil year"). Free tiers and local only. Buying better hardware is allowed |
 | **Rollback** | skills, prompts, config in git · memory backed up nightly · `orbi rollback` |
 | **Logs** | L0 90 days · actions 180 days · backups 14 days · **alarm if `orbi.db` > 2 GB** |
 | **Benchmarks** | weekly. **>10% throughput drop blocks `dev` → `stable`** |
@@ -1020,7 +1025,7 @@ prefix, not from any model change. Measured 2026-09-20.
 prefix.** Never quote 0.97 s as the product number.
 
 **Never:**
-- ❌ **Speculative decoding in llama.cpp on Metal** *(research finding from `UHWmini.md`, not a user rule; Metal only — on Linux/Windows GPUs (CUDA/ROCm/Vulkan) it is untested: measure it there, enable only if it wins)* — a **loss**, −11% to −28% **even at 100% draft
+- ⚠️ **Speculative decoding — no longer a rule (removed 2026-10-13); decided by measurement per platform.** On Metal it measured **loss**, −11% to −28% **even at 100% draft
   acceptance**. Each draft step launches its own Metal kernel and the dispatch overhead eats the gain.
   MLX only.
   - ⚠️ **This includes DFlash 2, and the question comes up often — here is the answer.** DFlash 2 is
@@ -1107,6 +1112,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13 (v46)** — **Three rules removed by the user:** "unmodified weights", "no training", and the speculative-decoding ban (now decided by measurement per platform). **Kept forever: never a paid API key or paid cloud** ("never in a mil year"); better hardware may be suggested. Road to 7/10 gains pruning, LoRA fine-tuning and speculative decoding as levers. Never train on Claude/GPT outputs (their terms).
 - **2026-10-13** — Clarified: "no speculative decoding" is a **Metal-only research finding** (UHWmini.md), not a user rule. On Linux/Windows GPUs it is untested and will be measured (e.g. DeepSeek MTP on the AMD mini PC).
 - **2026-10-13 (v45)** — **Context follow-up slice added** (user: "add them"): 4-bit KV, document KV saved to disk, retrieval for big files, map-reduce summaries, and ≥128K on the 128 GB machine with a compact-attention model. Runs after the current long-context slice. **8/10 written as an explicit target**, including the user's OpenRouter key step. Checklist +5.
 - **2026-10-13** — **Hardware decided: GMKtec EVO-X2 mini PC, 128 GB** (user: "mini pc it is"), 4 TB + 4 TB inside, bought once the project succeeds. **Target: 7–8/10.** Consequence: the Linux port becomes required before the machine arrives. A PC build at the same budget was ruled out: 128 GB DDR5 (~52–60M) and 8 TB NVMe (~40M+) push it to ~175–185M, with only 48 GB VRAM.
