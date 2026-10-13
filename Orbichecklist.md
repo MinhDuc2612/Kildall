@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **217** |
-| **Done now** | **14** of 217 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **222** |
+| **Done now** | **14** of 222 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -242,6 +242,11 @@
 - [ ] **Auto-expand upward only on an eval-harness (#13) win** — never on arithmetic alone
 - [ ] **Per-slot context raised to 16K** (32K only if 16K passes) — KV/RSS/GPU per slot and prefill time measured; soak 0 critical, 0 GPU OOM
 - [ ] Long prompts show progress and an estimated read time; every 4,096-token assumption is config-driven
+- [ ] **4-bit KV cache** measured: ~2× context with no drop in recall, tools or routing
+- [ ] **Document KV saved to disk:** a big file re-asked about reloads in seconds, keyed by file hash + model + flags
+- [ ] **Retrieval for big files:** only relevant chunks enter the prompt, inside the memory caps
+- [ ] **Map-reduce summaries** pass a fixed long-document test set with known answers
+- [ ] **≥128K context on the 128 GB machine** with a compact-attention model, KV per token measured first
 
 ## 18. Operations — P1 *(throughout)*
 
@@ -342,6 +347,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-13** — 5 long-context items added to Group 17: **222 items**.
 - **2026-10-12** — 3 cross-platform items added to Group 18: **217 items**.
 - **2026-10-07** — 9 items for the early-scheduled improvements #52–#55, #57–#59, #62–#63: **214 items**.
 - **2026-10-07** — 2 long-context items added to Group 17: **205 items**.

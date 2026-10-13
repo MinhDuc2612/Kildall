@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v44 · 2026-10-12.** Design locked. **Kildall runs the real giants, unmodified. No training.**
+**v45 · 2026-10-13.** Design locked. **Kildall runs the real giants, unmodified. No training.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -389,7 +389,7 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
 4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
    Code) pass. **No new features until then.**
-Later, ~8 is possible as open models improve and #84 (model-update watcher) swaps them in.
+**Target 8/10 (written 2026-10-13):** everything above, plus open models catching up (#84 model-update watcher swaps them in), the free-cloud council for the hardest tasks (4.5d — **you add a free OpenRouter key, no card**), and skills built from your own work (9.7). 9–10 is not reachable locally at $0.
 
 ## Long-context slice *(v40 · 2026-10-07 · after the routing fix)*
 
@@ -407,6 +407,17 @@ routing-fix slice, because that slice sets the slot count and every slot's windo
 - **Every 4,096-token assumption becomes config-driven** — 4.5c MCP tool cap, 4.5d council caps, 4.5e chunk size.
 - **Gates:** all standing gates hold; routing mean ≤ the routing-fix result + 10%; interactive p99 ≤ the routing-fix
   baseline + 10%; memory retrieval caps (12 items / 4,000 chars / 300 ms) unchanged.
+- **Context follow-up slice (v45 · after this slice merges; never added to it mid-slice).** Long context scores
+  1/10 — the cheapest points on the road to 7–8:
+  1. **KV cache at 4-bit** (`-ctk q4_0 -ctv q4_0`) — ~2× context; gate on recall/tools/routing with no drop.
+  2. **Document KV saved to disk** — a big file read once is reloaded in seconds when asked about again (the
+     #62 mechanism, keyed by file hash + model + flags; never contains other users' text).
+  3. **Retrieval (RAG) for big files** — chunk + Harrier embeddings; only relevant parts enter the prompt, inside
+     the 12 items / 4,000 chars / 300 ms caps (raise only with measured evidence).
+  4. **Map-reduce** — subagents summarise 4K–16K pieces on the work slots, then one combines; for whole-document
+     summaries. Accuracy gate: a fixed long-document test set with known answers.
+  5. **On the 128 GB machine:** target **≥ 128K** with a compact-attention model (DeepSeek-style); measure KV per
+     token first — unmeasured today.
 - **Later (option 5):** a faster Mac — the 2026-10-04 answer recommended an M5 Max 40-core GPU, 64 GB (614 GB/s,
   ≈5× this M4's 120 GB/s) — raises prefill and decode together. Not scheduled; user decision for later.
 
@@ -1096,6 +1107,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13 (v45)** — **Context follow-up slice added** (user: "add them"): 4-bit KV, document KV saved to disk, retrieval for big files, map-reduce summaries, and ≥128K on the 128 GB machine with a compact-attention model. Runs after the current long-context slice. **8/10 written as an explicit target**, including the user's OpenRouter key step. Checklist +5.
 - **2026-10-13** — **Hardware decided: GMKtec EVO-X2 mini PC, 128 GB** (user: "mini pc it is"), 4 TB + 4 TB inside, bought once the project succeeds. **Target: 7–8/10.** Consequence: the Linux port becomes required before the machine arrives. A PC build at the same budget was ruled out: 128 GB DDR5 (~52–60M) and 8 TB NVMe (~40M+) push it to ~175–185M, with only 48 GB VRAM.
 - **2026-10-12 (v44)** — **"Road to 7/10" added**, active only once a 128 GB machine exists (user decision): 128 GB machine + a strong open coding model resident (e.g. DeepSeek-V4-Flash ~3-bit, unmeasured) + ≥ 64K context + tests #3 and #1 passed, features frozen until then. 10/10 recorded as unreachable locally at $0. Hardware candidates and the 8 TB / Linux-port constraints recorded.
 - **2026-10-12 (v43)** — **Cross-platform added** (user picked option 1): a platform layer right after long context (Mac-only parts behind one interface, zero behaviour change), then Linux (Fedora + Ubuntu tested) and Windows via WSL2 before the first paid client; every gate re-passed per OS. Needs an NVIDIA test PC. Checklist +3.
