@@ -1020,7 +1020,7 @@ prefix, not from any model change. Measured 2026-09-20.
 prefix.** Never quote 0.97 s as the product number.
 
 **Never:**
-- ❌ **Speculative decoding in llama.cpp on Metal** — a **loss**, −11% to −28% **even at 100% draft
+- ❌ **Speculative decoding in llama.cpp on Metal** *(research finding from `UHWmini.md`, not a user rule; Metal only — on Linux/Windows GPUs (CUDA/ROCm/Vulkan) it is untested: measure it there, enable only if it wins)* — a **loss**, −11% to −28% **even at 100% draft
   acceptance**. Each draft step launches its own Metal kernel and the dispatch overhead eats the gain.
   MLX only.
   - ⚠️ **This includes DFlash 2, and the question comes up often — here is the answer.** DFlash 2 is
@@ -1107,6 +1107,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13** — Clarified: "no speculative decoding" is a **Metal-only research finding** (UHWmini.md), not a user rule. On Linux/Windows GPUs it is untested and will be measured (e.g. DeepSeek MTP on the AMD mini PC).
 - **2026-10-13 (v45)** — **Context follow-up slice added** (user: "add them"): 4-bit KV, document KV saved to disk, retrieval for big files, map-reduce summaries, and ≥128K on the 128 GB machine with a compact-attention model. Runs after the current long-context slice. **8/10 written as an explicit target**, including the user's OpenRouter key step. Checklist +5.
 - **2026-10-13** — **Hardware decided: GMKtec EVO-X2 mini PC, 128 GB** (user: "mini pc it is"), 4 TB + 4 TB inside, bought once the project succeeds. **Target: 7–8/10.** Consequence: the Linux port becomes required before the machine arrives. A PC build at the same budget was ruled out: 128 GB DDR5 (~52–60M) and 8 TB NVMe (~40M+) push it to ~175–185M, with only 48 GB VRAM.
 - **2026-10-12 (v44)** — **"Road to 7/10" added**, active only once a 128 GB machine exists (user decision): 128 GB machine + a strong open coding model resident (e.g. DeepSeek-V4-Flash ~3-bit, unmeasured) + ≥ 64K context + tests #3 and #1 passed, features frozen until then. 10/10 recorded as unreachable locally at $0. Hardware candidates and the 8 TB / Linux-port constraints recorded.

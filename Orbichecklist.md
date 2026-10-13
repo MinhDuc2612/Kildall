@@ -235,7 +235,7 @@
 - [ ] `-fa on` set **and confirmed to have taken effect**
 - [ ] `-lm mmap` used; **`--no-mmap` never** (deprecated)
 - [ ] Context capped (default 32K) — the KV cache outgrows the model past ~100K tokens
-- [ ] **Speculative decoding never enabled in llama.cpp on Metal** (−11% to −28%). MLX only
+- [ ] **Speculative decoding never enabled in llama.cpp on Metal** (−11% to −28%). MLX only. Other GPUs (CUDA/ROCm/Vulkan): measured; enabled only if it wins
 - [ ] **Neural Engine never used** for token generation
 - [ ] Every benchmark run **10 minutes minimum**, watching memory pressure
 - [ ] **Hardware auto-fit (#51, Phase 7, v37)** — reads chip, RAM and memory bandwidth; derives quant, context, batch, cache and lane; propose → short gate → adopt. Passes on this Mac and on a smaller RAM budget (10-minute soak, zero critical samples, every frozen gate held). Required before the first paid client
