@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v46 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v47 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -350,6 +350,8 @@ Codex order, one PR each, each holding every standing gate; Codex stops at the P
 #63 idle re-warm) → 4. **ops hardening** (#52 wired-limit boot daemon — you install it with sudo; #53 permanent
 backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is mounted) → 5. **long context** →
 5b. **platform layer** (v43: Mac-only parts behind one interface; no behaviour change) →
+5c. **NVIDIA NIM provider** (v47; key verified live) → 5d. **coding core** (v47: #89 test-driven fix loop, #88 repo map,
+#90 LoRA data collection) → **test #3** →
 6. **4.5b–4.5e** → 7. **quality slice** (#57 copy by reference — first-pass must rise with frozen fixtures
 untouched; #58 code-built delegation prompts — the exact-once smoke must pass) → 8. **Gemma vision** (#59, RAM
 measured, before 4C) → 9. **4C** → Phases 5, 7, 8, 9.
@@ -778,7 +780,7 @@ and logged; nothing runs.**
 
 ---
 
-# 🔮 BEYOND THE PLAN — 87 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42; 9 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 90 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47; 9 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -949,6 +951,14 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **86** | **Unused-model report** | ~128 GB of unused weights stay visible | Small |
 | **87** | **Per-client licence tracker** — which model licences each client setup depends on | Required before paid clients; generated automatically | Pairs with 9.10 |
 
+## Added v47 — coding core (2026-10-13, user: "2,3 and 6 too")
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **88** | ⏩ **Repo map** — an index of every file, symbol and call site (tree-sitter + Harrier embeddings), so the small context always receives the right code | Context is the weakest score (1/10); coding agents live on finding the right code | Medium; index kept fresh on file change |
+| **89** | ⏩ **Test-driven fix loop** — for coding tasks, run the project's tests/linters, read failures, fix, repeat until green or a retry cap; then (#4 idea) escalate to free cloud (NIM) only after N local failures | The biggest single coding gain: execution feedback, as Claude Code uses | Medium; every command through `permissions.execute` |
+| **90** | ⏩ **Collect LoRA training data now** — store every accepted diff / answer with its prompt (consented, local, never Claude/GPT outputs) | The LoRA lever is ready the day the 128 GB machine arrives | Small; storage + privacy rules from 9.5 |
+
 ## The honest shape of this list
 
 **Most of these are small. Three are not.** #1 (spec decoding) may not work at all. #42 (distillation)
@@ -1112,6 +1122,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13 (v47)** — **Coding core added** (user: "2,3 and 6 too"): #88 repo map, #89 test-driven fix loop (free-cloud escalation only after local failures), #90 LoRA data collection — scheduled **before test #3**, right after the NVIDIA NIM provider slice (also queued now). Checklist +4.
 - **2026-10-13** — **DeepSeek-V4.1-Flash recorded** (2026-09-10, MIT, **763 B**) — newest, but too big to be resident on 128 GB; free via NVIDIA NIM. ⚠️ **The 7/10 resident pick is now in doubt:** V4-Flash-0731 is 304 B per HF (~114 GB at 3-bit) vs ~96–110 GB GPU-usable on the AMD box — re-check (pruning / lower bits / smaller model) before buying.
 - **2026-10-13 (v46)** — **Three rules removed by the user:** "unmodified weights", "no training", and the speculative-decoding ban (now decided by measurement per platform). **Kept forever: never a paid API key or paid cloud** ("never in a mil year"); better hardware may be suggested. Road to 7/10 gains pruning, LoRA fine-tuning and speculative decoding as levers. Never train on Claude/GPT outputs (their terms).
 - **2026-10-13** — Clarified: "no speculative decoding" is a **Metal-only research finding** (UHWmini.md), not a user rule. On Linux/Windows GPUs it is untested and will be measured (e.g. DeepSeek MTP on the AMD mini PC).

@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **222** |
-| **Done now** | **14** of 222 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **226** |
+| **Done now** | **14** of 226 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -29,6 +29,9 @@
 - [ ] Piped output is clean — no orbs, no colour codes
 - [ ] Non-zero exit code on failure
 - [ ] **Copy by reference (#57):** tools accept a source-span id; tool first-pass rises above 17/20 with frozen fixtures untouched
+- [ ] **Repo map (#88):** the right files and symbols reach the context for coding tasks
+- [ ] **Test-driven fix loop (#89):** run tests, fix, repeat until green or the cap; free-cloud escalation only after local failures
+- [ ] **LoRA data collection (#90):** accepted diffs/answers stored locally with consent; never Claude/GPT outputs
 
 ## 2. Orbs — P1 *(Phase 1)*
 
@@ -171,6 +174,7 @@
 - [ ] **Deep research job** (`kildall research`, 4.5e): angles → search → fetch + guard → claims → 3-vote verify → cited report; queued, never blocks the terminal
 - [ ] Every claim in a research report has a reachable source URL and quote; refuted and unverified claims listed separately
 - [ ] 🔴 A failed or quota-limited vote counts as **unverified**, never merged as fact — fixture passes
+- [ ] **NVIDIA NIM provider:** allow-list of live-verified free models; exact-model match for Lane C picks; $0
 
 ## 13C. Computer mode — P2 *(Phase 4C)*
 
@@ -347,6 +351,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-13** — 4 items: NVIDIA provider, repo map, test-driven fix loop, LoRA data: **226 items**.
 - **2026-10-13** — Speculative-decoding item reworded: a measurement per platform, not a ban.
 - **2026-10-13** — 5 long-context items added to Group 17: **222 items**.
 - **2026-10-12** — 3 cross-platform items added to Group 18: **217 items**.
