@@ -788,7 +788,10 @@ and logged; nothing runs.**
 
 **User decision:** once every phase is done, re-pick the best model for **every skill and sub-skill** — the 302-leaf
 catalog (`skill_catalog.py`, research in `Researchhub/sample3/OrbiOSS.md`, to be renamed **`KildallOSS.md`** in this step).
-1. **Re-research every leaf** by benchmark evidence, **latest version per family**, best-per-skill regardless of brand;
+1. 🔴 **Best for its skill, never the most popular** (user, 2026-10-13): each leaf goes to the model that wins **that
+   skill's own benchmark** — downloads, stars, hype, brand and general leaderboards never count; an obscure model that
+   wins the leaf wins it. No leaf benchmark exists → mark ⚠ and pick by the closest task-specific evidence.
+   **Re-research every leaf** by benchmark evidence, **latest version per family**, best-per-skill regardless of brand;
    mark ✓ verified vs ⚠ reasoned default; keep a min-viable alternative where one exists.
 2. **Re-assign lanes by measured fit** on the machine in use (#51 auto-fit): resident, hot-swap, streamed, or free cloud
    (NVIDIA NIM / OpenRouter / others — **never a paid API**).
@@ -1144,6 +1147,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13** — Phase 10 rule added (user): **every skill/sub-skill gets the model that wins its own benchmark, no matter how popular** — downloads, stars, hype, brand and general leaderboards never count.
 - **2026-10-13 (v49)** — **Phase 10 added: model refresh for every skill and sub-skill**, the final step after everything else (user decision; a full Lane C rework was dropped). Re-research all 302 leaves, re-assign lanes by measured fit, update catalog/model list/research file (`OrbiOSS.md` → `KildallOSS.md`), gate every changed model. Seeds recorded: Hy4-preview GGUF builds now exist, Kimi-K2.7-Code, DeepSeek-V4.1-Flash, V4-Flash-Vision-Exp.
 - **2026-10-13 (v48)** — **Pre-purchase checks added** (user: "add them and you do the research rn"): A — prove test #3 via NVIDIA NIM's free big models before buying; B — GPU memory research **done**: ~120 GiB usable on Linux with `amdgpu.gttsize`/`ttm.pages_limit` (default half; 96 GB is Windows) → the 7/10 model fits tightly. **Corrects Claude's earlier "96–110 GB" assumption.** Measured chip speeds recorded (gpt-oss-120b 55–60 tok/s).
 - **2026-10-13 (v47)** — **Coding core added** (user: "2,3 and 6 too"): #88 repo map, #89 test-driven fix loop (free-cloud escalation only after local failures), #90 LoRA data collection — scheduled **before test #3**, right after the NVIDIA NIM provider slice (also queued now). Checklist +4.
