@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v47 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v48 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -385,12 +385,15 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
    Claude's pick), a desktop with 2 used RTX 3090s (~120–145M), or a Mac Studio M5 Max 128 GB (140.99M; no port
    needed). User wants **8 TB built in** — no Mac with 8 TB fits the budget; the 8 TB NVMe price (22M–83M seen) decides.
    **A non-Mac machine needs the Linux port (cross-platform section) before Kildall runs on it.**
-2. ⚠️ **Re-check before buying (2026-10-13):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB at 3-bit, likely **above the ~96–110 GB the AMD GPU can use**; the newer **DeepSeek-V4.1-Flash is 763 B** (cloud/Lane C only, free on NVIDIA NIM). The resident pick needs pruning (now allowed), a lower bit-width, or a smaller strong model — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
+2. ⚠️ **Re-check before buying (2026-10-13):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB (≈106 GiB) at 3-bit. ✅ **Research 2026-10-13: on Linux the AMD GPU can use ~120 GiB** once `amdgpu.gttsize=131072 ttm.pages_limit=31457280` are set (default is only half the RAM; newer kernels may need the `amdttm.` prefix; 96 GB is the Windows limit) — so it **fits, tightly** (~10 GiB left for context + OS). Measured on this chip (llama.cpp Vulkan, community): gpt-oss-120b 55–60 tok/s writing / ~460–490 tok/s reading; Qwen3.6-35B-A3B ~63 / ~1,000; effective ~155–170 GB/s of 256 → the 7/10 model ≈ **20–30 tok/s writing, ~200 tok/s reading** (estimate); the newer **DeepSeek-V4.1-Flash is 763 B** (cloud/Lane C only, free on NVIDIA NIM). Pruning (now allowed) or a lower bit-width remain options if context needs more room — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
    Lane C today) at ~3-bit ≈ 107 GB. ⚠️ Fit, speed and 3-bit quality loss are **unmeasured**; gate them like any
    Lane A candidate (speed, routing, tools, 10-min soak).
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
 4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
    Code) pass. **No new features until then.**
+**Pre-purchase checks (v48, 2026-10-13 — both before spending the 125–130M):**
+- **A. Prove the big model on your tasks first:** run test #3 through Kildall using NVIDIA NIM's free DeepSeek-V4.1-Flash / Kimi K3 (needs the NVIDIA provider + coding core slices). If it fails, the 7/10 premise is wrong — rethink before buying.
+- **B. GPU memory limit — DONE (research above):** ~120 GiB usable on Linux with the GTT/TTM settings; the Linux port must apply and verify them (dmesg GTT size, `/sys/module/ttm/parameters/pages_limit`).
 **Extra levers now allowed (2026-10-13, user removed three rules; paid APIs stay banned forever):**
 - **Expert pruning** of big MoE models (REAP-style) so a stronger model fits 128 GB — measure the quality loss first.
 - **Fine-tuning** (LoRA) on your own repos and accepted answers (#42 pairs) — from open/local model outputs only.
@@ -1122,6 +1125,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13 (v48)** — **Pre-purchase checks added** (user: "add them and you do the research rn"): A — prove test #3 via NVIDIA NIM's free big models before buying; B — GPU memory research **done**: ~120 GiB usable on Linux with `amdgpu.gttsize`/`ttm.pages_limit` (default half; 96 GB is Windows) → the 7/10 model fits tightly. **Corrects Claude's earlier "96–110 GB" assumption.** Measured chip speeds recorded (gpt-oss-120b 55–60 tok/s).
 - **2026-10-13 (v47)** — **Coding core added** (user: "2,3 and 6 too"): #88 repo map, #89 test-driven fix loop (free-cloud escalation only after local failures), #90 LoRA data collection — scheduled **before test #3**, right after the NVIDIA NIM provider slice (also queued now). Checklist +4.
 - **2026-10-13** — **DeepSeek-V4.1-Flash recorded** (2026-09-10, MIT, **763 B**) — newest, but too big to be resident on 128 GB; free via NVIDIA NIM. ⚠️ **The 7/10 resident pick is now in doubt:** V4-Flash-0731 is 304 B per HF (~114 GB at 3-bit) vs ~96–110 GB GPU-usable on the AMD box — re-check (pruning / lower bits / smaller model) before buying.
 - **2026-10-13 (v46)** — **Three rules removed by the user:** "unmodified weights", "no training", and the speculative-decoding ban (now decided by measurement per platform). **Kept forever: never a paid API key or paid cloud** ("never in a mil year"); better hardware may be suggested. Road to 7/10 gains pruning, LoRA fine-tuning and speculative decoding as levers. Never train on Claude/GPT outputs (their terms).
