@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v48 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v49 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -159,6 +159,7 @@ quality, at zero training cost.** *(2026-10-13: training and weight changes are 
 | **7** | Improvement loop — eval harness (#13) first, then **hardware auto-fit (#51, v37)** | no | one month unattended finds one upgrade you accept; **auto-fit gate passes** (see #51) |
 | **8** | Tool-set redo | no | each swap measurably better, or reverted |
 | **9** | 🎯 **Agentic OS — Kildall 100%**, built **last**: Laya reflex · Hermes channels · local voice · Obsidian second brain · activity capture · wallpaper dashboard · skill engineering · Google Workspace · skill packs · profiles | no | you speak, hear the answer, see it on the wallpaper; every listed daily/weekly task is a skill or automation; all earlier gates unchanged |
+| **10** | 🔄 **Model refresh — every skill and sub-skill**, the **final step after everything else is complete** | no | every leaf re-picked on current benchmark evidence; every changed model passes its lane gates; no regression |
 
 ## Phase 0 — today, one hour
 
@@ -783,6 +784,24 @@ and logged; nothing runs.**
 
 ---
 
+# 🔄 PHASE 10 — MODEL REFRESH FOR EVERY SKILL *(v49 · 2026-10-13 · runs last, after everything else is complete)*
+
+**User decision:** once every phase is done, re-pick the best model for **every skill and sub-skill** — the 302-leaf
+catalog (`skill_catalog.py`, research in `Researchhub/sample3/OrbiOSS.md`, to be renamed **`KildallOSS.md`** in this step).
+1. **Re-research every leaf** by benchmark evidence, **latest version per family**, best-per-skill regardless of brand;
+   mark ✓ verified vs ⚠ reasoned default; keep a min-viable alternative where one exists.
+2. **Re-assign lanes by measured fit** on the machine in use (#51 auto-fit): resident, hot-swap, streamed, or free cloud
+   (NVIDIA NIM / OpenRouter / others — **never a paid API**).
+3. **Update** `skill_catalog.py`, `Orbimodels.md` and the research file; download new models, remove replaced ones
+   (deletion only with your OK).
+4. **Gate every changed model** through the model-load procedure and its lane's gates; routing 20/20, recall, tools,
+   CLI unchanged or better. Quota-limited research is never merged as fact.
+**Seeds found 2026-10-13:** `tencent/Hy4-preview` now has GGUF builds (AngelSlim, AMAImedia) — its runtime blocker may be
+gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/DeepSeek-V4.1-Flash` (763 B);
+`deepseek-ai/DeepSeek-V4-Flash-Vision-Exp` (2026-08-31). NVIDIA's NVFP4 builds are NVIDIA-GPU formats, not for the AMD box.
+
+---
+
 # 🔮 BEYOND THE PLAN — 90 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47; 9 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
@@ -1125,6 +1144,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13 (v49)** — **Phase 10 added: model refresh for every skill and sub-skill**, the final step after everything else (user decision; a full Lane C rework was dropped). Re-research all 302 leaves, re-assign lanes by measured fit, update catalog/model list/research file (`OrbiOSS.md` → `KildallOSS.md`), gate every changed model. Seeds recorded: Hy4-preview GGUF builds now exist, Kimi-K2.7-Code, DeepSeek-V4.1-Flash, V4-Flash-Vision-Exp.
 - **2026-10-13 (v48)** — **Pre-purchase checks added** (user: "add them and you do the research rn"): A — prove test #3 via NVIDIA NIM's free big models before buying; B — GPU memory research **done**: ~120 GiB usable on Linux with `amdgpu.gttsize`/`ttm.pages_limit` (default half; 96 GB is Windows) → the 7/10 model fits tightly. **Corrects Claude's earlier "96–110 GB" assumption.** Measured chip speeds recorded (gpt-oss-120b 55–60 tok/s).
 - **2026-10-13 (v47)** — **Coding core added** (user: "2,3 and 6 too"): #88 repo map, #89 test-driven fix loop (free-cloud escalation only after local failures), #90 LoRA data collection — scheduled **before test #3**, right after the NVIDIA NIM provider slice (also queued now). Checklist +4.
 - **2026-10-13** — **DeepSeek-V4.1-Flash recorded** (2026-09-10, MIT, **763 B**) — newest, but too big to be resident on 128 GB; free via NVIDIA NIM. ⚠️ **The 7/10 resident pick is now in doubt:** V4-Flash-0731 is 304 B per HF (~114 GB at 3-bit) vs ~96–110 GB GPU-usable on the AMD box — re-check (pruning / lower bits / smaller model) before buying.
