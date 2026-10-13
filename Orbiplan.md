@@ -383,7 +383,7 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
    Claude's pick), a desktop with 2 used RTX 3090s (~120–145M), or a Mac Studio M5 Max 128 GB (140.99M; no port
    needed). User wants **8 TB built in** — no Mac with 8 TB fits the budget; the 8 TB NVMe price (22M–83M seen) decides.
    **A non-Mac machine needs the Linux port (cross-platform section) before Kildall runs on it.**
-2. **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
+2. ⚠️ **Re-check before buying (2026-10-13):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB at 3-bit, likely **above the ~96–110 GB the AMD GPU can use**; the newer **DeepSeek-V4.1-Flash is 763 B** (cloud/Lane C only, free on NVIDIA NIM). The resident pick needs pruning (now allowed), a lower bit-width, or a smaller strong model — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
    Lane C today) at ~3-bit ≈ 107 GB. ⚠️ Fit, speed and 3-bit quality loss are **unmeasured**; gate them like any
    Lane A candidate (speed, routing, tools, 10-min soak).
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
@@ -1112,6 +1112,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13** — **DeepSeek-V4.1-Flash recorded** (2026-09-10, MIT, **763 B**) — newest, but too big to be resident on 128 GB; free via NVIDIA NIM. ⚠️ **The 7/10 resident pick is now in doubt:** V4-Flash-0731 is 304 B per HF (~114 GB at 3-bit) vs ~96–110 GB GPU-usable on the AMD box — re-check (pruning / lower bits / smaller model) before buying.
 - **2026-10-13 (v46)** — **Three rules removed by the user:** "unmodified weights", "no training", and the speculative-decoding ban (now decided by measurement per platform). **Kept forever: never a paid API key or paid cloud** ("never in a mil year"); better hardware may be suggested. Road to 7/10 gains pruning, LoRA fine-tuning and speculative decoding as levers. Never train on Claude/GPT outputs (their terms).
 - **2026-10-13** — Clarified: "no speculative decoding" is a **Metal-only research finding** (UHWmini.md), not a user rule. On Linux/Windows GPUs it is untested and will be measured (e.g. DeepSeek MTP on the AMD mini PC).
 - **2026-10-13 (v45)** — **Context follow-up slice added** (user: "add them"): 4-bit KV, document KV saved to disk, retrieval for big files, map-reduce summaries, and ≥128K on the 128 GB machine with a compact-attention model. Runs after the current long-context slice. **8/10 written as an explicit target**, including the user's OpenRouter key step. Checklist +5.
