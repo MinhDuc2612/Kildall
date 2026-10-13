@@ -376,7 +376,10 @@ on all three (Metal / CUDA / ROCm / Vulkan / CPU); ~90% of the code is portable 
 **Honest score today, if every phase were finished: ~3/10 as a Claude Code replacement** (Claude review, user asked
 for "ruthless"). **A 10 is not reachable locally at $0** — closed frontier models stay ahead of open ones; only
 paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic** with all four of these:
-1. **A 128 GB machine.** Candidates (2026-10-12, VN prices): AMD Ryzen AI Max+ 395 mini PC 128 GB (~$3,650 + import;
+1. **A 128 GB machine — DECIDED 2026-10-13: GMKtec EVO-X2 mini PC (AMD Ryzen AI Max+ 395, 128 GB unified, 256 GB/s),
+   the 128 GB/4 TB version + a second 4 TB NVMe = 8 TB inside; bought once the project succeeds.** Linux (distro picked
+   in the port slice by AMD GPU support evidence). **So the platform layer + Linux port are now REQUIRED, not optional,
+   and must be done before the machine arrives.** Earlier candidates (2026-10-12, VN prices): AMD Ryzen AI Max+ 395 mini PC 128 GB (~$3,650 + import;
    Claude's pick), a desktop with 2 used RTX 3090s (~120–145M), or a Mac Studio M5 Max 128 GB (140.99M; no port
    needed). User wants **8 TB built in** — no Mac with 8 TB fits the budget; the 8 TB NVMe price (22M–83M seen) decides.
    **A non-Mac machine needs the Linux port (cross-platform section) before Kildall runs on it.**
@@ -1093,6 +1096,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-13** — **Hardware decided: GMKtec EVO-X2 mini PC, 128 GB** (user: "mini pc it is"), 4 TB + 4 TB inside, bought once the project succeeds. **Target: 7–8/10.** Consequence: the Linux port becomes required before the machine arrives. A PC build at the same budget was ruled out: 128 GB DDR5 (~52–60M) and 8 TB NVMe (~40M+) push it to ~175–185M, with only 48 GB VRAM.
 - **2026-10-12 (v44)** — **"Road to 7/10" added**, active only once a 128 GB machine exists (user decision): 128 GB machine + a strong open coding model resident (e.g. DeepSeek-V4-Flash ~3-bit, unmeasured) + ≥ 64K context + tests #3 and #1 passed, features frozen until then. 10/10 recorded as unreachable locally at $0. Hardware candidates and the 8 TB / Linux-port constraints recorded.
 - **2026-10-12 (v43)** — **Cross-platform added** (user picked option 1): a platform layer right after long context (Mac-only parts behind one interface, zero behaviour change), then Linux (Fedora + Ubuntu tested) and Windows via WSL2 before the first paid client; every gate re-passed per OS. Needs an NVIDIA test PC. Checklist +3.
 - **2026-10-12 (v42)** — **12 improvements added, #76–#87** (user: "add all the improvement ideas"): kill switch, local-only memory tags, bot action budgets, simulate mode, resident model server, warm answer slots, `kildall doctor`, test-log retention, model-update watcher, answer receipts, unused-model report, per-client licence tracker. Not scheduled early; they follow the normal Phase 7–9 order.
