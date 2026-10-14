@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v50 · 2026-10-14.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v51 · 2026-10-14.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -352,7 +352,8 @@ Codex order, one PR each, each holding every standing gate; Codex stops at the P
 backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is mounted) → 5. **long context** →
 5b. **platform layer** (v43: Mac-only parts behind one interface; no behaviour change) →
 5c. **NVIDIA NIM provider** (v47; key verified live) → 5d. **coding core** (v47: #89 test-driven fix loop, #88 repo map,
-#90 LoRA data collection) → **test #3** →
+#90 LoRA data collection; v51: #91 code skeletons) → **test #3** → 5e. **after-test-#3 batch** (v51: #96 llama.cpp
+build tracker, #95 answer-length budget, #92 session-history search, #93 self-healing, #94 resume long jobs) →
 6. **4.5b–4.5e** → 7. **quality slice** (#57 copy by reference — first-pass must rise with frozen fixtures
 untouched; #58 code-built delegation prompts — the exact-once smoke must pass) → 8. **Gemma vision** (#59, RAM
 measured, before 4C) → 9. **4C** → Phases 5, 7, 8, 9.
@@ -819,7 +820,7 @@ gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/
 
 ---
 
-# 🔮 BEYOND THE PLAN — 90 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47; 9 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 96 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51; 9 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -998,6 +999,17 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **89** | ⏩ **Test-driven fix loop** — for coding tasks, run the project's tests/linters, read failures, fix, repeat until green or a retry cap; then (#4 idea) escalate to free cloud (NIM) only after N local failures | The biggest single coding gain: execution feedback, as Claude Code uses | Medium; every command through `permissions.execute` |
 | **90** | ⏩ **Collect LoRA training data now** — store every accepted diff / answer with its prompt (consented, local, never Claude/GPT outputs) | The LoRA lever is ready the day the 128 GB machine arrives | Small; storage + privacy rules from 9.5 |
 
+## Added v51 — picked by the user (2026-10-14: "13, 20, 21, 11, 4 and 1 looks great")
+
+| # | Idea | Buys | Cost |
+|---|---|---|---|
+| **91** | ⏩ **Code skeletons** — send function/class signatures, expand bodies only when needed (joins the coding core, with #88) | Far more of a repo fits the context; pairs with the repo map | Medium; tree-sitter per language |
+| **92** | ⏩ **Session-history search** — every past turn embedded and searchable, pulled back when relevant | Long chats never "forget"; extends the effective context | Small–medium; inside memory caps |
+| **93** | ⏩ **Self-healing** — auto-restart a hung model server, auto re-register daemons, alert on repeat failures (`kildall doctor` diagnoses, this repairs) | Fewer dead sessions; the backup/wired-limit breakages self-repair | Small; never deletes data |
+| **94** | ⏩ **Resume long jobs** after a crash or reboot from saved checkpoints | Overnight Lane C / research jobs survive restarts | Medium |
+| **95** | ⏩ **Answer-length budget** — the router predicts the right length and caps generation | Less rambling, faster answers at ~20–30 tok/s | Small; must not cut correct long answers (gate) |
+| **96** | ⏩ **llama.cpp build tracker** — auto-test each new release on the frozen gates; adopt only if faster with no score drop | llama.cpp gains speed weekly; free speed-ups | Small; never auto-adopt without gates |
+
 ## The honest shape of this list
 
 **Most of these are small. Three are not.** #1 (spec decoding) may not work at all. #42 (distillation)
@@ -1161,6 +1173,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-14 (v51)** — **6 user-picked improvements added, #91–#96:** code skeletons (joins the coding core before test #3), session-history search, self-healing, resume long jobs, answer-length budget, llama.cpp build tracker (an after-test-#3 batch). Checklist +6.
 - **2026-10-14 (v50)** — **9.12 Shadow Twin added** (user idea): learns each user's style from prompts, edits, accepted/rejected outputs, own writing/repos and activity; stored in a **new per-user memory scope**, not global; style card + own examples + per-user LoRA + one-click proactive drafts; full user controls; gates: blind A/B ≥ 70% preference and cross-user isolation. Checklist +4.
 - **2026-10-13** — Phase 10 rule added (user): **every skill/sub-skill gets the model that wins its own benchmark, no matter how popular** — downloads, stars, hype, brand and general leaderboards never count.
 - **2026-10-13 (v49)** — **Phase 10 added: model refresh for every skill and sub-skill**, the final step after everything else (user decision; a full Lane C rework was dropped). Re-research all 302 leaves, re-assign lanes by measured fit, update catalog/model list/research file (`OrbiOSS.md` → `KildallOSS.md`), gate every changed model. Seeds recorded: Hy4-preview GGUF builds now exist, Kimi-K2.7-Code, DeepSeek-V4.1-Flash, V4-Flash-Vision-Exp.

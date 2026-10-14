@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **230** |
-| **Done now** | **14** of 230 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **236** |
+| **Done now** | **14** of 236 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -32,6 +32,8 @@
 - [ ] **Repo map (#88):** the right files and symbols reach the context for coding tasks
 - [ ] **Test-driven fix loop (#89):** run tests, fix, repeat until green or the cap; free-cloud escalation only after local failures
 - [ ] **LoRA data collection (#90):** accepted diffs/answers stored locally with consent; never Claude/GPT outputs
+- [ ] **Code skeletons (#91):** signatures first, bodies expanded only when needed
+- [ ] **Answer-length budget (#95):** predicted length caps generation without cutting correct long answers
 
 ## 2. Orbs — P1 *(Phase 1)*
 
@@ -52,6 +54,7 @@
 - [ ] Backups stored outside the code directory
 - [ ] Survives delete-then-restore
 - [ ] **20 recall pairs, 17+ correct**
+- [ ] **Session-history search (#92):** every past turn searchable and pulled back when relevant
 
 ## 4. Router — P0 *(Phase 2)*
 
@@ -285,6 +288,9 @@
 - [ ] **Platform layer** — keys, jobs, sandbox, OCR, computer mode, memory probe behind one interface; zero behaviour change on the Mac
 - [ ] **Linux port** (any mainstream systemd distro; tested on Fedora + Ubuntu LTS) passes every gate on real hardware, incl. the Phase 3 sandbox tests
 - [ ] **Windows via WSL2** passes every gate on real hardware; native Windows only if needed
+- [ ] **Self-healing (#93):** hung server restarted, daemons re-registered automatically, repeat failures alerted
+- [ ] **Resume long jobs (#94)** after a crash or reboot from checkpoints
+- [ ] **llama.cpp build tracker (#96):** new builds tested on the frozen gates, adopted only if faster with no score drop
 
 ## 19. Agentic OS — P2 *(Phase 9 — Kildall 100%)*
 
@@ -355,6 +361,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-14** — 6 items for #91–#96: **236 items**.
 - **2026-10-14** — 4 Shadow Twin items added to Group 19: **230 items**.
 - **2026-10-13** — 4 items: NVIDIA provider, repo map, test-driven fix loop, LoRA data: **226 items**.
 - **2026-10-13** — Speculative-decoding item reworded: a measurement per platform, not a ban.
