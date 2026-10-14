@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **226** |
-| **Done now** | **14** of 226 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **230** |
+| **Done now** | **14** of 230 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -320,6 +320,10 @@
 - [ ] **Kildall Bots (9.11)**: `kildall-botd` daemon; named bots with their own memory and permission scopes, reachable by chat and dashboard
 - [ ] **Kildall Bots desktop app (v36)**: the 9.6 web UI in a native window + menu-bar icon; creates, watches, pauses and approves bots; no tools of its own — everything routes to Kildall through `permissions.execute`
 - [ ] 🔴 **The bot API is local-only and token-locked** — a request without the token, and one sent from a browser page, are both refused and logged; nothing runs
+- [ ] **Shadow Twin (9.12):** learns style from prompts, edits, accepted/rejected outputs, own writing/repos and activity
+- [ ] **User memory scope:** a per-user profile separate from global and project memory; local-only by default
+- [ ] Shadow Twin controls: see, edit, delete, forget per item, pause, export
+- [ ] **Twin gates:** blind A/B preference ≥ 70%; user A's profile never reaches user B; delete removes it everywhere
 
 ---
 
@@ -351,6 +355,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-14** — 4 Shadow Twin items added to Group 19: **230 items**.
 - **2026-10-13** — 4 items: NVIDIA provider, repo map, test-driven fix loop, LoRA data: **226 items**.
 - **2026-10-13** — Speculative-decoding item reworded: a measurement per platform, not a ban.
 - **2026-10-13** — 5 long-context items added to Group 17: **222 items**.

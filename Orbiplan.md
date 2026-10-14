@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v49 · 2026-10-13.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v50 · 2026-10-14.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -775,6 +775,20 @@ call **one bot API inside Kildall**. 🔴 That API listens **only on this Mac** 
 decided in the 9.11 spec. **Gate: a request without the token, and one sent from a browser page, are both refused
 and logged; nothing runs.**
 
+**9.12 — Shadow Twin: Kildall learns how *you* work** *(v50, 2026-10-14, user idea)*. Every output fits the user it
+works for — wording, tone per recipient, English/Vietnamese mix, code style, formats, habits, timing.
+- **Learns from:** your prompts; **your edits to Kildall's output** (the strongest signal); accepted vs rejected
+  answers; your own writing and repos; activity capture (9.5); corrections you state outright.
+- **Stored as USER memory — a new memory scope, separate from global and project memory.** One profile per user
+  (each client separate, 9.10); never mixed into another user's context; tagged **local-only** by default (#77) —
+  raw keystrokes never leave the machine (9.5 rule).
+- **Uses:** a compact style card injected within the memory caps; your best past outputs as examples (#60); a per-user
+  LoRA adapter on the 128 GB machine (#90 data); **proactive drafts** you approve with one click — drafts only; acting
+  still goes through the normal permission tiers.
+- **Your controls:** see, edit, delete any learned trait; forget per item; pause learning; export the profile.
+- **Gates:** blind A/B on a fixed task set — you prefer the Twin's output over plain Kildall **≥ 70%** of the time;
+  isolation test — user A's profile never appears in user B's context; delete removes the trait from every store.
+
 ## Phase 9 is done when
 
 1. You speak a command in English or Vietnamese, hear the answer and watch the work on the wallpaper.
@@ -1147,6 +1161,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-14 (v50)** — **9.12 Shadow Twin added** (user idea): learns each user's style from prompts, edits, accepted/rejected outputs, own writing/repos and activity; stored in a **new per-user memory scope**, not global; style card + own examples + per-user LoRA + one-click proactive drafts; full user controls; gates: blind A/B ≥ 70% preference and cross-user isolation. Checklist +4.
 - **2026-10-13** — Phase 10 rule added (user): **every skill/sub-skill gets the model that wins its own benchmark, no matter how popular** — downloads, stars, hype, brand and general leaderboards never count.
 - **2026-10-13 (v49)** — **Phase 10 added: model refresh for every skill and sub-skill**, the final step after everything else (user decision; a full Lane C rework was dropped). Re-research all 302 leaves, re-assign lanes by measured fit, update catalog/model list/research file (`OrbiOSS.md` → `KildallOSS.md`), gate every changed model. Seeds recorded: Hy4-preview GGUF builds now exist, Kimi-K2.7-Code, DeepSeek-V4.1-Flash, V4-Flash-Vision-Exp.
 - **2026-10-13 (v48)** — **Pre-purchase checks added** (user: "add them and you do the research rn"): A — prove test #3 via NVIDIA NIM's free big models before buying; B — GPU memory research **done**: ~120 GiB usable on Linux with `amdgpu.gttsize`/`ttm.pages_limit` (default half; 96 GB is Windows) → the 7/10 model fits tightly. **Corrects Claude's earlier "96–110 GB" assumption.** Measured chip speeds recorded (gpt-oss-120b 55–60 tok/s).
