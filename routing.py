@@ -26,7 +26,7 @@ PLAN_DEFAULTS = {
 
 def classify(config, system, prompt, properties):
     # Imported here so the CLI can also run as a script without an import cycle.
-    from kildall import json_request, strict_json, system_messages, url
+    from kildall import json_request, strict_json, system_messages, url, inference_timeout
     from subagents import router_slot
 
     messages = system_messages([dict(role="system", content=system), dict(role="user", content=prompt)])
@@ -42,7 +42,7 @@ def classify(config, system, prompt, properties):
                         "type": "object", "properties": properties, "required": list(properties),
                         "additionalProperties": False}}})
     with router_slot(config):
-        response = json_request(endpoint + "/v1/chat/completions", body, timeout=180)
+        response = json_request(endpoint + "/v1/chat/completions", body, timeout=inference_timeout(config))
     choices = response.get("choices", [])
     if len(choices) != 1 or choices[0].get("finish_reason") != "stop":
         raise ValueError("Classifier did not finish one complete decision")
@@ -77,7 +77,7 @@ Choose a leaf only when its specific operation covers the requested scope. Share
 
 
 def classify_catalog(config, prompt):
-    from kildall import json_request, url
+    from kildall import json_request, url, inference_timeout
     from subagents import router_slot
     from skill_catalog import SKILLS
 
@@ -94,7 +94,7 @@ def classify_catalog(config, prompt):
     body = dict(messages=messages, temperature=0, top_p=1, samplers=["temperature"], seed=42,
                 max_tokens=16, stream=False, cache_prompt=True, grammar=grammar)
     with router_slot(config):
-        response = json_request(endpoint + "/v1/chat/completions", body, timeout=180)
+        response = json_request(endpoint + "/v1/chat/completions", body, timeout=inference_timeout(config))
     choices = response.get("choices", [])
     if len(choices) != 1 or choices[0].get("finish_reason") != "stop":
         raise ValueError("Classifier did not finish one complete decision")

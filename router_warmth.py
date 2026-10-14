@@ -96,14 +96,14 @@ def prefix(config):
     return json_request(endpoint + '/tokenize', dict(content=rendered, add_special=True))['tokens']
 
 
-def saved_tokens(path):
+def saved_tokens(path, limit=4096):
     """Validate b10809's text-only server_tokens envelope, not just a byte-string grep."""
     if not stat.S_ISREG(path.lstat().st_mode):
         raise ValueError('Router slot must be a regular file')
     with path.open('rb') as source:
         magic, version, size = struct.unpack('<III', source.read(12))
-        if magic != 1734833009 or version != 3 or not 4 <= size <= 4100:
-            raise ValueError('Unexpected b10809 slot header')
+        if magic != 1734833009 or version != 3 or not 4 <= size <= limit + 4:
+            raise ValueError('Unexpected b10809 router prefix slot header')
         packed = struct.unpack(f'<{size}i', source.read(size * 4))
     if packed[:2] != (-1, 1) or packed[2] != size - 4 or packed[-1] != 0:
         raise ValueError('Expected a text-only b10809 token envelope')
@@ -115,7 +115,7 @@ def valid_file(directory, key, tokens):
     try:
         manifest = strict_json((directory / 'prefix.json').read_text())
         path = directory / 'prefix.bin'
-        return (manifest['key'] == key and saved_tokens(path) == tokens
+        return (manifest['key'] == key and saved_tokens(path, len(tokens)) == tokens
                 and manifest['sha256'] == digest(path))
     except (OSError, ValueError, KeyError, TypeError, struct.error):
         return False
@@ -183,7 +183,7 @@ def initialize(config, record, command):
             if pending.exists() or pending.is_symlink():
                 raise ValueError('Router save destination already exists')
             json_request(url(config) + '/slots/0?action=save', dict(filename=pending.name))
-            if saved_tokens(pending) != tokens:
+            if saved_tokens(pending, len(tokens)) != tokens:
                 raise ValueError('Refusing to persist anything beyond the router prefix')
             saved = dict(key=key, sha256=digest(pending), tokens=len(tokens), bytes=pending.stat().st_size)
             pending.replace(directory / 'prefix.bin')

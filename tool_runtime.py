@@ -70,22 +70,24 @@ def prepare(endpoint, body, *, cancel=None):
     return native
 
 
-def chat(endpoint, body, *, on_text=None, cancel=None):
+def chat(endpoint, body, *, on_text=None, cancel=None, on_progress=None, timeout=180):
     """Return the existing callable JSON protocol; no fallback to unconstrained tools."""
     from subagents import request_slot
     with request_slot(endpoint):
-        return _chat(endpoint, body, on_text=on_text, cancel=cancel)
+        return _chat(endpoint, body, on_text=on_text, cancel=cancel, on_progress=on_progress, timeout=timeout)
 
 
-def _chat(endpoint, body, *, on_text=None, cancel=None):
+def _chat(endpoint, body, *, on_text=None, cancel=None, on_progress=None, timeout=180):
     from kildall import strict_json
     from subagents import inference_body
     native = inference_body(endpoint + '/completion',
         prepare(endpoint, body, **({'cancel': cancel} if cancel is not None else {})))
+    if on_progress and native['stream']:
+        native['return_progress'] = True
     request = urllib.request.Request(endpoint + '/completion', json.dumps(native).encode(),
                                      {'Content-Type': 'application/json'})
     raw, shown, tokens, completed = '', '', [], None
-    with (cancel or _OPENER).open(request, timeout=180) as response:
+    with (cancel or _OPENER).open(request, timeout=timeout) as response:
         if native['stream']:
             for line in response:
                 if len(line) > 1_000_000:
@@ -98,6 +100,14 @@ def _chat(endpoint, body, *, on_text=None, cancel=None):
                 event = strict_json(data)
                 if 'error' in event:
                     raise RuntimeError(str(event['error']))
+                if on_progress and 'prompt_progress' in event:
+                    progress = event['prompt_progress']
+                    if (not isinstance(progress, dict) or any(type(progress.get(k)) not in (int, float)
+                            or not math.isfinite(progress[k]) or progress[k] < 0
+                            for k in ('total', 'processed', 'cache', 'time_ms'))
+                            or not progress['cache'] <= progress['processed'] <= progress['total']):
+                        raise ValueError('Invalid prefill progress')
+                    on_progress(progress)
                 text = event.get('content', '')
                 if not isinstance(text, str):
                     raise ValueError('Invalid native stream content')

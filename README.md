@@ -78,7 +78,8 @@ python3.12 -m venv .venv
 Setup downloads and verifies the pinned runtime and two models (about 11.7 GB).
 Do not run setup to enable other lanes: Phase 2 downloads no models.
 Servers start locally on demand; `kildall --stop` releases them. The measured context
-limit is 4,096 tokens. Generation uses a bounded native prefix cache
+limit is set by `runtime.context_size` (the retained default is 4,096 until a
+larger candidate passes every gate). Generation uses a bounded native prefix cache
 (`--cache-ram 768 --ctx-checkpoints 3`); embeddings keep caching disabled.
 After updating from the old runtime flags, run `kildall --stop` before restarting.
 
@@ -149,7 +150,7 @@ Model files, databases, backups and runtime logs stay out of Git.
 
 `ask` classifies the operational category and proposed catalog leaf in one call.
 Requests too long for that compact catalog use the existing three-call hierarchy
-within the4,096-token context; requests are never silently shortened. Neither path
+within the configured context; requests are never silently shortened. Neither path
 verifies the proposed leaf match, and either can report an unmatched operation.
 `ask --lane a` skips classification. Oversized requests can use the free cloud fallback below.
 Legacy `kildall "..."` and `kildall --continue` retain their
@@ -407,7 +408,7 @@ Tools run through the same executor, with confirmations in the parent's terminal
 Child memory writes stay in the parent project and child shell directories are
 independent. `kildall permissions ID` shows the linked child decisions/results.
 
-The shared configuration is three slots, each4096 tokens (`-np 3 -c 12288`),
+The retained shared configuration is three slots, each4096 tokens (`-np 3 -c 12288`),
 with continuous batching, one global768MiB prefix cache and up to three checkpoints
 per slot. Slot0 is reserved for routing. Answers, tools and direct generation use
 workslot1; interactive turns serialize there. While the parent waits, up to two
@@ -415,6 +416,32 @@ shared children run concurrently on workslots1–2. Each slot has one owner, and
 failed or cancelled requests drain before reuse. A batch refuses unavailable
 slots or insufficient measured RAM headroom. See `BENCHMARKS.md` for the paired
 routing, latency and memory-pressure results, including the failed two-slot option.
+
+`runtime.context_size` controls each answer window and routing admission. With
+`runtime.kv_unified = true`, the shared pool reserves that window for each work
+slot plus `runtime.router_reserve_tokens` (default4096) for the router. The pinned
+server applies the same per-slot ceiling to all slots: the router reserve is a
+pool budget, not a hard router quota. Idle-slot clearing is disabled to retain
+the router prefix. Otherwise total KV capacity is `context_size × parallel`.
+All candidates retain Q8 KV, the same prompts, sampling and tool grammars.
+
+Long answer and child prompts report native prefill counts and estimated seconds
+remaining on stderr, separately from model output. The display threshold is
+`runtime.progress_threshold_tokens` (default4096); estimates start at85tok/s and
+then use measured progress. Input character bounds scale with the token limit;
+exact rendered token counts still decide admission. Generation and memory
+retrieval budgets stay unchanged. `runtime.shared_slot_rss_bytes` can record a
+measured larger slot reserve; it cannot fall below the existing measured baseline.
+
+Context assumptions covered here: server allocation/reuse validation, answer and
+router admission, child slot validation, parent/child input bounds, long-request
+timeouts, saved router-token bounds, and overflow messages. The frozen recall
+harness still runs on one4096-token slot, followed by identical request replay on
+every production answer slot. Unrelated4096-byte/vector limits are unchanged.
+Future4.5c MCP schemas,4.5d council transcripts and4.5e document chunks must budget
+against `runtime.context_size` minus their actual template, tool and output
+tokens. The council's planned600-token answer cap is an output cap, not a context
+window. Those features and the Q4/document-cache/RAG follow-up are not built here.
 
 Separate model processes require `--agents separate` and an explicit `mode:
 "separate"` child request. This machine's measured cap is **0**: the second model

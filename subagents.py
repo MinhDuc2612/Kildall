@@ -118,8 +118,9 @@ def wait_idle(config, slot, *, cancel=None):
                 return  # Cold start; ensure_runtime will establish ownership.
             raise
         matches = [row for row in rows if row['id'] == slot]
-        if len(matches) != 1 or matches[0].get('n_ctx', 0) < 4096:
-            raise RuntimeError('Runtime slot does not have its full 4096-token context')
+        limit = config['runtime'].get('context_size', 4096)
+        if len(matches) != 1 or matches[0].get('n_ctx', 0) < limit:
+            raise RuntimeError(f'Runtime slot does not have its full {limit}-token context')
         if not matches[0]['is_processing']:
             return
         if time.monotonic() >= deadline:
@@ -328,7 +329,9 @@ class Manager:
                 started = time.perf_counter()
                 response = chat(kildall.url(config), dict(messages=messages, tools=self.tools,
                     tool_choice='auto', parallel_tool_calls=False, temperature=0, top_p=1, samplers=['temperature'], seed=42,
-                    max_tokens=self.max_tokens, stream=True, cache_prompt=False), on_text=content, cancel=cancel)
+                    max_tokens=self.max_tokens, stream=True, cache_prompt=False), on_text=content, cancel=cancel,
+                    on_progress=kildall.read_progress(config, f"Child slot {child['slot']}: "),
+                    timeout=kildall.inference_timeout(config))
                 partial.update(response['choices'][0]['message'])
                 child['timings'].append(dict(wall_s=time.perf_counter()-started, **response['timings']))
                 return partial
@@ -359,9 +362,12 @@ class Manager:
         # Shared KV is already allocated by the resident server. Budget observed
         # per-slot overhead for active children; the new-model reserve above is
         # for separate-process admission, not a second reservation of resident KV.
-        if budget['pressure'] == 4 or budget['available_bytes'] < (active_shared + separate) * SLOT_RSS:
+        slot_rss = self.config['runtime'].get('shared_slot_rss_bytes', SLOT_RSS)
+        if type(slot_rss) is not int or slot_rss < SLOT_RSS:
+            raise ValueError('Shared slot reserve cannot be below the measured baseline')
+        if budget['pressure'] == 4 or budget['available_bytes'] < (active_shared + separate) * slot_rss:
             raise PermissionError('Measured shared slot/RAM capacity would be exceeded')
-        if any(not t['prompt'].strip() or len(t['prompt']) > 65536 for t in args['tasks']):
+        if any(not t['prompt'].strip() or len(t['prompt']) > self.config['runtime']['context_size'] * 16 for t in args['tasks']):
             raise ValueError('Expected nonempty bounded child prompts')
         selected = _SLOT.get()
         if selected != (kildall.url(self.config), work[0], count):

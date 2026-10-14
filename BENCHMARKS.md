@@ -2377,3 +2377,73 @@ sudo /bin/launchctl kickstart system/local.kildall.wiredlimit
 ```
 
 Pending: live daemon installation/verification and resulting check.sh0; physical KildallC copy test remains deferred because the volume is absent. No sudo, reboot, migration, model download, prompt/flag/catalog change, HF sync or later slice was performed.
+
+## Long context — 16K candidates rejected (2026-10-14)
+
+**Neither candidate qualified. Production `kildall.toml` remains byte-identical at 4,096 tokens × three slots. 32K was not run: it required every 16K gate to pass.** The branch adds configurable allocation/admission, longer-request timeouts, native prefill progress/ETA and controls; it does not promote a larger window. Main remains `69e83f2` pending review.
+
+Evidence: `.session/long-context-20261009/` (work resumed after reading plan v51). Platform, NIM, coding core, Q4 KV/document-cache/RAG follow-up, MCP and all later slices remain deferred. No model, sampling, prompt, grammar, catalog or cloud-config changes; no sudo or HF sync.
+
+### Source audit and protocol
+
+[Google model card](https://ai.google.dev/gemma/docs/core/model_card_4) states 256K; [official configuration](https://huggingface.co/google/gemma-4-26B-A4B-it/raw/main/config.json) specifies **262,144 tokens**. This is the model maximum, not this machine's qualified capacity.
+
+Pinned b10809 source `5266f24da75dc449bd56cbed7addb9c8e4a6a73e` hashes were verified. `llama-context.cpp:288` divides non-unified total context across slots; unified KV shares the pool. `server-context.cpp:4011` applies a common `--kv-unified-per-slot` ceiling, with no per-ID router quota. Unified candidate: `-np 3 -c 36864 -kvu --kv-unified-per-slot 16384 --no-cache-idle-slots`: budget 4K for the router and 2×16K for work. Disabling idle-slot clearing is required to keep the router prefix (lines2420–2433); allocation pressure may still purge idle slots (line1667). Split fallback: `-np 3 -c 49152`, reserving 16K for all three slots. Cache768MiB, checkpoints3 and Q8 KV stayed fixed.
+
+Before inference, `protocol.json` declared unified16K first, split16K only after failure, and32K only after complete16K success. Each candidate received exactly one unchanged interactive protocol: four warmups,100 requests,32 output tokens, nearest-rank p99≤6.726s. No failed routing/latency/soak was repeated. The600s soak used real children with approximately14,987 input tokens each and64-token answer budgets; this is a longer workload than the historical short-prompt soak. The warning ceiling remains103/121 without adjustment.
+
+### Gate results
+
+| Gate | 16K unified | 16K split |
+|---|---:|---:|
+| Category / final lane; r17 | 20/20 each; X→C | 20/20 each; X→C |
+| Fresh-restart cold / warm | 0 / 20 | 0 / 20 |
+| First route | 1.092048s | 0.895977s |
+| Routing mean (≤0.906s) | **FAIL 1.036192650s** | PASS 0.886455650s |
+| Routing p50 / p99 | 1.062681 / 1.243370s | 0.882186 / 1.202259s |
+| Interactive p50 | 7.087308833s | 5.933859166s |
+| Interactive p99 (≤6.726s) | **FAIL 7.477331083035s** | PASS 6.082421458035s |
+| Soak normal / warning / critical | **FAIL 4 / 117 / 0** | **FAIL 1 / 120 / 0** |
+| GPU OOM | 0 | 0 |
+| Observation / actual child load | 600.031 / 626.650s | 600.023 / 604.245s |
+| Completed real children | 8 | 8 |
+| Peak process RSS | 13.030425 GB | 14.176125 GB |
+| Peak device GPU in use | 14.612922 GB | 14.896857 GB |
+| Peak device GPU allocated | 15.673573 GB | 16.050471 GB |
+
+Unified's later interactive requests became faster; all100 observations remain in its failing result. These sequential runs do not isolate host drift, and no failure is attributed to an unmeasured cause. **Best latency option: split16K, but120 warning samples and higher memory cost prevent promotion.** Neither configuration is certified for production. Retained capacity is two shared work contexts, one router slot, and zero separate model processes.
+
+### Reading speed and allocation
+
+Native synthetic prefill used exact token arrays, cache_n0 and one output token, sequentially on both work slots. b10809 rejects text input at or above the slot window, so the upper-window probe uses **16,383 input +1 output**, not a claimed16,384-token input. These are reading-speed probes, not long-document accuracy tests.
+
+| Layout / slot | Input tokens | Prefill tok/s | Wall seconds |
+|---|---:|---:|---:|
+| 16k-unified / 1 | 8,192 | 243.442 | 33.660 |
+| 16k-unified / 1 | 16,383 | 223.044 | 73.478 |
+| 16k-unified / 2 | 8,192 | 238.746 | 34.323 |
+| 16k-unified / 2 | 16,383 | 222.787 | 73.543 |
+| 16k-split / 1 | 8,192 | 249.588 | 32.903 |
+| 16k-split / 1 | 16,383 | 228.252 | 71.784 |
+| 16k-split / 2 | 8,192 | 247.234 | 33.252 |
+| 16k-split / 2 | 16,383 | 228.310 | 71.991 |
+
+Native allocation logs: unified382.50MiB non-SWA +345.31MiB SWA =**727.81MiB total**; split510.00 +398.44 =**908.44MiB total**, approximately**302.81MiB per slot** versus the4K baseline175.31MiB. SWA prevents linear window-size extrapolation. Diagnostic logs alone used `LLAMA_ARG_LOG_VERBOSITY=4`, as documented in pinned `arg.cpp:3962`; measured latency/routing retained normal logging.
+
+Additional split16K work slot (two→three slots, sequential warmed snapshots): **RSS +312,115,200bytes**, device GPU in-use +420,020,224bytes, allocated +408,092,672bytes; KV +302.82MiB rounded in logs. These are observed process/device differences, not attribution of shared weights. The existing533,315,584-byte admission reserve exceeds this observed RSS increment; no larger context was adopted. Full-input peaks are reported separately above.
+
+### Standing checks and implementation
+
+- **Recall PASS:** frozen harness20/20 on one4096-token slot; identical requests20/20 on each actual16K answer slot1–2. Only historical vault-path normalization; no fixture edits.
+- **Quality PASS:** abstention20/20, category20/20, callable JSON20/20, tools17/20 first-pass→20/20 post-retry. Accepted t07/t09/t12 remain unchanged. CLI18/18. These full quality checks ran on the best latency candidate, split16K; unified was rejected on performance/pressure and did not receive an additional full quality run.
+- **Warmth PASS:** context-only flags changed the cache key; live test rejected the old file without restoring it, rebuilt, and saved exactly3863 system/catalog tokens. Fresh restarts had zero cold routes in both20-case runs. Prefix files: unified153,515,516bytes; split153,515,532bytes. Existing b10809 limitation remains: restored files omit SWA checkpoints, so startup still rebuilds them before readiness.
+- **Progress PASS:** parent/child native streams report token counts and estimated read time on stderr; native progress is validated separately from assistant text. Unit control proves grammar/admission remain applied and malformed progress fails closed. Long child logs show0/14,987 tokens and subsequent progress.
+- Config-driven assumptions: server allocation and reuse checks; parent and router admission; child slot validation; parent/child character bounds; request timeout; saved router-token bound; overflow diagnostic. Memory stays12items/4000chars/300ms. Defaults retain4K compatibility. Future4.5c tool schemas,4.5d council transcripts and4.5e chunks must use configured context minus actual template/tool/output tokens; their features were not built, and read-only planning files were not edited. Unrelated4096-byte/vector bounds remain unchanged.
+- **Controls/health PASS:** all23 scripts (22 standing suites plus new context controls), hooks5/5; Phase3/4.1/4.2/4.4, slot isolation, cloud and ops controls. Nuke dry-run31887 paths,0outside`~/Kildall/code`,0rejections; outward symlinks included as link objects. `check.sh` exit0; both installed commands run. All owned runtimes stopped; wired20480; frozen/source/protected hashes held.
+
+### Retained implementation failures
+
+1. `controls-initial/test_router_warmth.py.log`: the stricter saved-prefix length bound correctly rejected an overlong file but emitted a generic header diagnostic instead of the required router-prefix message. Fixed the diagnostic; no invalid file was accepted.
+2. `controls-v2/test_slot_isolation.py.log`: child progress labeling indexed a mocked task ID. Simplified the label to the validated slot; existing controls remained unchanged. `controls-v3` passed all23scripts.
+
+All failed measurement summaries, raw requests, pressure samples and logs remain under the evidence directory. The 16K warning failures are not waived; 32K, context follow-up and all later slices remain deferred.

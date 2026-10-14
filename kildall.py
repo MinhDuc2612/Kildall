@@ -90,7 +90,51 @@ def settings():
             raise ValueError(f"Invalid runtime.{key}")
     if config["runtime"]["port"] == config["runtime"]["embedding_port"]:
         raise ValueError("Generation and embedding ports must differ")
+    context_flags(config)
     return config
+
+
+def context_flags(config):
+    runtime = config['runtime']
+    size, slots = runtime['context_size'], runtime.get('parallel', 1)
+    if type(size) is not int or not 1024 <= size <= 262144 or size % 256:
+        raise ValueError('Context must be a multiple of 256 within 1024–262144 tokens')
+    if type(slots) is not int or not 1 <= slots <= 3:
+        raise ValueError('This machine is limited to at most three shared slots')
+    unified = runtime.get('kv_unified', False)
+    if type(unified) is not bool:
+        raise ValueError('runtime.kv_unified must be boolean')
+    reserve = runtime.get('router_reserve_tokens', 4096)
+    if unified and (type(reserve) is not int or not 1024 <= reserve <= size or reserve % 256):
+        raise ValueError('Router reserve must be a multiple of 256 within the configured context')
+    total = (slots - 1) * size + reserve if unified and slots > 1 else size * slots
+    flags = ['-c', str(total)]
+    if unified:
+        flags += ['-kvu', '--kv-unified-per-slot', str(size), '--no-cache-idle-slots']
+    return flags
+
+
+def inference_timeout(config):
+    return max(180, 60 + config['runtime']['context_size'] / 40)
+
+
+def read_progress(config, label=''):
+    """Native prefill counts, separate from model output; ETA is only an estimate."""
+    last = [0.0]
+    def report(progress):
+        total, done = progress['total'], progress['processed']
+        if total <= config['runtime'].get('progress_threshold_tokens', 4096):
+            return
+        now = time.monotonic()
+        if last[0] and now - last[0] < 1 and done < total:
+            return
+        last[0] = now
+        fresh = done - progress['cache']
+        rate = fresh * 1000 / progress['time_ms'] if fresh > 0 and progress['time_ms'] > 0 else 85
+        remaining = max(0, total - done) / rate
+        print(f'{label}Reading {done:,}/{total:,} tokens — estimated {remaining:.0f}s remaining',
+              file=sys.stderr, flush=True)
+    return report
 
 
 def url(config, embedding=False):
@@ -192,8 +236,16 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                         command = subprocess.check_output(["ps", "-p", str(state[name]["pid"]), "-o", "command="], text=True)
                         if any(not re.search(r"(?:^|\s)" + flag + r"\s+" + value + r"(?=\s|$)", command)
                                for flag, value in (("--cache-ram", "768"), ("--ctx-checkpoints", "3"),
-                                                   ("-np", str(slots)), ("-c", str(config['runtime']['context_size'] * slots)))):
+                                                   ("-np", str(slots)), ("-c", context_flags(config)[1]))):
                             raise RuntimeError("Lane A runtime settings changed; run kildall --stop before restarting")
+                        import shlex
+                        argv = shlex.split(command)
+                        unified = config['runtime'].get('kv_unified', False)
+                        if ('-kvu' in argv) != unified or (unified and (
+                                '--no-cache-idle-slots' not in argv or
+                                '--kv-unified-per-slot' not in argv or
+                                argv[argv.index('--kv-unified-per-slot') + 1] != str(config['runtime']['context_size']))):
+                            raise RuntimeError('Lane A context layout changed; run kildall --stop before restarting')
                         if slots > 1:
                             router_warmth.start_monitor(config, state[name])
                     continue
@@ -213,7 +265,7 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                 else:
                     # Bounded native prefix cache; three SWA checkpoints allow rewinding the user suffix.
                     command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
-                        "-c", str(config["runtime"]["context_size"] * slots), "-b", "128", "-ub", "128",
+                        *context_flags(config), "-b", "128", "-ub", "128",
                         "--jinja", "--reasoning", "off", "--perf"]
                     if slots > 1:
                         router_warmth.stop_monitor(config)
@@ -427,8 +479,8 @@ def history(path, session):
 
 
 class ContextOverflow(ValueError):
-    def __init__(self, messages):
-        super().__init__('This request exceeds the 4,096-token context; shorten it')
+    def __init__(self, messages, limit=4096):
+        super().__init__(f'This request exceeds the {limit:,}-token context; shorten it')
         self.messages = messages
 
 
@@ -450,7 +502,7 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
         elif memory_text:
             memory_text = memory_text[:len(memory_text) // 2]
         else:
-            raise ContextOverflow(messages)
+            raise ContextOverflow(messages, config['runtime']['context_size'])
 
 
 def stream_reply(config, messages, task, *, tools=None):
@@ -473,7 +525,8 @@ def stream_reply(config, messages, task, *, tools=None):
             last_save = time.monotonic()
 
     try:
-        response = chat(url(config), body, on_text=content)
+        response = chat(url(config), body, on_text=content, on_progress=read_progress(config),
+                        timeout=inference_timeout(config))
         message.update(response["choices"][0]["message"])
         return message
     finally:
@@ -780,9 +833,10 @@ def main():
         if route_mode == "job":
             interactive = False
         if not sys.stdin.isatty():
-            piped = sys.stdin.read(65_537)
-            if len(piped) > 65_536:
-                raise ValueError("Piped input exceeds 65,536 characters")
+            input_limit = config['runtime']['context_size'] * 16
+            piped = sys.stdin.read(input_limit + 1)
+            if len(piped) > input_limit:
+                raise ValueError(f'Piped input exceeds {input_limit:,} characters')
             prompt = "\n\n".join(part for part in (prompt, piped.strip()) if part)
         if not prompt and not interactive:
             raise ValueError("Provide a prompt or piped input")
