@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **236** |
-| **Done now** | **14** of 236 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **237** |
+| **Done now** | **14** of 237 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -286,6 +286,7 @@
 - [ ] **Off-machine backup (#54)** of `kildall.db` to `KildallC`
 - [ ] **Secret-scanner git hook (#55)** refuses commits containing a key
 - [ ] **Platform layer** — keys, jobs, sandbox, OCR, computer mode, memory probe behind one interface; zero behaviour change on the Mac
+- [ ] **Prompt reuse (#81)** — answers and subagents reuse their cached prompt (`cache_n` > 0 on later rounds and turns); fixed tool script faster than before; every gate holds
 - [ ] **Linux port** (any mainstream systemd distro; tested on Fedora + Ubuntu LTS) passes every gate on real hardware, incl. the Phase 3 sandbox tests
 - [ ] **Windows via WSL2** passes every gate on real hardware; native Windows only if needed
 - [ ] **Self-healing (#93):** hung server restarted, daemons re-registered automatically, repeat failures alerted
@@ -361,6 +362,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-19** — 1 item: prompt reuse (#81 moved up): **237 items**.
 - **2026-10-14** — 6 items for #91–#96: **236 items**.
 - **2026-10-14** — 4 Shadow Twin items added to Group 19: **230 items**.
 - **2026-10-13** — 4 items: NVIDIA provider, repo map, test-driven fix loop, LoRA data: **226 items**.

@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v51 · 2026-10-14.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v52 · 2026-10-19.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -351,6 +351,7 @@ Codex order, one PR each, each holding every standing gate; Codex stops at the P
 #63 idle re-warm) → 4. **ops hardening** (#52 wired-limit boot daemon — you install it with sudo; #53 permanent
 backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is mounted) → 5. **long context** →
 5b. **platform layer** (v43: Mac-only parts behind one interface; no behaviour change) →
+5b2. **prompt reuse** (v52: #81 moved up — see "Prompt-reuse slice") →
 5c. **NVIDIA NIM provider** (v47; key verified live) → 5d. **coding core** (v47: #89 test-driven fix loop, #88 repo map,
 #90 LoRA data collection; v51: #91 code skeletons) → **test #3** → 5e. **after-test-#3 batch** (v51: #96 llama.cpp
 build tracker, #95 answer-length budget, #92 session-history search, #93 self-healing, #94 resume long jobs) →
@@ -400,6 +401,10 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
 - **Expert pruning** of big MoE models (REAP-style) so a stronger model fits 128 GB — measure the quality loss first.
 - **Fine-tuning** (LoRA) on your own repos and accepted answers (#42 pairs) — from open/local model outputs only.
 - **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the AMD mini PC.
+  **v52: per skill** — on only for code/math leaves, off for prose/chat, where it can lose. Web evidence (2026-10-19):
+  Strix Halo, llama.cpp Vulkan, Gemma 4 31B + E2B drafter **+103%** average (code +139%, creative +40%),
+  `--draft-max 4`, `--parallel 1`; 26B-A4B unmeasured. Outputs are not byte-identical in practice (92–100% differed in
+  one llama.cpp MTP study), so every gate reruns. Metal stays a measured loss.
 - **Better hardware** may be proposed when it measurably raises the score.
 **Target 8/10 (written 2026-10-13):** everything above, plus open models catching up (#84 model-update watcher swaps them in), the free-cloud council for the hardest tasks (4.5d — **you add a free OpenRouter key, no card**), and skills built from your own work (9.7). 9–10 is not reachable locally at $0.
 
@@ -432,6 +437,35 @@ routing-fix slice, because that slice sets the slot count and every slot's windo
      token first — unmeasured today.
 - **Later (option 5):** a faster Mac — the 2026-10-04 answer recommended an M5 Max 40-core GPU, 64 GB (614 GB/s,
   ≈5× this M4's 120 GB/s) — raises prefill and decode together. Not scheduled; user decision for later.
+
+## Prompt-reuse slice *(v52 · 2026-10-19 · after the platform layer, before the NVIDIA provider)*
+
+**User: "add it then wherever you think is good."** Improvement **#81** moved up with measured evidence.
+Research: `Researchhub/sample3/macspeed hwmini.md`.
+- **Why (measured):** answer slot 1 spends **92% of its time reading** (`lane_a.log` 2026-10-14: 345 s read vs 28 s
+  write, 53 requests, 0 reuse). `stream_reply` and subagent `infer` send `cache_prompt=False`, which sets `n_past = 0`
+  in pinned b10809 — every tool round (up to 8 per turn) re-reads the whole prompt. The router already reuses its
+  prefix: **0.79 s warm vs 16.4 s cold**. Work slots already create and discard two 106–113 MiB SWA checkpoints per
+  request, so the RAM is paid today. `cache_prompt=False` came from 767bb25 (repeatable gate checks), not the RAM fix.
+- **Steps:**
+  1. `cache_prompt=True` on `stream_reply` and subagent `infer`; slot pinning unchanged (router 0, work 1–2).
+     Benchmark-only runners keep their own setting.
+  2. Recalled memory leaves the system message and goes with the current user message — llama.cpp checkpoints the
+     start of the last user message, so only the last turn is re-read. History is stored without the memory block;
+     a mid-turn `recall` changes only that late part.
+  3. When the context is full, trim history in one large chunk (e.g. the oldest half), not one message per request.
+  4. Record `timings.cache_n` and `prompt_n` per request; show cache-hit % in health.
+  5. Optional, same gate rerun: system prompt "You are Orbi" → "Kildall" (left unchanged in the rename on purpose).
+  - Record only, no redesign: children borrowing slot 1 overwrite the parent's cached prompt.
+- **New gates:** rounds 2+ of a fixed multi-round tool turn show `cache_n` > 0; a fixed 3-turn session reuses at
+  least the system + tools prefix across turns; wall time of that fixed script beats `main` on the same machine —
+  report first-token time and the read/write split, not tok/s.
+- **Standing gates:** all hold (recall per the v38 rule, abstention, category/lane, callable JSON 20/20; tools
+  17/20 → 20/20; CLI 18/18; hooks 5/5; 23 control suites; nuke dry-run; `check.sh` exit 0; frozen
+  `bench_cases.json` / `test_recall.py` untouched); routing mean and interactive p99 ≤ baseline + 10%; ≥ 600 s soak
+  with real children, 0 critical, warnings ≤ the PR #5 soak (103/121).
+- ⚠️ **Stop rule:** llama.cpp warns reused cache "can cause nondeterministic results" (pinned README line 589). If
+  any gate drops: stop and report. No gate relaxation, no repeat-until-pass.
 
 ## Phase 4.5 — design spec *(v38 · Claude · 2026-10-04)* — cloud, web, guard, MCP, council
 
@@ -820,7 +854,7 @@ gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/
 
 ---
 
-# 🔮 BEYOND THE PLAN — 96 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51; 9 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 96 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51; 10 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -983,7 +1017,7 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **78** | **Daily action budget per bot** (9.11) | A confused 24/7 bot cannot send 500 emails | Small |
 | **79** | **Simulate mode** — show what an agent would do, without doing it | Safe tests for new bots, skills and automations | Every action needs a dry-run form |
 | **80** | **Resident model server** — kept running as a background service | Removes the ~20 s startup rebuild (b10809 omits SWA checkpoints) | RAM held while idle |
-| **81** | 🔑 **Warm prompts for answer slots** — reuse the shared system + tool prefix, like the router | Prefill is ~85 tok/s; every answer re-reads the same text | Slot memory; measured |
+| **81** | 🔑 **Warm prompts for answer slots** — reuse the shared system + tool prefix, like the router | Prefill is ~85 tok/s; every answer re-reads the same text | Slot memory; measured · **scheduled v52 as slice 5b2** |
 | **82** | **`kildall doctor`** — one health command: models, keys, backups, daemons, disk, memory pressure | Easier than reading `check.sh` and logs | Small |
 | **83** | **Test-log retention** — keep summaries, prune raw `.session` logs older than N days | `.session` grew to 3.3 GB and keeps growing | Never prune evidence a review still needs |
 | **84** | **Model-update watcher** — weekly check for newer versions of every model in use | Automates the "latest versions only" rule | Small; suggests, never auto-swaps |
@@ -1173,6 +1207,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-19 (v52)** — **Prompt-reuse slice added as 5b2** (user: "add it then wherever you think is good"): #81 moved up, after the platform layer and before the NVIDIA provider. Evidence: answer slot 92% reading, `cache_prompt=False` on answers/subagents, memory at the prompt top (research: `Researchhub/sample3/macspeed hwmini.md`). Speculative-decoding note made per skill, with Strix Halo evidence. Checklist +1.
 - **2026-10-14 (v51)** — **6 user-picked improvements added, #91–#96:** code skeletons (joins the coding core before test #3), session-history search, self-healing, resume long jobs, answer-length budget, llama.cpp build tracker (an after-test-#3 batch). Checklist +6.
 - **2026-10-14 (v50)** — **9.12 Shadow Twin added** (user idea): learns each user's style from prompts, edits, accepted/rejected outputs, own writing/repos and activity; stored in a **new per-user memory scope**, not global; style card + own examples + per-user LoRA + one-click proactive drafts; full user controls; gates: blind A/B ≥ 70% preference and cross-user isolation. Checklist +4.
 - **2026-10-13** — Phase 10 rule added (user): **every skill/sub-skill gets the model that wins its own benchmark, no matter how popular** — downloads, stars, hype, brand and general leaderboards never count.
