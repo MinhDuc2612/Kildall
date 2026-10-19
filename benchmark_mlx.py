@@ -16,10 +16,10 @@ import json
 import math
 import os
 from pathlib import Path
-import resource
 import time
 
 import benchmark as b
+from kildall_platform import require
 
 
 ROOT = Path(__file__).resolve().parent
@@ -137,6 +137,7 @@ def tool_message(raw, text, tokenizer, tools, finish):
 
 class MLXChat:
     def __init__(self, path):
+        require('MLX benchmark')
         import mlx.core as mx
         from mlx_lm import load
 
@@ -289,6 +290,7 @@ class MLXChat:
 
 
 def self_check():
+    require('MLX benchmark')
     """Tiny synthetic GPU/cache checks only; no model weights or model score."""
     from types import SimpleNamespace
     from unittest.mock import patch
@@ -408,6 +410,7 @@ def self_check():
 
 
 def main():
+    require('MLX benchmark')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", nargs="?", choices=["all", "speed", "quality", "soak"], default="all")
     parser.add_argument("--model", type=Path)
@@ -443,7 +446,7 @@ def main():
             raise ValueError("RAM gate requires at least 600 seconds")
         if result["fixture_sha256"] != FIXTURE_SHA256:
             raise ValueError("Frozen benchmark fixtures changed")
-        result["wired_limit_mb"] = int(b.command("sysctl", "-n", "iogpu.wired_limit_mb"))
+        result["wired_limit_mb"] = int(b.system().wired_limit_text(absolute=False, timed=True))
         if result["wired_limit_mb"] != 20480:
             raise RuntimeError(f"Expected iogpu.wired_limit_mb=20480; read {result['wired_limit_mb']}")
         result["before_load_memory"] = b.sample_memory(os.getpid(), time.monotonic())
@@ -472,7 +475,7 @@ def main():
         result["fixture_sha256_after"] = hashlib.sha256((ROOT / "bench_cases.json").read_bytes()).hexdigest()
         if result["fixture_sha256_after"] != FIXTURE_SHA256:
             result.update(passed=False, qualified=False, error="Frozen benchmark fixtures changed during the run")
-        result["process_peak_rss_bytes"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        result["process_peak_rss_bytes"] = b.system().self_peak_rss_bytes()
         if runner is not None:
             import mlx.core as mx
             result["mlx_peak_bytes"] = mx.get_peak_memory()

@@ -1,7 +1,7 @@
 """Prefix-only router persistence and best-effort, foreground-preemptible maintenance."""
 from contextlib import contextmanager
 from contextvars import ContextVar
-import fcntl
+from kildall_platform import system
 import hashlib
 import http.client
 import json
@@ -50,14 +50,14 @@ def foreground(endpoint):
     with base.with_suffix('.activity').open('a') as lock:
         notify(endpoint)
         try:
-            fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            system().lock(lock, exclusive=False, nonblocking=True)
         except BlockingIOError:
             # The worker's probe cannot delay the user, even if it is descheduled.
             pass
         try:
             yield
         finally:
-            fcntl.flock(lock, fcntl.LOCK_UN)
+            system().unlock(lock)
 
 
 def completed(endpoint, body, response):
@@ -203,7 +203,7 @@ def owns_worker(record):
     from kildall import process_start
     if not record or process_start(record['pid']) != record['started']:
         return False
-    result = subprocess.run(['ps', '-p', str(record['pid']), '-o', 'command='], capture_output=True, text=True)
+    result = system().process_command(record['pid'])
     return result.returncode == 0 and str(Path(__file__).resolve()) in result.stdout
 
 
@@ -292,7 +292,7 @@ def monitor(path):
     signal.signal(signal.SIGTERM, lambda *_: shutdown.__setitem__(0, True))
     signal.signal(signal.SIGINT, lambda *_: shutdown.__setitem__(0, True))
     with base.with_suffix('.worker-lock').open('a') as singleton, socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as sock:
-        fcntl.flock(singleton, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        system().lock(singleton, nonblocking=True)
         address = base.with_suffix('.sock')
         address.unlink(missing_ok=True)
         sock.bind(str(address))
@@ -311,7 +311,7 @@ def monitor(path):
                 try:
                     # Probe only: never hold this exclusive lock across HTTP or compute.
                     with base.with_suffix('.activity').open('a') as lock:
-                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        system().lock(lock, nonblocking=True)
                     slots = json_request(endpoint + '/slots', timeout=1, cancel=cancellation)
                     if any(row['is_processing'] for row in slots):
                         continue

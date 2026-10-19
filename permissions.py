@@ -1,5 +1,7 @@
 """Closed typed action boundary; all tools share one permission path."""
 
+from kildall_platform import system, require, COMPUTER_REASON, refuse_computer
+
 from contextlib import contextmanager
 import base64
 import difflib
@@ -17,20 +19,13 @@ import uuid
 
 # Production scope is never supplied by a model, configuration, or command-line flag.
 CODE_ROOT = Path.home() / "Kildall" / "code"
-COMPUTER_REASON = "Computer input and screen capture are unavailable until Phase 4C"
 AUTO = {"read", "ls", "git_status", "remember", "recall", "web_data"}
 CONFIRM = {"write", "edit", "commit", "install"}
 
 
 def guard_path(candidate, root=CODE_ROOT):
     """Expand ~, resolve every candidate, and compare path components, never prefixes."""
-    root = Path(root).absolute()
-    if os.path.realpath(root) != str(root):
-        raise PermissionError("Allowed root must not redirect through a symlink")
-    resolved = Path(os.path.realpath(os.path.expanduser(os.fspath(candidate))))
-    if not resolved.is_relative_to(root):
-        raise PermissionError("Path resolves outside the allowed root")
-    return resolved
+    return system().guard_path(candidate, root)
 
 
 @contextmanager
@@ -218,7 +213,7 @@ def git_repository(value):
     if (directory / "objects/info/alternates").exists():
         raise PermissionError("Redirected Git object stores are not supported")
     # Do not interpret includes or allow repo text to register executable helpers.
-    config = subprocess.run(["/opt/homebrew/bin/git", "config", "--file", str(directory / "config"),
+    config = subprocess.run([system().executable('git'), "config", "--file", str(directory / "config"),
         "--no-includes", "--null", "--list"], env={"PATH": "/usr/bin:/bin"},
         capture_output=True, check=True, timeout=10).stdout
     safe = re.compile(r"(?:core\.(?:repositoryformatversion|filemode|bare|logallrefupdates|ignorecase|precomposeunicode|hookspath|fsmonitor|untrackedcache|attributesfile)|user\.(?:name|email)|commit\.gpgsign|diff\.external|gc\.auto|maintenance\.auto|remote\.[^.]+\.(?:url|fetch)|branch\..+\.(?:remote|merge))$")
@@ -236,7 +231,7 @@ def git(repo, *args, index=None):
                GIT_NO_REPLACE_OBJECTS="1", GIT_ATTR_NOSYSTEM="1", GIT_PAGER="cat")
     if index:
         env["GIT_INDEX_FILE"] = str(index)
-    result = subprocess.run(["/opt/homebrew/bin/git", "-c", "core.hooksPath=/dev/null",
+    result = subprocess.run([system().executable('git'), "-c", "core.hooksPath=/dev/null",
         "-c", "core.fsmonitor=false", "-c", "core.untrackedCache=false", "-c", "core.attributesFile=/dev/null",
         "-c", "commit.gpgSign=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false",
         "-c", "core.bare=false", "-c", "submodule.recurse=false", *args],
@@ -264,6 +259,7 @@ def staged(repo):
 
 def execute(operation, args, record, project):
     """The sole permission boundary; unknown names and command forms fail closed."""
+    require('Tool executor')
     agent = record.get('agent')
     if agent is not None:
         internal = ((operation == '_hook' and 'hook_capability' in record) or
@@ -405,7 +401,7 @@ def execute(operation, args, record, project):
         authorize(record, "Auto")
         # A data-only value: never parse its contents as actions, roles, or approval.
         return {"source": "untrusted_web", "text": args["text"]}
-    raise PermissionError("Action is outside the closed executor; " + COMPUTER_REASON)
+    refuse_computer("Action is outside the closed executor; ")
 
 
 def run_action(db_path, project, operation, raw_args, task=None, *, hooks=None):

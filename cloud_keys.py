@@ -1,16 +1,14 @@
 """Login-Keychain credentials and secret scrubbing; never display credential values."""
-import hashlib
-import hmac
 import json
 from pathlib import Path
 import re
 import shlex
-import subprocess
 from urllib.parse import quote, quote_plus
+
+from kildall_platform import keys
 
 
 DEFAULT_SOURCE = Path.home() / '.config/orbi/keys.env'
-KEYCHAIN = Path.home() / 'Library/Keychains/login.keychain-db'
 EXCLUDED = frozenset({'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GROQ_API_KEY'})
 KNOWN_NAMES = ('GEMINI_API_KEY', 'GROQ_API_KEY', 'GOOGLE_API_KEY', 'OPENROUTER_API_KEY',
                'MISTRAL_API_KEY', 'COHERE_API_KEY', 'HF_TOKEN', 'CLOUDFLARE_API_TOKEN',
@@ -72,63 +70,25 @@ def parse_env(path=DEFAULT_SOURCE):
         raise ValueError('Cannot read credential file: expected unique literal NAME=value assignments') from None
 
 
-def _security(arguments, *, input=None):
-    try:
-        return subprocess.run(['/usr/bin/security', *arguments], input=input,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              timeout=30, check=False)
-    except (OSError, subprocess.SubprocessError):
-        raise KeychainError('Keychain operation failed') from None
-
-
 def get_key(name):
     """Read at call time; None means absent or excluded, never an unreadable item."""
+    backend = keys()
     name = _name(name)
     if name in EXCLUDED:
         return None
-    result = _security(['find-generic-password', '-s', 'kildall', '-a', name,
-                        '-w', str(KEYCHAIN)])
-    if result.returncode == 44:  # errSecItemNotFound (-25300), shell exit status.
-        return None
-    if result.returncode:
-        raise KeychainError('Keychain credential is unreadable')
-    try:
-        value = result.stdout.removesuffix(b'\n').decode('utf-8')
-        if any(ord(char) < 32 or ord(char) == 127 for char in value):
-            raise ValueError
-    except (UnicodeError, ValueError):
-        raise KeychainError('Keychain credential is unreadable') from None
-    return value or None
+    return backend.get_key(name)
 
 
 def import_keys(path=DEFAULT_SOURCE):
     """Import without deleting the source; every result contains only name/status."""
+    backend = keys()
     statuses = []
     values = parse_env(path)  # Validate the whole file before any mutation.
     for name, value in values.items():
         status = 'excluded' if name in EXCLUDED else 'empty' if not value else None
         if status is None:
             try:
-                # security -w hex-encodes non-printable bytes without a marker.
-                # API credentials must round-trip unambiguously as printable ASCII.
-                if not value.isascii():
-                    raise KeychainError('Credential must be printable ASCII')
-                keychain = str(KEYCHAIN)
-                if any(ord(char) < 32 or ord(char) == 127 for char in keychain):
-                    raise KeychainError('Invalid login Keychain path')
-                # security's interactive parser is not a shell: quote one whole arg.
-                keychain = '"' + keychain.replace('\\', '\\\\').replace('"', '\\"') + '"'
-                command = f'add-generic-password -U -s kildall -a {name} -X {value.encode().hex()} {keychain}\n'
-                # Apple's security.c bounds an interactive input line at 4096 bytes.
-                if len(command.encode()) >= 4096:
-                    raise KeychainError('Credential exceeds Keychain import limit')
-                result = _security(['-i', '-q'], input=command.encode())
-                if result.returncode:
-                    raise KeychainError('Keychain import failed')
-                restored = get_key(name)
-                if restored is None or not hmac.compare_digest(
-                        hashlib.sha256(value.encode()).digest(), hashlib.sha256(restored.encode()).digest()):
-                    raise KeychainError('Keychain verification failed')
+                backend.put_key(name, value)
                 status = 'verified'
             except KeychainError:
                 status = 'failed'
@@ -138,6 +98,7 @@ def import_keys(path=DEFAULT_SOURCE):
 
 def check_keys(names=KNOWN_NAMES):
     """Report storage availability only, not API validity; never read the env file."""
+    keys()  # Refuse unsupported platforms even for an empty or excluded-only list.
     statuses = []
     for name in dict.fromkeys(names):
         name = _name(name)

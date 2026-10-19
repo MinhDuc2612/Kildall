@@ -6,7 +6,9 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-import image_reader as reader
+from kildall_platform import ocr
+
+reader = ocr()
 
 
 def text_image(path, text):

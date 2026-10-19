@@ -2,7 +2,7 @@
 
 import argparse
 from contextlib import contextmanager
-import fcntl
+from kildall_platform import system, require, UnsupportedPlatform
 import json
 import os
 from pathlib import Path
@@ -182,16 +182,13 @@ def atomic_json(path, data):
 
 
 def process_start(pid):
-    result = subprocess.run(["ps", "-p", str(pid), "-o", "lstart="],
-                            text=True, capture_output=True)
-    return result.stdout.strip() if result.returncode == 0 else None
+    return system().process_start(pid)
 
 
 def owns_server(record):
     if not record or process_start(record["pid"]) != record["started"]:
         return False
-    result = subprocess.run(["ps", "-p", str(record["pid"]), "-o", "command="],
-                            text=True, capture_output=True)
+    result = system().process_command(record["pid"])
     port = re.search(r"(?:^|\s)--port\s+(\d+)(?=\s|$)", result.stdout)
     return (result.returncode == 0 and "llama-server" in result.stdout and record["model"] in result.stdout
             and ("port" not in record or (port is not None and int(port[1]) == record["port"])))
@@ -206,7 +203,7 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
     directory.mkdir(parents=True, exist_ok=True)
     state_file = directory / "services.json"
     with (directory / "services.lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        system().lock(lock)
         state = strict_json(state_file.read_text()) if state_file.exists() else {}
         if stop:
             router_warmth.stop_monitor(config)
@@ -233,7 +230,7 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     if json_request(url(config, embedding) + "/health", timeout=2).get("status") != "ok":
                         raise RuntimeError(f"{name} is not healthy")
                     if not embedding:
-                        command = subprocess.check_output(["ps", "-p", str(state[name]["pid"]), "-o", "command="], text=True)
+                        command = system().process_command_text(state[name]["pid"])
                         if any(not re.search(r"(?:^|\s)" + flag + r"\s+" + value + r"(?=\s|$)", command)
                                for flag, value in (("--cache-ram", "768"), ("--ctx-checkpoints", "3"),
                                                    ("-np", str(slots)), ("-c", context_flags(config)[1]))):
@@ -316,15 +313,14 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
 def activity(path, restoring=False):
     # Shared across sessions; restore alone owns this database for its whole operation.
     with path.with_name(path.name + "-activity.lock").open("a") as lock:
-        mode = fcntl.LOCK_EX if restoring else fcntl.LOCK_SH
         try:
-            fcntl.flock(lock, mode | fcntl.LOCK_NB)
+            system().lock(lock, exclusive=restoring, nonblocking=True)
         except BlockingIOError as error:
             raise RuntimeError("Database is active; restore requires all turns to finish") from error
         try:
             yield
         finally:
-            fcntl.flock(lock, fcntl.LOCK_UN)
+            system().unlock(lock)
 
 
 @contextmanager
@@ -893,6 +889,7 @@ def cloud_main(argv):
     args = parser.parse_args(argv[1:])
     os.umask(0o077)
     try:
+        require('Secure key store')
         if args.action == 'import':
             rows = import_keys(args.file)
             path = settings()['paths']['db_path']
@@ -910,6 +907,9 @@ def cloud_main(argv):
         for row in rows:
             print(f"{row['name']}: {row['status']}")
         return int(any(row['status'] in ('failed', 'unreadable') for row in rows))
+    except UnsupportedPlatform as error:
+        print(f'kildall: {error}', file=sys.stderr)
+        return 1
     except (OSError, ValueError, RuntimeError, sqlite3.Error):
         print('kildall: credential/provider operation failed; no secret details logged', file=sys.stderr)
         return 1

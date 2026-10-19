@@ -1,5 +1,7 @@
 """Install the three pinned local artifacts used by Kildall Phase 1."""
 
+from kildall_platform import system
+
 import hashlib
 from pathlib import Path
 import subprocess
@@ -7,9 +9,7 @@ import tarfile
 
 ROOT = Path(__file__).resolve().parent
 ARTIFACTS = (
-    (".tools/llama-b10809.tar.gz", 11123196,
-     "7d692df9e1e386e62f1c12b843903218041e6cd74c9415aa39a7ed3176f9eaa2",
-     "https://github.com/ggml-org/llama.cpp/releases/download/b10809/llama-b10809-bin-macos-arm64.tar.gz"),
+    system().runtime_artifact(),
     ("models/gemma-4-26b-a4b/gemma-4-26B-A4B-it-UD-IQ3_S.gguf", 11289671136,
      "878be93f9c238ea853b3fd1eb602637ce3cf1cddea56dc345d9a7bf2d6093e29",
      "https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF/resolve/"

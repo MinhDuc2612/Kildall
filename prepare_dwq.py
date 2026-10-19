@@ -1,5 +1,7 @@
 """Pinned artifacts and an independent, reproducible Granite DWQ calibration."""
 
+from kildall_platform import system, require
+
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
@@ -113,6 +115,7 @@ def calibration():
 
 
 def train(stage):
+    require('MLX preparation')
     import mlx.core as mx
     import mlx.optimizers as optimizers
     from mlx.utils import tree_flatten
@@ -120,7 +123,7 @@ def train(stage):
     from mlx_lm.models.granite import Model, ModelArgs
     from mlx_lm.utils import load_model, load_tokenizer, quantize_model, save
 
-    if subprocess.check_output(["/usr/sbin/sysctl", "-n", "iogpu.wired_limit_mb"], text=True).strip() != "20480":
+    if system().wired_limit_text() != "20480":
         raise RuntimeError("Restore wired limit to20480 before running this build")
     source = ROOT / "models" / MODELS["granite"][2]
     calibration_path = WORK / "granite-calibration.json"
@@ -195,6 +198,7 @@ def train(stage):
 
 
 def main():
+    require('MLX preparation')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=["download-granite", "download-gemma", "calibration", "targets", "build", "self-check"])
     stage = parser.parse_args().stage

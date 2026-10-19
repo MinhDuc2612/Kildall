@@ -1,4 +1,5 @@
 """Typed Git operations, dispatched and approved only by permissions.execute."""
+from kildall_platform import system
 import hashlib
 import json
 import os
@@ -78,7 +79,7 @@ def origin(repo):
                 raise PermissionError('Local remote hooks are unsupported')
             if path / 'refs' in entry.parents and entry.is_file() and file_bytes(entry).startswith(b'ref:'):
                 raise PermissionError('Symbolic remote refs can redirect a feature push and are forbidden')
-    config = subprocess.run(['/opt/homebrew/bin/git', 'config', '--file', str(path / 'config'),
+    config = subprocess.run([system().executable('git'), 'config', '--file', str(path / 'config'),
         '--no-includes', '--null', '--list'], capture_output=True, check=True, timeout=10,
         env={'PATH': '/usr/bin:/bin'}).stdout
     allowed = {'core.repositoryformatversion', 'core.filemode', 'core.bare', 'core.logallrefupdates',
@@ -95,7 +96,7 @@ def transport(repo, *args):
     from permissions import git
     return git(repo, '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
         '-c', 'protocol.file.allow=always', '-c', 'credential.helper=',
-        '-c', 'credential.https://github.com.helper=!/opt/homebrew/bin/gh auth git-credential', *args)
+        '-c', 'credential.https://github.com.helper=!' + system().executable('gh') + ' auth git-credential', *args)
 
 
 def remote_head(repo, url, ref):
@@ -111,7 +112,7 @@ def create_pr(repository, payload):
     # API only: unlike gh pr create, this cannot auto-push or create a fork.
     env = {k: v for k, v in os.environ.items() if k in ('HOME', 'GH_TOKEN', 'GITHUB_TOKEN')}
     env.update(PATH='/usr/bin:/bin', GH_PROMPT_DISABLED='1', GH_HOST='github.com')
-    result = subprocess.run(['/opt/homebrew/bin/gh', 'api', '--hostname', 'github.com',
+    result = subprocess.run([system().executable('gh'), 'api', '--hostname', 'github.com',
         'repos/' + repository + '/pulls', '--method', 'POST', '--input', '-'],
         input=json.dumps(payload).encode(), capture_output=True, check=True, timeout=120, env=env)
     return json.loads(result.stdout)

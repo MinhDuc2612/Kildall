@@ -1,4 +1,5 @@
 """Explicit, snapshotted shell hooks. Outputs are data; hooks never grant permission."""
+from kildall_platform import system
 import hashlib
 import json
 import os
@@ -71,7 +72,7 @@ def shell(source, argv, project, timeout):
     from shell_tools import run_bounded
     # Discover this installed Bash's builtins, then disable everything except
     # control/data primitives. In particular: no eval/source/exec/enable escape.
-    listing = run_bounded(['/bin/bash', '--noprofile', '--norc', '-p', '-c', 'enable -a'], project, timeout)
+    listing = run_bounded([system().executable('bash'), '--noprofile', '--norc', '-p', '-c', 'enable -a'], project, timeout)
     if listing['exit_code'] or listing['timed_out'] or listing['truncated'] or listing['stderr']:
         raise RuntimeError('Cannot establish the hook builtin allow-list')
     lines = listing['stdout'].splitlines()
@@ -83,7 +84,7 @@ def shell(source, argv, project, timeout):
     prelude = 'set -euf\nenable -n ' + ' '.join(shlex.quote(n) for n in disabled) + '\nenable -n enable\n'
     # ponytail: hooks support builtin-only shell logic; external programs need
     # a separately audited typed operation, never a wider sandbox executable list.
-    return run_bounded(['/bin/bash', '--noprofile', '--norc', '-p', '-r', '-c', prelude + source,
+    return run_bounded([system().executable('bash'), '--noprofile', '--norc', '-p', '-r', '-c', prelude + source,
                         'kildall-hook', *argv], project, timeout, limit=4096)
 
 

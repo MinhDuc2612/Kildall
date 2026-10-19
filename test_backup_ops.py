@@ -13,6 +13,7 @@ import tempfile
 from unittest.mock import patch
 
 import backup_ops as ops
+from kildall_platform import jobs
 from memory import Memory
 
 
@@ -83,7 +84,7 @@ def scheduling(root):
         path = home / "Library/LaunchAgents/local.kildall.backup.plist"
         legacy = code / ".session" / path.name
         service = Service()
-        with patch.object(ops, "_launchctl", side_effect=service):
+        with patch.object(jobs(), "_launchctl", side_effect=service):
             assert ops.schedule_backups(config, code, interpreter) == path
             payload = plistlib.loads(path.read_bytes())
             assert payload == ops.backup_payload(config, code, interpreter)
@@ -107,7 +108,7 @@ def scheduling(root):
             legacy.write_bytes(legacy_bytes)
             service = Service(legacy)
             setattr(service, failure, True)
-            with patch.object(ops, "_launchctl", side_effect=service):
+            with patch.object(jobs(), "_launchctl", side_effect=service):
                 rejects(lambda: ops.schedule_backups(config, code, interpreter), RuntimeError)
             assert service.path == legacy and legacy.read_bytes() == legacy_bytes
             assert not path.exists()
@@ -115,11 +116,11 @@ def scheduling(root):
 
         service = Service(legacy)
         service.running = True
-        with patch.object(ops, "_launchctl", side_effect=service):
+        with patch.object(jobs(), "_launchctl", side_effect=service):
             rejects(lambda: ops.schedule_backups(config, code, interpreter), RuntimeError)
         assert len(service.calls) == 1 and legacy.is_file() and not path.exists()
         service.running = False
-        with patch.object(ops, "_launchctl", side_effect=service):
+        with patch.object(jobs(), "_launchctl", side_effect=service):
             ops.schedule_backups(config, code, interpreter)
         assert service.path == path and not legacy.exists()
         assert [call[0] for call in service.calls][-4:] == ["print", "bootout", "bootstrap", "print"]
@@ -128,7 +129,7 @@ def scheduling(root):
         foreign = dict(payload, ProgramArguments=["foreign"])
         path.write_bytes(plistlib.dumps(foreign))
         service = Service(path)
-        with patch.object(ops, "_launchctl", side_effect=service):
+        with patch.object(jobs(), "_launchctl", side_effect=service):
             rejects(lambda: ops.schedule_backups(config, code, interpreter), RuntimeError)
         assert len(service.calls) == 1 and plistlib.loads(path.read_bytes()) == foreign
 

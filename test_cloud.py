@@ -17,6 +17,7 @@ from unittest.mock import Mock, patch
 
 import cloud
 import cloud_keys
+from kildall_platform import darwin_keys
 import kildall
 import permissions
 
@@ -381,7 +382,7 @@ def main():
               test_turn_policy, test_turn_permissions]
     failures = []
     # A mistake in the test seam must never read the actual login Keychain.
-    with patch.object(cloud_keys, '_security', side_effect=AssertionError('Keychain forbidden in test')), \
+    with patch.object(darwin_keys, 'security', side_effect=AssertionError('Keychain forbidden in test')), \
          patch.object(cloud_keys, 'get_key', side_effect=lambda name: None if name in cloud_keys.EXCLUDED else FAKE_KEY):
         for check in checks:
             with tempfile.TemporaryDirectory(prefix='kildall-cloud-') as temp:

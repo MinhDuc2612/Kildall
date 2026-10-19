@@ -8,6 +8,7 @@ import tempfile
 from unittest.mock import patch
 
 import cloud_keys as keys
+from kildall_platform import darwin_keys
 
 
 def result(code=0, output=b'', error=b''):
@@ -23,7 +24,7 @@ def main():
                           'GROQ_API_KEY=excluded-two\nGOOGLE_API_KEY=excluded-three\n')
         original = source.read_bytes()
         assert keys.parse_env(source)['OPENROUTER_API_KEY'] == fake
-        with patch.object(keys.subprocess, 'run', side_effect=[result(), result(output=fake.encode() + b'\n')]) as run:
+        with patch.object(darwin_keys.subprocess, 'run', side_effect=[result(), result(output=fake.encode() + b'\n')]) as run:
             captured = io.StringIO()
             with redirect_stdout(captured), redirect_stderr(captured):
                 statuses = keys.import_keys(source)
@@ -40,7 +41,7 @@ def main():
             assert command.count('\n') == 1 and f'-X {fake.encode().hex()} ' in command
             assert '-s kildall -a OPENROUTER_API_KEY' in command and '-U' in command
             assert '-A' not in command and '-v' not in write.args[0]
-            assert read.args[0][-1] == str(keys.KEYCHAIN)
+            assert read.args[0][-1] == str(darwin_keys.KEYCHAIN)
             assert write.kwargs['stderr'] == subprocess.PIPE
             assert write.kwargs['stdout'] == subprocess.PIPE
             assert write.kwargs['timeout'] == 30
@@ -50,7 +51,7 @@ def main():
         for bad in ('BAD-NAME=secret\n', 'A=one\nA=two\n', 'A="unterminated\n',
                     'A=secret\x00text\n', 'not an assignment\n', 'A=one two\n'):
             source.write_text(bad)
-            with patch.object(keys.subprocess, 'run') as run:
+            with patch.object(darwin_keys.subprocess, 'run') as run:
                 try:
                     keys.import_keys(source)
                     raise AssertionError('Invalid file imported')
@@ -63,18 +64,18 @@ def main():
         source.write_text('A=' + fake.encode().hex() + '\n')
         for responses in ([result(1, fake.encode(), fake.encode())], [result(), result(output=b'wrong\n')],
                           [result(), result(44)]):
-            with patch.object(keys.subprocess, 'run', side_effect=responses):
+            with patch.object(darwin_keys.subprocess, 'run', side_effect=responses):
                 assert keys.import_keys(source) == [dict(name='A', status='failed')]
         source.write_text('A=' + 'x' * 2100 + '\n')
-        with patch.object(keys.subprocess, 'run') as run:
+        with patch.object(darwin_keys.subprocess, 'run') as run:
             assert keys.import_keys(source) == [dict(name='A', status='failed')]
             run.assert_not_called()
         source.write_text('A=tiếng-Việt\n')
-        with patch.object(keys.subprocess, 'run') as run:
+        with patch.object(darwin_keys.subprocess, 'run') as run:
             assert keys.import_keys(source) == [dict(name='A', status='failed')]
             run.assert_not_called()
 
-    with patch.object(keys.subprocess, 'run') as run:
+    with patch.object(darwin_keys.subprocess, 'run') as run:
         for name in keys.EXCLUDED:
             assert keys.get_key(name) is None
         run.assert_not_called()
@@ -85,9 +86,9 @@ def main():
             except ValueError:
                 pass
         run.assert_not_called()
-    with patch.object(keys.subprocess, 'run', side_effect=[result(output=b'one\n'), result(output=b'two\n')]) as run:
+    with patch.object(darwin_keys.subprocess, 'run', side_effect=[result(output=b'one\n'), result(output=b'two\n')]) as run:
         assert keys.get_key('A') == 'one' and keys.get_key('A') == 'two' and run.call_count == 2
-    with patch.object(keys.subprocess, 'run', side_effect=[result(44), result(36), result(output=b'ok\n')]):
+    with patch.object(darwin_keys.subprocess, 'run', side_effect=[result(44), result(36), result(output=b'ok\n')]):
         assert keys.check_keys(['A', 'B', 'C', 'A', 'GROQ_API_KEY']) == [
             dict(name='A', status='missing'), dict(name='B', status='unreadable'),
             dict(name='C', status='available'), dict(name='GROQ_API_KEY', status='excluded')]
@@ -96,7 +97,7 @@ def main():
         assert {call.args[0] for call in get_key.call_args_list} == set(keys.KNOWN_NAMES) - keys.EXCLUDED
     for failure in (subprocess.TimeoutExpired(['/usr/bin/security'], 30, output=fake.encode()),
                     OSError(fake)):
-        with patch.object(keys.subprocess, 'run', side_effect=failure):
+        with patch.object(darwin_keys.subprocess, 'run', side_effect=failure):
             try:
                 keys.get_key('A')
                 raise AssertionError('Subprocess error ignored')

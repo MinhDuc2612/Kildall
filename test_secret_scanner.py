@@ -9,6 +9,7 @@ from unittest.mock import patch
 import uuid
 
 import secret_scanner as scanner
+from kildall_platform import darwin_keys, system
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
         repo.mkdir()
 
         def git(*arguments, success=True):
-            result = subprocess.run([scanner.GIT, '-C', str(repo), *arguments],
+            result = subprocess.run([system().executable('git'), '-C', str(repo), *arguments],
                                     capture_output=True, timeout=30)
             if success and result.returncode:
                 raise AssertionError('Temporary git command failed; output withheld')
@@ -90,12 +91,12 @@ def main():
             assert env_value.decode() not in output.getvalue()
         # Account enumeration does not apply cloud-provider exclusions; values
         # are read by security, never passed to security as arguments.
-        with patch.object(scanner, '_keychain_accounts', return_value=[('fixture.keychain', 'GEMINI_API_KEY')]), \
-             patch.object(scanner, '_security', return_value=subprocess.CompletedProcess([], 0, keychain_value + b'\n', b'')) as security:
+        with patch.object(darwin_keys, 'accounts', return_value=[('fixture.keychain', 'GEMINI_API_KEY')]), \
+             patch.object(darwin_keys, 'security', return_value=subprocess.CompletedProcess([], 0, keychain_value + b'\n', b'')) as security:
             assert scanner.keychain_values() == [keychain_value]
             assert security.call_args.args[0] == ['find-generic-password', '-s', 'kildall', '-a', 'GEMINI_API_KEY', '-w', 'fixture.keychain']
-        with patch.object(scanner, '_keychain_accounts', return_value=[('fixture.keychain', 'ANY_NAME')]), \
-             patch.object(scanner, '_security', return_value=subprocess.CompletedProcess([], 44, b'', env_value)):
+        with patch.object(darwin_keys, 'accounts', return_value=[('fixture.keychain', 'ANY_NAME')]), \
+             patch.object(darwin_keys, 'security', return_value=subprocess.CompletedProcess([], 44, b'', env_value)):
             try:
                 scanner.keychain_values()
             except scanner.ScanError as error:

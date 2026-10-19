@@ -1,10 +1,11 @@
 """Run real Lane A gates against a local llama.cpp server; never execute tools."""
 
+from kildall_platform import system
+
 import argparse
 import json
 import math
 from pathlib import Path
-import plistlib
 import re
 import subprocess
 import threading
@@ -184,22 +185,11 @@ def quality(url, *, chat_fn=None, retry_tools=False, validate_regex=False):
 
 
 def command(*args):
-    return subprocess.check_output(args, text=True, timeout=10).strip()
+    return system().command(*args)
 
 
 def sample_memory(pid, started):
-    devices = plistlib.loads(command("ioreg", "-r", "-c", "AGXAccelerator", "-a").encode())
-    gpu = next(d["PerformanceStatistics"] for d in devices if "PerformanceStatistics" in d)
-    return dict(
-        elapsed_s=time.monotonic() - started,
-        rss_bytes=int(command("ps", "-p", str(pid), "-o", "rss=")) * 1024,
-        pressure=int(command("sysctl", "-n", "kern.memorystatus_vm_pressure_level")),
-        free_percent=int(re.search(r"free percentage: (\d+)%",
-                                    command("memory_pressure", "-Q"))[1]),
-        swap=command("sysctl", "-n", "vm.swapusage"),
-        gpu_in_use_bytes=int(gpu["In use system memory"]),
-        gpu_allocated_bytes=int(gpu["Alloc system memory"]),
-    )
+    return system().sample_memory(pid, started)
 
 
 def soak(url, pid, duration, *, chat_fn=None):

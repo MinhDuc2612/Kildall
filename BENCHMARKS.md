@@ -2447,3 +2447,87 @@ Additional split16K work slot (two→three slots, sequential warmed snapshots): 
 2. `controls-v2/test_slot_isolation.py.log`: child progress labeling indexed a mocked task ID. Simplified the label to the validated slot; existing controls remained unchanged. `controls-v3` passed all23scripts.
 
 All failed measurement summaries, raw requests, pressure samples and logs remain under the evidence directory. The 16K warning failures are not waived; 32K, context follow-up and all later slices remain deferred.
+
+
+## Platform layer — 2026-10-19–20 (routing timing gate failed)
+
+Base `29ab89b`, branch `platform-layer`; Darwin-only extraction, production4096/3slots unchanged.
+Evidence: `.session/platform-layer-20261019/`. Inventory recorded before extraction in
+`mac-inventory-before.md`: Keychain CLI + native Security enumeration; launchd backup/boot
+jobs and health checks; Seatbelt shell/closed executable paths; sysctl/vm_stat/ioreg/GPU
+probes; ctypes Vision/ImageIO/Objective-C OCR; ps ownership and POSIX locks; Homebrew
+paths, pinned Mac runtime archive, volumes and canonical case-aware containment. No
+PyObjC or active osascript/event/screen-capture implementation exists; the Phase4C
+placeholder remains a refusal. Other platforms have explicit not-implemented errors;
+keys and shell must fail before source reads or execution. No Linux/Windows backend.
+
+Frozen byte hashes before: bench `fdcf669576169038916ba421e097ba9fee3854aae01873c5b6e6f25287e3e86d`;
+recall `ae83425c9cd3a569403c50d7ee95eb6a90a3569d1062856aecf50af52fb2387d` (existing
+vault-rename bytes; accepted canonical/path-normalized recall unchanged). Wired limit20480.
+No sudo, new dependencies, model/config/prompt/catalog/grammar changes, paid API or HF sync.
+
+Preflight stopped before inference: protected plan hashes changed during work. Vault commit `94554b9` adds v52 prompt reuse **after** this slice; read/reconciled without editing plans or widening scope. Original `protected-before.json` retained, active `protected-ready.json` records committed plan version. Also corrected a malformed nested `before.json` evidence map before execution; original retained as `before-preflight-malformed.json`. No model run was attempted or relabelled.
+
+**Routing timing FAIL:** first1.182833s, mean0.933142050s (limit0.906), p500.953547s, p991.204345s;0cold/20warm. Category20/20,lane20/20,r17X→C pass. Retained `darwin/routing/summary.json` and `darwin-routing.log`; no rerun or relabelling. Independent gates completed below.
+
+Mac-specific inventory and destination (full pre-refactor file/line list retained in evidence):
+
+| Calls/assumptions | Callers → Darwin boundary |
+| --- | --- |
+| login Keychain, `security -i` stdin and password readback; Security/CoreFoundation metadata enumeration | cloud_keys/secret_scanner → `keys()` |
+| backup LaunchAgent payload/rollback, launchctl/plutil, Library paths; boot daemon print-only installer/health | backup_ops/install_wiredlimit/check.sh → `jobs()` |
+| Seatbelt sandbox, realpath executable literal, fixed shell binaries; restricted Bash hooks | shell_tools/file_tools/hooks → `system()` |
+| sysctl/iogpu, vm_stat pages, ioreg AGX GPU, memory_pressure, RSS/swap/MLX health | subagents/benchmark/check/setup helpers → `system()` |
+| ImageIO/CoreGraphics/Vision/Foundation and Objective-C ABI through ctypes (no PyObjC) | image_reader → `ocr()` |
+| ps start-time/command ownership and fcntl shared/exclusive/nonblocking locks | kildall/router_warmth/subagents → `system()` |
+| Homebrew git/gh/rg/pdftotext, Mac ARM64 pinned artifact, Data/KildallC volumes | git/file/scanner/setup/backup paths → `system()` |
+| canonical realpath containment, case-insensitive alias hazards | permissions guard → `system()`; exact nuke root stays `~/Kildall/code`; `.git`/branch case-fold refusals remain generic policy |
+| computer input/screen placeholder | shared `refuse_computer()`; closed executor + optional hook unchanged; no active osascript/event/capture API |
+
+POSIX fd-relative no-follow mutations, inode/mode checks, terminal/fd paths, signals/process
+groups and Unix sockets remain guarded runtime mechanisms, not Linux/Windows implementations.
+Golden tests compare real pre-refactor source at29ab89b, argv/stdin/results/errors, unchanged
+scheduling/enumeration bodies, real OCR, and seven health scenarios. All26 control scripts
+(23standing+3golden) passed; no new dependency, no live launchd reinstall/key import.
+
+**Review control FAIL (diagnostic), subsequently fixed:** `keys-cli-unsupported-before.log`: simulated Linux key import refuses, but CLI hides the not-implemented explanation behind its generic redacted error. No secret or unsandboxed fallback occurred. After the predefined model measurements completed, corrected the CLI to report the explicit unsupported-platform error before configuration or key-file reads. `keys-cli-unsupported-after.log` and the expanded golden suite pass; the original failed evidence remains.
+
+**Interactive PASS:** one predefined run,100requests,4warmups,0children,slot1; p506.076248333s,p996.507670167s≤6.726s. Total3200tokens/610.378469s,5.242649tok/s end-to-end. No repeat. `darwin/latency/summary.json`; source/frozen hashes held and runtimes stopped before recall.
+
+**Recall PASS:** frozen1slot20/20; production answer slot1=20/20,slot2=20/20. Full request bodies match accepted IQ3 after historical vault-path normalization only; no fixture bytes or scoring edited. `darwin/recall/summary.json`, canonical fixture888ef490…; source/fixture hashes verified before/after.
+
+### Final gates
+
+**NOT QUALIFIED:** the routing timing gate remains failed. Deliver as a draft review PR; main stays unchanged and no merge is authorized. No timing rerun, threshold relaxation or unmeasured explanation for the regression.
+
+| Gate | Result |
+| --- | --- |
+| Darwin golden equivalence / simulated unsupported hosts | PASS: three platform suites; exact old-source, argument, result/error and health comparisons; shell/keys fail closed |
+| Routing category / lane / r17 | PASS: 20/20 each; r17 X→C; 0 cold / 20 warm |
+| Routing mean ≤0.906 s | **FAIL: 0.933142050 s**; first1.182833, p500.953547, p991.204345 s |
+| Interactive p99 ≤6.726 s | PASS: 6.507670167 s, one predefined100-request run,0children |
+| v38 recall | PASS: frozen single slot20/20; actual answer slots1 and2 each20/20 |
+| Abstention / callable JSON | PASS: 20/20 each |
+| Tools first-pass / post-retry | PASS: 17/20 →20/20,3retries; accepted t07/t09/t12 unchanged |
+| CLI / hooks | PASS: 18/18 and5/5 |
+| Standing controls | PASS: all23, plus3platform suites =26scripts; includes SYSTEM_RULES='' recursive-delete refusal |
+| Nuke dry-run | PASS: 32,160 paths;0outside `~/Kildall/code`,0rejections; outward symlinks included as link objects |
+| Health / installed commands | PASS: `check.sh` exit0; `kildall --help` and `orbi --help` exit0; isolated installed-package import passes |
+| Frozen fixtures / protected inputs | PASS: before/after hashes unchanged; accepted canonical recall SHA888ef490…; config remains4096×3 |
+| Cleanup | PASS: owned runtimes stopped, ports closed, wired limit20480 |
+
+Final evidence: `darwin/regressions/summary.json`, `controls-final/results.json`,
+`delivery/summary.json` and aggregate `final-report.json`. The delivery summary's
+`passed` refers to controls/health only; the aggregate is explicitly false.
+
+`source-measured.json` preserves the exact source used for model measurements.
+After those runs, six files received the unsupported-key CLI diagnostic fix,
+dormant MLX RSS/probe extraction, exact original wired-probe command variants,
+and deterministic test coverage. `post-measurement-changes.json` lists them;
+`source.json` records the final source checked by all26controls and delivery.
+No Darwin inference, routing, answer, model, prompt, sampling, grammar or config
+behavior changed in that cleanup; model gates were not repeated.
+
+No Linux/Windows implementation, prompt-reuse work, later cloud slice, MCP,
+computer mode, model download, MLX inference, paid API, launchd reinstall, key
+import or HF sync. No new dependencies. No soak was required or run for this slice.

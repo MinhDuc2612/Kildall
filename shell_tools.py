@@ -1,4 +1,6 @@
 """Closed read-only commands inside the Phase 3 executor; no shell evaluation."""
+from kildall_platform import system, refuse_computer
+
 import base64
 import json
 import os
@@ -24,9 +26,7 @@ TOOLS = [tool('run_command', 'Run a confined read-only command: echo, printf, tr
 
 def run_bounded(argv, cwd, timeout, *, limit=65536, pass_fds=(), started=None, alive=None):
     """Kernel denies writes, network, GUI IPC and any executable except this binary."""
-    argv = [os.path.realpath(argv[0]), *argv[1:]]
-    profile = '(version 1)(deny default)(allow file-read*)(allow sysctl-read)(allow process-exec (literal ' + json.dumps(argv[0]) + '))'
-    command = ['/usr/bin/sandbox-exec', '-p', profile, *argv]
+    command = system().sandbox_command(argv)
     proc = subprocess.Popen(command, cwd=cwd, env={'PATH': '/usr/bin:/bin', 'LANG': 'en_US.UTF-8'},
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         start_new_session=True, close_fds=True, pass_fds=pass_fds)
@@ -78,7 +78,6 @@ def run_bounded(argv, cwd, timeout, *, limit=65536, pass_fds=(), started=None, a
 
 
 def command_args(command, cwd):
-    from permissions import COMPUTER_REASON
     if not isinstance(command, str) or len(command) > 16384:
         raise ValueError('Expected a bounded command string')
     parts = shlex.split(command)
@@ -86,14 +85,13 @@ def command_args(command, cwd):
         raise ValueError('Empty command')
     name, args = parts[0], parts[1:]
     # This is an allow-list, never an attempt to sanitize executable shell text.
-    binaries = {n: '/bin/' + n for n in ('echo', 'sleep', 'ls', 'cat')}
-    binaries.update({n: '/usr/bin/' + n for n in ('printf', 'true', 'false', 'wc')})
+    binaries = system().shell_binaries()
     if name in ('cd', 'pwd'):
         if len(args) != (1 if name == 'cd' else 0):
             raise ValueError('cd takes one path; pwd takes no arguments')
         return parts
     if name not in binaries:
-        raise PermissionError('Command is outside the closed executable set; ' + COMPUTER_REASON)
+        refuse_computer('Command is outside the closed executable set; ')
     if name in ('true', 'false') and args:
         raise PermissionError('Unexpected command arguments')
     if name == 'sleep' and (len(args) != 1 or not re.fullmatch(r'\d+(?:\.\d+)?', args[0]) or float(args[0]) > 3600):
@@ -155,6 +153,7 @@ def finish(db_path, ident, result):
 
 
 def execute(operation, args, record, project):
+    system()  # Refuse before cwd-only or background command paths.
     from kildall import database, process_start
     from permissions import authorize
     db_path, ident = record['db_path'], record['id']

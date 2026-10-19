@@ -191,7 +191,7 @@ def controls():
 
 def live(*, stop_runtime=True):
     cases = fixtures()
-    wired = subprocess.check_output(["sysctl", "-n", "iogpu.wired_limit_mb"], text=True).strip()
+    wired = kildall.system().wired_limit_text(absolute=False)
     if wired != "20480":
         raise RuntimeError(f"Benchmark blocked: iogpu.wired_limit_mb={wired}; expected 20480")
     directory = kildall.ROOT / ".session" / ("routing-" + uuid.uuid4().hex)

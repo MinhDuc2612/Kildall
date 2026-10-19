@@ -2,17 +2,15 @@
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from contextlib import contextmanager, ExitStack
 from contextvars import ContextVar
-import fcntl
+from kildall_platform import system
 import copy
 import errno
 import http.client
 import json
 import os
 from pathlib import Path
-import re
 import signal
 import socket
-import subprocess
 import threading
 import time
 from urllib.parse import urlsplit
@@ -34,11 +32,7 @@ _SLOT = ContextVar('kildall_slot', default=None)
 
 
 def capacity():
-    text = subprocess.check_output(['vm_stat'], text=True, timeout=5)
-    page = int(re.search(r'page size of (\d+)', text)[1])
-    pages = {k: int(v) for k, v in re.findall(r'^([^:\n]+):\s+(\d+)\.', text, re.M)}
-    available = page * sum(pages[k] for k in ('Pages free', 'Pages inactive', 'Pages speculative'))
-    pressure = int(subprocess.check_output(['sysctl', '-n', 'kern.memorystatus_vm_pressure_level'], text=True, timeout=5))
+    available, pressure = system().memory_available()
     budget = max(0, available - RESERVE) if pressure != 4 else 0
     memory_cap = budget // PROCESS_RSS
     return dict(available_bytes=available, reserve_bytes=RESERVE, pressure=pressure,
@@ -140,7 +134,7 @@ def lease(config, slot, *, blocking=True, cancel=None):
     with foreground(url(config)), (directory / f"slot-{config['runtime']['port']}-{slot}.lock").open('a') as lock:
         while True:
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                system().lock(lock, nonblocking=True)
                 break
             except BlockingIOError:
                 if not blocking:
@@ -150,7 +144,7 @@ def lease(config, slot, *, blocking=True, cancel=None):
             wait_idle(config, slot, **({'cancel': cancel} if cancel is not None else {}))
             yield
         finally:
-            fcntl.flock(lock, fcntl.LOCK_UN)
+            system().unlock(lock)
 
 
 @contextmanager
@@ -380,7 +374,7 @@ class Manager:
                 # a measured reservation ledger is needed for concurrent batches.
                 lock = leases.enter_context((kildall.ROOT / '.session/separate.lock').open('a'))
                 try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    system().lock(lock, nonblocking=True)
                 except BlockingIOError as error:
                     raise PermissionError('Another parent owns separate-process admission') from error
                 if separate > capacity()['separate_cap']:

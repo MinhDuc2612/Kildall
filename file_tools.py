@@ -1,4 +1,5 @@
 """Bounded file readers. Authorization stays in permissions.execute."""
+from kildall_platform import system
 import base64
 import fnmatch
 import os
@@ -50,7 +51,7 @@ def execute(operation, args, project):
                     return dict(paths=result, truncated=True)
         return dict(paths=result, truncated=False)
     if operation == 'grep_files':
-        argv = ['/opt/homebrew/bin/rg', '--json', '--max-count', '200', '--max-filesize', '16M']
+        argv = [system().executable('rg'), '--json', '--max-count', '200', '--max-filesize', '16M']
         if args.get('file_type'):
             argv += ['--type', args['file_type']]
         argv += ['--', args['pattern'], str(path)]
@@ -73,7 +74,7 @@ def execute(operation, args, project):
                         encoding='base64', data=base64.b64encode(data).decode())
         if operation == 'read_pdf':
             first, count = args.get('start_page', 1), args.get('pages', 10)
-            result = run_bounded(['/opt/homebrew/bin/pdftotext', '-f', str(first), '-l', str(first+count-1),
+            result = run_bounded([system().executable('pdftotext'), '-f', str(first), '-l', str(first+count-1),
                                   '-enc', 'UTF-8', '/dev/fd/'+str(source.fileno()), '-'],
                                  project, 20, limit=8192, pass_fds=(source.fileno(),))
             if result['exit_code'] or result['timed_out']:

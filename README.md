@@ -474,3 +474,28 @@ JSON20/20; tools17/20 first-pass and20/20 post-retry; CLI18/18; hooks5/5.
 All earlier controls and the health check pass. Recall requests differ only in
 the vault path, verified by path-normalized comparison. See the retained results
 and failures in [BENCHMARKS.md](BENCHMARKS.md).
+
+
+## Host platform boundary
+
+`kildall_platform` dispatches to the existing Darwin implementations at call time.
+Linux and Windows raise `not implemented`; shell commands and key operations refuse
+before execution or credential-file reads. There is no unsandboxed or plaintext fallback.
+No dependency, tool schema, permission tier, production context, or nuke root changed.
+
+| Interface | Existing Mac implementation |
+| --- | --- |
+| `keys()` | Login Keychain, `security` stdin imports/readback; Security/CoreFoundation account enumeration for the secret scanner |
+| `jobs()` | Backup LaunchAgent, boot-daemon print-only installer, launchctl/plutil validation and rollback |
+| `system()` shell | Exact Seatbelt profile, executable realpaths and closed command set; hooks share this sandbox |
+| `ocr()` | Local-file ImageIO/Vision through ctypes and the Objective-C ABI; no PyObjC or screen capture |
+| `system()` probes | sysctl wired limit/pressure/swap, vm_stat pages, ioreg GPU, memory_pressure, RSS and MLX health |
+| `system()` ownership/paths | ps identity/command, POSIX locks, fixed Homebrew binaries and Mac runtime archive/volume paths; canonical containment |
+| `refuse_computer()` | Existing Phase4C placeholder refusal; no input or screen API is reachable |
+
+The exact nuke allow-list remains `~/Kildall/code`. `.git` and protected-branch
+case folding remain conservative security checks; paths are never normalized by
+lowercasing. POSIX file-descriptor mutations, signals and Unix sockets remain
+in the guarded runtime; this slice does not implement another OS.
+Golden checks: `test_platform_system.py`, `test_platform_keys.py`,
+`test_platform_jobs.py`, plus the standing control suites.
