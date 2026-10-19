@@ -107,29 +107,49 @@ M5 prefill ≈ 3.6× M4 Max on llama.cpp. *"The cache decides how many cold read
 - **Resident thinking off** (`--reasoning off`), so no thinking-strip break. **Explicit `-c 4096`**, so no Ollama default trap.
 - **Gates time whole requests** (p99), not tok/s.
 
-### Gaps found (code at `main` 29ab89b, logs in `code/.session/`)
-1. **`kildall.py:508` (`stream_reply`) and `subagents.py:328` send `cache_prompt=False`.** Every answer turn and every
-   tool round re-reads the full prompt. Only the router reuses its prefix. The cache was turned off on 2026-09-08
-   for RAM; it was later bounded, but these two paths were never switched back.
+### Gaps found (code at `main` 29ab89b, logs in `code/.session/`; deep-checked 2026-10-19)
+1. **`kildall.py:508` (`stream_reply`) and `subagents.py:328` send `cache_prompt=False`.** In pinned llama.cpp
+   (`server-context.cpp`, b10809 copy in `.session/phase4.4-20260927/audit/upstream/`) that sets `n_past = 0`:
+   every answer turn and every tool round (up to 8 per turn) re-reads the full prompt. Only the router reuses its
+   prefix. **Origin:** commit 767bb25 (2026-09-06, "reproducible Lane A gate checks") — set for repeatable gates;
+   commit 3149863 (2026-09-09) copied it into the CLI. *Not* the 2026-09-08 RAM fix (`--cache-ram`, a separate setting).
 2. **`kildall.py:488` (`fit_messages`) puts recalled memory inside the system message, at the top of the prompt.**
-   Recall changes per turn, so nothing after it can match. Same pattern as the Claude Code attribution header.
-3. **Cost is visible already:** real-child soak p50 **24.7 s** for 64-token replies (Phase 4.4). Writing 64 tokens takes
-   ~2–5 s, so most of that wait is reading. *(Inference from recorded numbers.)*
-4. **SWA re-reads already happen on the router:** `.session/lane_a.log` (Oct 14) has **10** `forcing full prompt
-   re-processing` lines in ~2,251 prompt starts, all slot 0, ~3.8K-token prompts. Gemma's SWA window is **1,024**
-   and the only checkpoints sat at ≤223 tokens. Requests with `cache_prompt=False` never try reuse, so they re-read
-   silently and never show this line.
-5. **4K trimming** (`previous.pop(0)`) shifts the whole history = full re-read, like compaction. Rarer at larger context.
+   Recall changes per turn (and mid-turn via the `recall` tool), so nothing after it can match. Same pattern as the
+   Claude Code attribution header.
+3. **Measured cost:** `.session/lane_a.log` (Oct 14), answer slot 1: 53 requests, **345 s reading vs 28 s writing —
+   92% of slot time is reading**; mean prompt 1,436 tokens, mean reply 14 tokens; **0** reuse events on slots 1–2.
+   Real-child soak p50 **24.7 s** for 64-token replies (Phase 4.4) fits the same picture.
+4. **RAM for reuse is already paid and thrown away:** work slots create two SWA checkpoints per request
+   (**106–113 MiB each**), then the next request erases them (`pos_next = 0`). 16K test: slot 1 got a prompt sharing
+   8,192 of 16,383 tokens with its cache (`sim = 0.500`) and re-read all of it (~73 s).
+5. **Correction:** the 10 `forcing full prompt re-processing` lines on slot 0 are **not** SWA failures. Slot 0 held a
+   different 229-token prompt; the new one shared 4 of 3,816 tokens (`sim = 0.001`). A full read was correct.
+6. **4K trimming** (`previous.pop(0)`) drops the oldest message once full, which changes the prompt right after the
+   system part = full re-read, like compaction. With ~1.4K-token prompts at 4K this starts after a few turns.
+7. **Children share slot 1:** `turn_slot` gives every turn the first work slot; children borrow it while the parent
+   waits, so the parent's cached prefix is overwritten and its next round re-reads.
+
+### How reuse will behave (derived from the pinned source)
+- llama.cpp keeps checkpoints at **the start of the last user message** and **4 and 132 tokens before the prompt end**
+  (`-ub 128`); min spacing 8,192. Gemma SWA window **1,024**.
+- **Tool rounds inside a turn:** prompt only grows at the end → reuse works (direct, or from the near-end checkpoint).
+  Only the reply + tool result are read.
+- **Next turn, memory at the top:** change point has no checkpoint before it → full re-read. **Memory placed with the
+  current user message** → change point lands at the last-user checkpoint → only the last turn is re-read.
+- **Trimming one message at a time** keeps breaking the prefix; trimming a large chunk at once (e.g. half the history)
+  keeps it stable for several turns.
 
 ### Proposed slice — "answer-path prompt reuse" (not in the plan yet)
 - `cache_prompt=True` on `stream_reply` and subagents; keep answer slots 1–2 pinned.
-- Append-only prompt: stable system + tools first; recalled memory moves below the stable part (exact place: spec decides,
-  since SWA can only rewind to a checkpoint).
+- Append-only prompt: stable system + tools first; recalled memory moves next to the current user message (lands on
+  llama.cpp's last-user checkpoint).
+- Trim history in large chunks, not one message per request.
 - Log `timings.cache_n` vs `prompt_n` per request (llama-server already returns them) → cache-hit % in health.
-- One session at higher log verbosity; count `forcing full prompt re-processing`.
-- **Risks:** llama.cpp warns reused cache may not be bit-identical to a fresh read, so temperature-0 gates can shift —
-  rerun every gate, frozen fixtures untouched · checkpoint count may need tuning (`--swa-full` keeps the full SWA cache,
-  more RAM — mini PC only) · memory-pressure soak must still pass.
+- Optional, same gate rerun: system prompt still says "You are Orbi" — kept on purpose in the rename to avoid gate drift.
+- **Risks:** llama.cpp README (pinned, line 589): reused cache "can cause nondeterministic results" — temperature-0 gates
+  can shift; rerun every gate, frozen fixtures untouched. Partial comfort: the router already runs `cache_prompt=True`
+  and routing holds 20/20 · memory-pressure soak must still pass (checkpoint RAM is already paid today) ·
+  `--swa-full` keeps the full SWA cache (more RAM — mini PC only).
 - **Expected gain (estimate, unmeasured):** a full 4K re-read costs ~16 s on the M4 (measured router rebuild 15.8 s for
   3,863 tokens). With reuse, tool rounds and repeat turns read only new tokens. On the mini PC at 32K+ this decides
   usable vs not: a cold 32K read is ~30–70 s at the community 460–1,000 tok/s prefill numbers.
@@ -144,6 +164,20 @@ M5 prefill ≈ 3.6× M4 Max on llama.cpp. *"The cache decides how many cold read
 - **MoE caution (inference, unmeasured):** the resident model is MoE (4B active). Checking 8 tokens can touch more
   experts than 1, so the gain is likely smaller than on a dense 27B.
 
+**Web check (2026-10-19):**
+- **Strix Halo (the mini PC chip), llama.cpp Vulkan:** Gemma 4 31B dense Q8 + Gemma 4 E2B drafter: **6.18 → 12.55 tok/s
+  (+103%)** average; math +170%, code +139%, creative +40%. Best `--draft-max 4`, `--parallel 1`. Acceptance 35–62%.
+  26B-A4B variants configured but **not benchmarked**. ([sleepingrobots](https://sleepingrobots.com/dreams/speculative-decoding-gemma4-strix-halo/))
+- **Not byte-identical in practice:** Qwen 3.8 27B on RTX 3090, llama.cpp MTP: +60% speed, but **92–100%** of outputs
+  differed from plain greedy at a 1,600-token cap; cause not established. Kildall's temperature-0 gates must decide.
+  ([hackmd study](https://hackmd.io/@thc1006/qwen3-8-27b-speculative-decoding-rtx-3090))
+- **DSpark is real** (DeepSeek + Peking University): 60–85% faster per user on V4-Flash. **Gemma 4 DSpark drafters exist
+  in vLLM, Modular MAX and NVIDIA NeMo — not llama.cpp.** ([AlphaSignal](https://alphasignalai.substack.com/p/how-dspark-speeds-up-llm-inference),
+  [vLLM](https://docs.vllm.ai/en/stable/api/vllm/model_executor/models/gemma4_dspark/))
+- **Apple via MLX, not llama.cpp:** MTPLX (MLX + native MTP) on M4 Max 64 GB: Qwen3.6-27B 4-bit **41.6 vs 24.3 tok/s (1.71×)**.
+  Needs a model with an MTP head. ([MTPLX notes](https://instagit.com/youssofal/MTPLX/performance-benefits-mtplx-m4-m5-max-chips.md))
+- **Lithos Metal:** no trace found on the web. Its "200 tok/s" stays unverified.
+
 ### Other ideas
 - **Per-skill thinking-effort cap** for thinking models (Lane B/C, NIM): `xhigh` = 5.5× tokens.
 - **Bench reports first-token time and the prefill/decode split** per request, not only tok/s.
@@ -151,11 +185,14 @@ M5 prefill ≈ 3.6× M4 Max on llama.cpp. *"The cache decides how many cold read
 ---
 
 ## Not verified
-- All video numbers are the creator's, citing user reports, X posts and the Lithos repo study. No `/deep-research` run;
-  none checked against primary sources.
+- Video numbers are the creator's, citing user reports, X posts and the Lithos repo study. Only the speculative-decoding
+  claims above were web-checked (secondary sources); the rest are unchecked. No `/deep-research` run.
 - Names come from auto-captions and may be misspelt ("Deep Spark"/"Dispark" = DSpark, "Llama Metal" = Lithos Metal,
   "AgentPerf Local", "MLTF").
 - Kildall facts above are checked against code at 29ab89b, BENCHMARKS.md and `.session/lane_a.log`.
 
 ## Change log
 - **2026-10-19** — Created from both videos; Kildall gaps checked in code and logs.
+- **2026-10-19 (deep check)** — Traced the turn loop, slots and pinned llama.cpp source. Corrected two claims (origin of
+  `cache_prompt=False`; slot-0 events are not SWA failures). Added the measured 92% read share, wasted checkpoint RAM,
+  4K trimming and slot-sharing risks, and web checks of the speculative-decoding claims.
