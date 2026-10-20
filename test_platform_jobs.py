@@ -101,7 +101,12 @@ def main():
     new_check = python_body((ROOT / "check.sh").read_text())
     for options in ({}, {"limit": 0}, {"limit": 1024}, {"registered": False},
                     {"daemon_ok": False}, {"mode": 0o100666}, {"mode": 0o120777}):
-        assert health(old_check, **options) == health(new_check, **options), options
+        actual = list(health(new_check, **options))
+        # Slice5b2 adds app telemetry; the Darwin job/probe output and calls stay golden.
+        lines = actual[1].splitlines(keepends=True)
+        assert sum(line.startswith('Prompt cache: ') for line in lines) == 1
+        actual[1] = ''.join(line for line in lines if not line.startswith('Prompt cache: '))
+        assert health(old_check, **options) == tuple(actual), options
 
     import backup_ops
     import install_wiredlimit

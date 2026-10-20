@@ -319,11 +319,12 @@ class Manager:
                 if time.monotonic() - last > .1:
                     task.message(partial, ident)
                     last = time.monotonic()
+            response = None
             try:
                 started = time.perf_counter()
                 response = chat(kildall.url(config), dict(messages=messages, tools=self.tools,
                     tool_choice='auto', parallel_tool_calls=False, temperature=0, top_p=1, samplers=['temperature'], seed=42,
-                    max_tokens=self.max_tokens, stream=True, cache_prompt=False), on_text=content, cancel=cancel,
+                    max_tokens=self.max_tokens, stream=True, cache_prompt=True), on_text=content, cancel=cancel,
                     on_progress=kildall.read_progress(config, f"Child slot {child['slot']}: "),
                     timeout=kildall.inference_timeout(config))
                 partial.update(response['choices'][0]['message'])
@@ -331,6 +332,7 @@ class Manager:
                 return partial
             finally:
                 task.message(partial, ident)
+                task.inference(response)
 
     def spawn(self, args, record):
         import kildall

@@ -2574,3 +2574,26 @@ client/prompt/eval/overhead and raw log references), all6 raw logs/requests/resu
 host snapshots, frozen hashes and `verified-result.json`. Both temporary worktrees
 removed, owned runtimes stopped, model ports closed. Main29ab89b and PR75c13f9
 unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF sync.
+
+
+| Slice5b2 prompt reuse — gate | Result | Evidence under `.session/prompt-reuse-20261020/` |
+| --- | --- | --- |
+| Slice5b2 / base / disposition | STOPPED; main5c630ed unchanged; prompt-reuse draft only | measurement-protocol.json; paired-state.json |
+| 26 existing control suites + new reuse controls | PASS26/26 +1/1; no model inference in controls | controls/results.json; controls/*.log |
+| Hooks / Phase3 empty-system hard test | PASS5/5 hooks; recursive delete refused with SYSTEM_RULES empty | controls/test_phase43.py.log; controls/test_permissions.py.log |
+| Memory placement, history, chunk trimming, telemetry | PASS deterministic controls; memory in current user copy, stored history unchanged; whole-turn halves fit4096−544; parent/child native cache flags and slot pinning checked | controls/test_prompt_reuse.py.log |
+| Fixed A/B order | INCOMPLETE: 01-A both scripts,02-B tool script; STOP before B3turn/remaining pairs; no reruns | paired-state.json; 01-A.log; 02-B.log |
+| Fixed tool-script exact-call guard | FAIL B: glob_files(.) before read_file(first.txt),read_file(second.txt); correct CEDAR ORBIT answer. Harness required exact two-call list; written rule named both ordered reads without explicitly forbidding preliminary tools. No product quality regression established by this guard | paired_run.py; measurement-protocol.json; 02-B/multi_tool/decisions.json; 02-B/multi_tool/failure.json |
+| B cached tool rounds2+ | PASS observed B1: cache_n1253/1346/1393; prompt_n93/47/47; first request0/1257 | 02-B/multi_tool/requests.json; 02-B/multi_tool/telemetry.json |
+| Tool script wall, read/write split | DESCRIPTIVE ONLY: A1wall18.279522s,read16.178759s,write1.648696s; B1wall9.896237s,read6.731716s,write2.596523s; incomplete three-pair mean gate | 01-A/multi_tool/summary.json; 02-B/multi_tool/summary.json |
+| First-token timing | INCOMPLETE: A1both scripts INVALID (dummy progress tokens mistaken for generation); original evidence retained. Observer explicitly excludes progress from02-B, matching written rule. B1rounds1–4:5589.041/575.113/412.514/422.906ms. No rerun | ttft-instrumentation-failure.json; paired_run-original.py; paired_run.py; 02-B/multi_tool/requests.json |
+| 3-turn system+tools reuse / mean wall | NOT QUALIFIED: only A1(ALPHA/BETA/GAMMA),wall17.768451s,read16.732903s,write0.193725s,cache0; B and remaining pairs NOT RUN | 01-A/three_turn/summary.json; paired-state.json |
+| Recall v38: frozen1slot + answer slots1/2 | NOT RUN after stop; required20/20 each | measurement-protocol.json; paired-state.json |
+| Routing category/lane/r17 + mean≤0.906s | NOT RUN after stop; required20/20,20/20,X→C | measurement-protocol.json; paired-state.json |
+| Abstention / callable / tools / CLI | NOT RUN after stop; required20/20,20/20,17/20→20/20,18/18 | measurement-protocol.json; paired-state.json |
+| Interactive p99≤6.726s | NOT RUN after stop | measurement-protocol.json; paired-state.json |
+| 600s real-child soak / critical0 / warnings≤103/121 | NOT RUN after stop | measurement-protocol.json; paired-state.json |
+| Live nuke dry-run / check.sh | NOT RUN after stop; unit nuke/check controls PASS only | controls/test_nuke.py.log; controls/test_check.py.log; paired-state.json |
+| Slot1 child borrowing | RECORDED existing limitation: a child borrowing slot1 overwrites parent cached prompt; assignment unchanged; no redesign | measurement-protocol.json; source.json |
+| Fixtures / production config / model-facing source outside slice | PASS protected hashes unchanged; benchmark-only cache settings unchanged; no dependencies, prompts wording, grammar, routing or catalog changes | before.json; source.json; stop-verification.json |
+| Wired limit / runtime cleanup | PASS20480; owned runtimes stopped, ports8123/8124 closed, temporary baseline worktree removed | stop-verification.json; cleanup.json |

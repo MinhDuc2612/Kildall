@@ -41,5 +41,7 @@ print("Recorded baseline: 19.48 tok/s (qwen3:8b, 2026-09-06; not re-measured)")
 
 root = Path.cwd()
 failed = scheduler.check_registrations(root, limit) or failed
+from kildall import cache_health, settings
+print(cache_health(settings()['paths']['db_path']))
 raise SystemExit(1 if failed else 0)
 PY

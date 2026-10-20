@@ -347,6 +347,8 @@ def initialize(path):
             CREATE TABLE IF NOT EXISTS orbi_messages(id INTEGER PRIMARY KEY, session TEXT NOT NULL,
                 task TEXT NOT NULL, payload TEXT NOT NULL);
             CREATE INDEX IF NOT EXISTS orbi_message_session ON orbi_messages(session, id);
+            CREATE TABLE IF NOT EXISTS orbi_inference(id INTEGER PRIMARY KEY, task TEXT NOT NULL,
+                created REAL NOT NULL, slot INTEGER, cache_n INTEGER, prompt_n INTEGER);
             CREATE TABLE IF NOT EXISTS orbi_routes(task TEXT PRIMARY KEY, prompt TEXT NOT NULL,
                 kind TEXT NOT NULL, skill TEXT, lane TEXT, model TEXT,
                 succeeded INTEGER CHECK(succeeded IN (0,1) OR succeeded IS NULL),
@@ -443,6 +445,16 @@ class Task:
                 raise RuntimeError("Message disappeared while saving its contents")
         return message_id
 
+    def inference(self, response):
+        timing = (response or {}).get('timings', {})
+        counts = [timing.get(key) for key in ('cache_n', 'prompt_n')]
+        if any(value is not None and (type(value) is not int or value < 0) for value in counts):
+            raise ValueError('Invalid native prompt cache counts')
+        slot = (response or {}).get('native_request', {}).get('id_slot')
+        with database(self.path) as db:
+            db.execute('INSERT INTO orbi_inference(task,created,slot,cache_n,prompt_n) VALUES(?,?,?,?,?)',
+                       (self.id, time.time(), slot, *counts))
+
     def finish(self, outcome):
         self.finished.set()
         self.watcher.join(timeout=2)
@@ -474,6 +486,22 @@ def history(path, session):
     return groups
 
 
+def cache_health(path):
+    if not path.exists():
+        return 'Prompt cache: no request timings recorded'
+    connection = sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)
+    try:
+        if not connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='orbi_inference'").fetchone():
+            return 'Prompt cache: no request timings recorded'
+        total = connection.execute('SELECT count(*) FROM orbi_inference').fetchone()[0]
+        known, cached, read = connection.execute('SELECT count(*),coalesce(sum(cache_n),0),coalesce(sum(prompt_n),0) '
+            'FROM orbi_inference WHERE cache_n IS NOT NULL AND prompt_n IS NOT NULL').fetchone()
+    finally:
+        connection.close()
+    ratio = f'{100 * cached / (cached + read):.2f}%' if cached + read else 'unavailable'
+    return f'Prompt cache: {ratio} tokens reused ({known}/{total} requests with timings)'
+
+
 class ContextOverflow(ValueError):
     def __init__(self, messages, limit=4096):
         super().__init__(f'This request exceeds the {limit:,}-token context; shorten it')
@@ -485,8 +513,12 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
     transport = {'cancel': cancel} if cancel is not None else {}
     previous = list(previous)
     while True:
-        messages = [{"role": "system", "content": system + "\n\n<memory>\n" + memory_text + "\n</memory>"}]
-        messages += [message for turn in previous for message in turn] + current
+        latest = [dict(message) for message in current]
+        if not latest or latest[0].get('role') != 'user' or not isinstance(latest[0].get('content'), str):
+            raise ValueError('Expected the current user message before recalled memory')
+        latest[0]['content'] += '\n\n<memory>\n' + memory_text + '\n</memory>'
+        messages = [{"role": "system", "content": system}]
+        messages += [message for turn in previous for message in turn] + latest
         messages = system_messages(messages)
         prompt = json_request(url(config) + "/apply-template", {
             "messages": messages, "tools": tools, "add_generation_prompt": True}, **transport)["prompt"]
@@ -494,7 +526,7 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
         if count + 512 + 32 <= config["runtime"]["context_size"]:
             return messages
         if previous:
-            previous.pop(0)
+            del previous[:(len(previous) + 1) // 2]
         elif memory_text:
             memory_text = memory_text[:len(memory_text) // 2]
         else:
@@ -505,7 +537,7 @@ def stream_reply(config, messages, task, *, tools=None):
     from tool_runtime import chat
     body = dict(messages=messages, tools=BASE_TOOLS if tools is None else tools, tool_choice="auto", parallel_tool_calls=False,
                 temperature=0, top_p=1, samplers=["temperature"], seed=42,
-                max_tokens=512, stream=True, cache_prompt=False)
+                max_tokens=512, stream=True, cache_prompt=True)
     message = {"role": "assistant", "content": ""}
     message_id = task.message(message)
     last_save = time.monotonic()
@@ -520,6 +552,7 @@ def stream_reply(config, messages, task, *, tools=None):
             task.message(message, message_id)
             last_save = time.monotonic()
 
+    response = None
     try:
         response = chat(url(config), body, on_text=content, on_progress=read_progress(config),
                         timeout=inference_timeout(config))
@@ -528,6 +561,7 @@ def stream_reply(config, messages, task, *, tools=None):
     finally:
         # Includes buffered text on Ctrl-C, broken pipes and transport failures.
         task.message(message, message_id)
+        task.inference(response)
 
 
 def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None, agents=None):
