@@ -2339,3 +2339,43 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-10-20 Draft PR#10 opened and verified OPEN/draft: https://github.com/MinhDuc2612/Kildall/pull/10, head75c13f92762695b61f51f3bdeb9518e98e79b084, base main. Independent git ls-remote matches; origin/main remains29ab89b. Code tree clean, final source/protected hashes held and model ports closed. Routing meanFAIL0.933142050s>0.906s; all other requested quality/latency/control/health gates pass. No merge, sudo, paid API, HF sync or later slice. Saving action log locally; user Klogo.png remains untouched/untracked and vault will not be pushed.
 
 - 2026-10-20 Reviewed PR #10 (platform layer, head 75c13f9 verified via ls-remote; main 29ab89b). Code: 1:1 Darwin extraction; permissions guard_path, git path and Keychain stdin calls identical; post-measurement edits (6 files) off the routing/answer path. Routing FAIL analysed vs PR #8 per route: client mean 831->933 ms; server (slot 0 prompt+eval) 799->855 ms; extra time concentrated in r01-r07 on both server and client, fading after; steady client overhead r08-r20 median 19->27 ms. Verdict: likely transient machine state, not proven; recommended predefined A/B (main vs PR, ABABAB) before merge. Not merged.
+
+- 2026-10-20 Started user-predefined PR#10 routing diagnostic only: A29ab89b/B75c13f9 in clean detached temporary worktrees, fixed ABABAB order,3pairs,20cases each. Config/frozen/routing/catalog/grammar hashes match. Preserve original fresh-prefix build+restart and product answer/memory loop; record per-route client/log-server overhead and pre-run memory/thermal. Fixed relative gates3%/+5ms; original0.906s unchanged. Conditional one-call r17 cProfile A/B only if relative timing/overhead fails. No code change, merge, HF sync, competing benchmark or file sweep. Evidence .session/pr10-routing-ab-20261020/.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 01-A; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 01-A finished; {"name": "01-A", "variant": "A", "mode": "measure", "exit": 1}; evidence retained.
+
+- 2026-10-20 PR#10 A/B preflight stopped before inference on an idle Ollama daemon; /api/ps verified0models and0%CPU. Original stop/harness retained in preflight-idle-ollama. Guard now permits that service only with an empty model list; still refuses running models/file sweeps. No qualification run or route occurred; fixed ABABAB sequence remains unchanged.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 01-A; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 01-A finished; {"name": "01-A", "variant": "A", "mode": "measure", "exit": 0, "summary": {"variant": "A", "commit": "29ab89bd6a1c7fbe097a3e781de779ffc2b66d17", "exit": 0, "route_count": 20, "mean_ms": 854.6853, "p50_ms": 856.801, "p99_ms": 1113.608, "first_ms": 839.754, "server_mean_ms": 804.9765, "median_overhead_ms": 20.881999999999948, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 128.79950341698714, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 02-B; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 02-B finished; {"name": "02-B", "variant": "B", "mode": "measure", "exit": 0, "summary": {"variant": "B", "commit": "75c13f92762695b61f51f3bdeb9518e98e79b084", "exit": 0, "route_count": 20, "mean_ms": 860.31645, "p50_ms": 887.263, "p99_ms": 984.314, "first_ms": 889.326, "server_mean_ms": 815.765, "median_overhead_ms": 20.36850000000004, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 121.87619491596706, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 03-A; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 03-A finished; {"name": "03-A", "variant": "A", "mode": "measure", "exit": 0, "summary": {"variant": "A", "commit": "29ab89bd6a1c7fbe097a3e781de779ffc2b66d17", "exit": 0, "route_count": 20, "mean_ms": 874.54665, "p50_ms": 870.194, "p99_ms": 1084.838, "first_ms": 870.194, "server_mean_ms": 817.2445, "median_overhead_ms": 25.81850000000003, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 123.81625829194672, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 04-B; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 04-B finished; {"name": "04-B", "variant": "B", "mode": "measure", "exit": 0, "summary": {"variant": "B", "commit": "75c13f92762695b61f51f3bdeb9518e98e79b084", "exit": 0, "route_count": 20, "mean_ms": 867.393, "p50_ms": 867.664, "p99_ms": 1041.119, "first_ms": 846.527, "server_mean_ms": 821.477, "median_overhead_ms": 20.4910000000001, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 123.65772312495392, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 05-A; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 05-A finished; {"name": "05-A", "variant": "A", "mode": "measure", "exit": 0, "summary": {"variant": "A", "commit": "29ab89bd6a1c7fbe097a3e781de779ffc2b66d17", "exit": 0, "route_count": 20, "mean_ms": 877.3773, "p50_ms": 919.813, "p99_ms": 1025.349, "first_ms": 820.243, "server_mean_ms": 826.198, "median_overhead_ms": 22.846000000000004, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 124.30949558294378, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Starting 06-B; fixed order, no retry, wired20480 required before loading.
+
+- 2026-10-20 PR#10 A/B diagnostic: 06-B finished; {"name": "06-B", "variant": "B", "mode": "measure", "exit": 0, "summary": {"variant": "B", "commit": "75c13f92762695b61f51f3bdeb9518e98e79b084", "exit": 0, "route_count": 20, "mean_ms": 888.35315, "p50_ms": 877.939, "p99_ms": 1089.546, "first_ms": 877.939, "server_mean_ms": 833.9385, "median_overhead_ms": 21.022500000000036, "category": 20, "lane": 20, "cold": 0, "r17_X_to_C": true, "wall_s": 124.30129870900419, "quality_passed": true}}; evidence retained.
+
+- 2026-10-20 PR#10 A/B diagnostic: Six fixed runs complete; {"metrics": {"A": {"routes": 60, "mean_ms": 868.86975, "median_overhead_ms": 22.202000000000055, "server_mean_ms": 816.1396666666667, "cold": 0}, "B": {"routes": 60, "mean_ms": 872.0208666666666, "median_overhead_ms": 20.489999999999952, "server_mean_ms": 823.7268333333333, "cold": 0}}, "mean_relative_change_percent": 0.3626684743791131, "median_overhead_delta_ms": -1.7120000000001028, "gates": {"mean": true, "overhead": true, "B_quality_every_run": true}, "B_qualifies_diagnostic": true, "original_absolute_limit_ms": 906, "A_exceeds_original_gate_machine_drift": false, "original_gate_unchanged": true, "profile_required": false}
+
+- 2026-10-20 PR#10 diagnostic verified all120 router request bodies exactly match the failed-run protocol; all6derived configs identical, every restart restored3863-token prefix, frozen/harness hashes unchanged, original0.933142050s failure retained. Fixed aggregate: A868.869750ms vs B872.020867ms (+0.362668% <=3%); median overhead A22.202ms/B20.490ms (-1.712ms <=+5ms); every B category/lane20/20,r17X→C,0cold. A below906ms, so machine-drift trigger not met. No cProfile triggered. Temporary worktrees removed, all owned runtimes stopped; main29ab89b/PR75c13f9 unchanged. Writing report only, no code change/merge.
+
+- 2026-10-20 Final diagnostic report and BENCHMARKS addendum written; all120 per-route client/server/overhead rows exported, pressure/thermal snapshots retained, original failure unchanged. Only documentation/action logs changed outside git-ignored evidence; no commit/push/PR update. Temporary worktrees removed and runtimes stopped. Stopping at report as requested.
+
+- 2026-10-20 Verified PR #10 routing A/B (.session/pr10-routing-ab-20261020): recomputed from per-route.csv A mean 868.870 / B 872.021 ms (+0.363%), median overhead A 22.202 / B 20.490 ms; order ABABAB on the right commits (state.json); 3 random rows match raw lane_a.log lines; each B run 860/867/888 ms <= 906; category/lane 60/60, r17 X->C x6, zero cold. Original 0.933 run = transient. PR head still 75c13f9. A/B record sits uncommitted in code BENCHMARKS.md (+43 lines): must be committed docs-only before merge. Recommend merge on user word.
