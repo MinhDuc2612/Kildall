@@ -2397,3 +2397,31 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-10-20 Plan v53 (user: "add them all"): deep-research ideas #97-#126 and signature features S1-S6 added; 9 scheduled early (#97,#98,#102,#104,#105,#107,#108,#112 into coding core 5d, test #3 scored on #112; #120 into the Linux port); keep-on-evidence rule on #112. Checklist +8 = 245 items.
 
 - 2026-10-20 Verified PR #10 merge: origin/main = 5c630ed (ls-remote), parent 75c13f9 (reviewed head), last commit docs-only (+43 BENCHMARKS.md A/B record); code checkout clean on main. Next: slice 5b2 prompt reuse brief.
+
+- 2026-10-20 Started user-authorized slice5b2 prompt reuse on branch prompt-reuse from main5c630ed. Read v52 prompt-reuse spec, standing rules and updated macspeed research; root tracked tree clean at7e35498 before edit. Wired20480, code initially clean, protected/frozen hashes captured. Scope only answer/child cache reuse, late recalled memory, chunk history trimming, per-request cache telemetry and health. Benchmark-only cache settings and all prompt wording stay. Fixed ABABAB scripts/rules will precede inference; any formal gate drop stops further gates. No paid API/HF sync/keys output, merge or next slice.
+
+- 2026-10-20 Predefined5b2 evidence protocol before any inference: fixed two-read tool turn (first.txt CEDAR,second.txt ORBIT) and3turn exact ALPHA/BETA/GAMMA session; order ABABAB, fresh per-script prefix build/restart and unchanged4096×3. Require B cache>0 every tool round2+, system+tools prefix reuse on turns2–3, and lower mean wall for BOTH scripts; report native first-token and read/write split. Standing gates/order/stop rules fixed in .session/prompt-reuse-20261020/measurement-protocol.json. Implementation moves only memory block, enables answer/child cache, halves whole prior-turn groups, logs cache/prompt counts and adds health telemetry; no model/prompt-wording changes.
+
+- 2026-10-20 Slice5b2 implementation reviewed; new prompt-reuse development controls passed once without model inference. Source manifest frozen; starting the predefined formal26standing control suites plus prompt-reuse controls, stopping on any nonzero exit. Platform health golden excludes only the new cache telemetry line; Darwin job/probe equality still checked.
+
+- 2026-10-20 Slice5b2: Starting predefined 01-A; formal27controls passed. No repeated run or gate changes; source frozen, cloud disabled, wired20480 required.
+
+- 2026-10-20 Slice5b2 measurement instrumentation failure: pinned b10809 progress frames carry dummy tokens=[0], so01-A first-token fields are INVALID. Preserved original observer and evidence; corrected the observer to explicitly exclude prompt_progress for02-B onward, matching the predefined rule. No timing threshold/source/protocol changes or reruns; wall/native read-write/cache/workload data unaffected. Full first-token coverage will be reported incomplete.
+
+- 2026-10-20 Slice5b2: 01-A exit0; raw timing/request evidence retained in .session/prompt-reuse-20261020/01-A.
+
+- 2026-10-20 Slice5b2: Starting predefined 02-B; formal27controls passed. No repeated run or gate changes; source frozen, cloud disabled, wired20480 required.
+
+- 2026-10-20 Slice5b2: 02-B exit1; raw timing/request evidence retained in .session/prompt-reuse-20261020/02-B.
+
+- 2026-10-20 Slice5b2 STOP: first B multi-tool run completed CEDAR ORBIT but emitted glob_files before the two requested read_file calls, failing the harness exact-call-list guard. All3executor decisions done; cache gate itself passes (rounds2–4 cache_n1253/1346/1393). A1wall18.279522s vs B1wall9.896237s is descriptive only: remaining pairs/3turnB and standing model gates were NOT RUN, no aggregate speed qualification. No source fix/rerun; original failed evidence retained. Owned runtimes stopped, temporary A worktree removed; protected/source hashes unchanged and wired20480 verified. Writing table-only BENCHMARKS entry and draft PR; no merge.
+
+- 2026-10-20 Slice5b2 results documented as gate table+evidence paths only in BENCHMARKS.md. Explicitly recorded the stricter-than-written exact-call guard (extra harmless glob, correct ordered reads/final answer), invalid01-A first-token instrumentation, incomplete paired means, and every NOT RUN standing gate. Source remains frozen after measurement; preparing scoped commit and draft PR only.
+
+- 2026-10-20 Slice5b2 committed 9b1c068e544cbbc5e799815f8aec8a57bc365962 (six scoped files; secret-scanner hook passed). Pushing prompt-reuse normally, then independently verifying its remote SHA and opening a draft PR. No merge or qualification claim.
+
+- 2026-10-20 Slice5b2 remote independently verified with git ls-remote: prompt-reuse=9b1c068e544cbbc5e799815f8aec8a57bc365962; origin/main remains5c630ed. Opening draft with every failure/incomplete gate disclosed, including the workload-validator mismatch and first-token instrumentation error.
+
+- 2026-10-20 Slice5b2 delivered DRAFT PR#11 https://github.com/MinhDuc2612/Kildall/pull/11 at 9b1c068e544cbbc5e799815f8aec8a57bc365962. GitHub OPEN/draft verified, remote branch SHA independently matches; origin/main remains5c630ed, no merge. Code tree clean, frozen/protected hashes unchanged and owned runtimes stopped. Qualification incomplete:27control suites pass; Btoolcache observed, exact-call guard failed on extra glob; A1TTFT invalid; remaining live gates NOT RUN. Stopping for user review.
+
+- 2026-10-21 Allegretto/Stringendo deep research (user: all 1,074 skills, full deep research, two skeptics). Rules: Allegretto = fastest open model >= 95% of the Maestoso pick, Stringendo >= 80%; fastest = fewest active params. Workflow script: ~/.claude/projects/-Users-minhduc-Orbi/2ed8747d-60bb-4064-b110-35e13818ac3e/workflows/scripts/allegretto-stringendo-picks-wf_0cd43f17-9d8.js; 127 chunks (<= 15 skills) in batches of 8. Batch 1 DONE run wf_346790a4-df3 (chunks 3.1#1-3.2#1, 109 skills: 208 verified, 10 disputed, 0 killed; ~5.1M tokens). Batch 2 started run wf_229da75c-a09 (3.2#2-3.6). First all-at-once run wf_0cd43f17-9d8 lost to session limit (0 done). Output files pending: sample3/AllegrettoOSS.md, StringendoOSS.md, hwmini guides.
