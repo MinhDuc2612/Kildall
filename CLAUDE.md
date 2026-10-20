@@ -2379,3 +2379,17 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-10-20 Final diagnostic report and BENCHMARKS addendum written; all120 per-route client/server/overhead rows exported, pressure/thermal snapshots retained, original failure unchanged. Only documentation/action logs changed outside git-ignored evidence; no commit/push/PR update. Temporary worktrees removed and runtimes stopped. Stopping at report as requested.
 
 - 2026-10-20 Verified PR #10 routing A/B (.session/pr10-routing-ab-20261020): recomputed from per-route.csv A mean 868.870 / B 872.021 ms (+0.363%), median overhead A 22.202 / B 20.490 ms; order ABABAB on the right commits (state.json); 3 random rows match raw lane_a.log lines; each B run 860/867/888 ms <= 906; category/lane 60/60, r17 X->C x6, zero cold. Original 0.933 run = transient. PR head still 75c13f9. A/B record sits uncommitted in code BENCHMARKS.md (+43 lines): must be committed docs-only before merge. Recommend merge on user word.
+
+- 2026-10-20 User authorized PR#10 integration. Verified platform-layer75c13f9 with exactly BENCHMARKS.md modified (43-line predefined A/B record), empty index, PR OPEN/draft; root tracked tree clean at ef133c2 before this edit, user Klogo.png untouched. Frozen/config hashes unchanged and wired20480. Proceeding with docs-only commit/push, mark ready, ordinary fast-forward main, independent remote checks and check.sh; no next-slice work or HF sync.
+
+- 2026-10-20 Docs-only commit 5c630ed8d9e791a30303ebadbc6bafff0c44dda8 created on platform-layer; verified its sole changed file is BENCHMARKS.md and code tree is clean. Pre-commit scanner passed. Starting ordinary branch push before independently verifying the remote head.
+
+- 2026-10-20 Branch push verified independently via git ls-remote: platform-layer=5c630ed8d9e791a30303ebadbc6bafff0c44dda8; origin/main remains29ab89b. Marking PR#10 ready as authorized.
+
+- 2026-10-20 PR#10 verified OPEN/non-draft with head5c630ed8d9e791a30303ebadbc6bafff0c44dda8. Preparing ordinary fast-forward of main; no merge commit or force push.
+
+- 2026-10-20 PR#10 merged by ordinary fast-forward and normal push: main29ab89b→5c630ed8d9e791a30303ebadbc6bafff0c44dda8. Independent git ls-remote confirms origin/main equals the docs-only PR head; GitHub reports MERGED/non-draft with mergeCommit identical (no merge commit). Running final check.sh on main and verifying frozen hashes/wired20480.
+
+- 2026-10-20 Final main checks: check.sh exit0; frozen bench/recall and production-config hashes unchanged; wired limit20480; code tree clean=True. Evidence .session/pr10-merge-20261020/final.json. No next-slice work, HF sync, sudo or extra commits; stopping after report.
+
+- 2026-10-20 Deep research wf_2cd186ee-70f (all improvement ideas + signature features): session limits cut verification (56/107 agents; synthesis failed); hand-synthesized 250 claims from 50 sources into Researchhub/sample3/kildallideas.md (30 ideas + 6 signature features, tagged verified/single-source). Corrected plan v52 speculative note and macspeed hwmini.md: on 26B-A4B a separate E2B drafter is -27%, Gemma MTP head +45%; llama.cpp disables MTP with --parallel > 1. Nothing new added to the plan.

@@ -167,7 +167,8 @@ M5 prefill ≈ 3.6× M4 Max on llama.cpp. *"The cache decides how many cold read
 **Web check (2026-10-19):**
 - **Strix Halo (the mini PC chip), llama.cpp Vulkan:** Gemma 4 31B dense Q8 + Gemma 4 E2B drafter: **6.18 → 12.55 tok/s
   (+103%)** average; math +170%, code +139%, creative +40%. Best `--draft-max 4`, `--parallel 1`. Acceptance 35–62%.
-  26B-A4B variants configured but **not benchmarked**. ([sleepingrobots](https://sleepingrobots.com/dreams/speculative-decoding-gemma4-strix-halo/))
+  26B-A4B variants configured but **not benchmarked** there. **Update 2026-10-20:** a later post measured 26B-A4B —
+  separate E2B drafter **−27%**, Gemma MTP head **+45%** (see `kildallideas.md`). ([sleepingrobots](https://sleepingrobots.com/dreams/speculative-decoding-gemma4-strix-halo/))
 - **Not byte-identical in practice:** Qwen 3.8 27B on RTX 3090, llama.cpp MTP: +60% speed, but **92–100%** of outputs
   differed from plain greedy at a 1,600-token cap; cause not established. Kildall's temperature-0 gates must decide.
   ([hackmd study](https://hackmd.io/@thc1006/qwen3-8-27b-speculative-decoding-rtx-3090))

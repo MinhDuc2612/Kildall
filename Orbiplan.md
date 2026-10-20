@@ -403,8 +403,11 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
 - **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the AMD mini PC.
   **v52: per skill** — on only for code/math leaves, off for prose/chat, where it can lose. Web evidence (2026-10-19):
   Strix Halo, llama.cpp Vulkan, Gemma 4 31B + E2B drafter **+103%** average (code +139%, creative +40%),
-  `--draft-max 4`, `--parallel 1`; 26B-A4B unmeasured. Outputs are not byte-identical in practice (92–100% differed in
-  one llama.cpp MTP study), so every gate reruns. Metal stays a measured loss.
+  `--draft-max 4`, `--parallel 1`. **Correction 2026-10-20 — 26B-A4B (Kildall's resident) is now measured on Strix
+  Halo: a separate E2B drafter makes it 27% *slower*; Gemma's own MTP head gives +45% (43.6 → 63.2 tok/s; needed a
+  llama.cpp fork at the time). llama.cpp turns MTP off when `--parallel` > 1, so measure 1 slot + MTP vs 3 slots.**
+  Outputs are not byte-identical in practice (92–100% differed in one llama.cpp MTP study), so every gate reruns.
+  Metal stays a measured loss. Source: `Researchhub/sample3/kildallideas.md`.
 - **Better hardware** may be proposed when it measurably raises the score.
 **Target 8/10 (written 2026-10-13):** everything above, plus open models catching up (#84 model-update watcher swaps them in), the free-cloud council for the hardest tasks (4.5d — **you add a free OpenRouter key, no card**), and skills built from your own work (9.7). 9–10 is not reachable locally at $0.
 
