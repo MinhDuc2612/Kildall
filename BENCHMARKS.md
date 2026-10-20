@@ -2531,3 +2531,46 @@ behavior changed in that cleanup; model gates were not repeated.
 No Linux/Windows implementation, prompt-reuse work, later cloud slice, MCP,
 computer mode, model download, MLX inference, paid API, launchd reinstall, key
 import or HF sync. No new dependencies. No soak was required or run for this slice.
+
+
+## 2026-10-20 — PR #10 predefined routing A/B diagnostic (PASS; no merge)
+
+User-authorized final diagnostic, separate from the retained platform routing failure.
+A=`29ab89b`, B=`75c13f9`, clean detached temporary worktrees; exactly **A B A B A B**,
+20 frozen cases each, same4096×3 config and prefix-build/stop/fresh-restart protocol.
+All120 router request bodies exactly match the original failed run; derived configs
+match across all6runs. Product answer/memory interleaving and fixed project/session
+identity preserved. No production code, threshold, prompt, sampling, flag or fixture edit.
+
+| Pair | A mean ms | B mean ms | A median overhead ms | B median overhead ms |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 854.685300 | 860.316450 | 20.882 | 20.369 |
+| 2 | 874.546650 | 867.393000 | 25.819 | 20.491 |
+| 3 | 877.377300 | 888.353150 | 22.846 | 21.023 |
+
+**Fixed diagnostic gates PASS:** pooled A mean868.869750ms, B872.020867ms,
+**+0.362668% ≤3%** (limit894.935843ms). Pooled median overhead A22.202ms,
+B20.490ms, **−1.712ms ≤+5ms** (limit27.202ms). Every B run category20/20,
+lane20/20,r17X→C; every A run also passes. All120routes warm,0cold.
+Server prompt+eval means A816.139667ms/B823.726833ms; per-route overhead is
+client decision.elapsed_ms minus slot0 prompt_ms+eval_ms parsed from lane_a.log,
+independently matched against response timings. No cProfile triggered.
+
+A mean0.868869750s stays below0.906s, so the user-specified machine-drift trigger
+was **not met**. The original0.933142050s failure remains a failure and its raw
+evidence/hash is unchanged; no claim about its cause or gate re-baseline.
+
+Wired20480 before each run. Before startup all6 pressure readings normal; immediately
+before routing A1 warning and the other5 normal. memory_pressure free percentages
+(startup→routing):80→14,76→21,76→22,76→22,76→19,74→21. pmset reported no thermal
+or performance warning and no CPU power status recorded; no temperature measured.
+No competing local model/file-sweep workload found at pre-run checks; idle Ollama
+reported0loaded models. Initial preflight stopped on that idle daemon before inference;
+original stop/harness retained and guard corrected to check model activity, not mere PID.
+No benchmark was retried. Ordinary background OS services remained present.
+
+Evidence: `.session/pr10-routing-ab-20261020/REPORT.md`, `per-route.csv` (120rows,
+client/prompt/eval/overhead and raw log references), all6 raw logs/requests/results,
+host snapshots, frozen hashes and `verified-result.json`. Both temporary worktrees
+removed, owned runtimes stopped, model ports closed. Main29ab89b and PR75c13f9
+unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF sync.
