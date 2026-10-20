@@ -2393,3 +2393,5 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-10-20 Final main checks: check.sh exit0; frozen bench/recall and production-config hashes unchanged; wired limit20480; code tree clean=True. Evidence .session/pr10-merge-20261020/final.json. No next-slice work, HF sync, sudo or extra commits; stopping after report.
 
 - 2026-10-20 Deep research wf_2cd186ee-70f (all improvement ideas + signature features): session limits cut verification (56/107 agents; synthesis failed); hand-synthesized 250 claims from 50 sources into Researchhub/sample3/kildallideas.md (30 ideas + 6 signature features, tagged verified/single-source). Corrected plan v52 speculative note and macspeed hwmini.md: on 26B-A4B a separate E2B drafter is -27%, Gemma MTP head +45%; llama.cpp disables MTP with --parallel > 1. Nothing new added to the plan.
+
+- 2026-10-20 Plan v53 (user: "add them all"): deep-research ideas #97-#126 and signature features S1-S6 added; 9 scheduled early (#97,#98,#102,#104,#105,#107,#108,#112 into coding core 5d, test #3 scored on #112; #120 into the Linux port); keep-on-evidence rule on #112. Checklist +8 = 245 items.

@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v52 · 2026-10-19.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v53 · 2026-10-20.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -353,7 +353,9 @@ backup agent; #55 secret-scanner hook; #54 off-machine backup once `KildallC` is
 5b. **platform layer** (v43: Mac-only parts behind one interface; no behaviour change) →
 5b2. **prompt reuse** (v52: #81 moved up — see "Prompt-reuse slice") →
 5c. **NVIDIA NIM provider** (v47; key verified live) → 5d. **coding core** (v47: #89 test-driven fix loop, #88 repo map,
-#90 LoRA data collection; v51: #91 code skeletons) → **test #3** → 5e. **after-test-#3 batch** (v51: #96 llama.cpp
+#90 LoRA data collection; v51: #91 code skeletons; v53: #97 fixed workflow, #98 loop breaker, #102 overwrite guard,
+#104 prompt diet, #105 lessons ledger, #107 error messages, #108 repeat-call breaker, #112 personal repo eval) →
+**test #3** (v53: scored on #112) → 5e. **after-test-#3 batch** (v51: #96 llama.cpp
 build tracker, #95 answer-length budget, #92 session-history search, #93 self-healing, #94 resume long jobs) →
 6. **4.5b–4.5e** → 7. **quality slice** (#57 copy by reference — first-pass must rise with frozen fixtures
 untouched; #58 code-built delegation prompts — the exact-once smoke must pass) → 8. **Gemma vision** (#59, RAM
@@ -372,7 +374,7 @@ on all three (Metal / CUDA / ROCm / Vulkan / CPU); ~90% of the code is portable 
    gate identical.**
 2. **Linux, then Windows via WSL2 — before the first paid client.** Each OS re-passes **every** gate on real
    hardware, **above all the Phase 3 sandbox hard tests**. Settings (model size, slots, context) are re-tuned per
-   machine by #51 auto-fit.
+   machine by #51 auto-fit. **v53: the mini PC starts from #120 Strix Halo defaults.**
 ⚠️ **Needs a Linux or Windows PC with an NVIDIA GPU for the model gates** (GitHub runners cover code-only tests,
 #72). Not yet confirmed that one exists. An NVIDIA PC may read prompts far faster than this M4 (~85 tok/s).
 
@@ -857,7 +859,7 @@ gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/
 
 ---
 
-# 🔮 BEYOND THE PLAN — 96 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51; 10 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 126 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51, #97–#126 v53; 19 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -1047,6 +1049,56 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 | **95** | ⏩ **Answer-length budget** — the router predicts the right length and caps generation | Less rambling, faster answers at ~20–30 tok/s | Small; must not cut correct long answers (gate) |
 | **96** | ⏩ **llama.cpp build tracker** — auto-test each new release on the frozen gates; adopt only if faster with no score drop | llama.cpp gains speed weekly; free speed-ups | Small; never auto-adopt without gates |
 
+## Added v53 — deep research (2026-10-20, user: "add them all")
+
+Source: `Researchhub/sample3/kildallideas.md` (50 sources; verification partial — **[V]** = numbers confirmed by
+3-vote check, the rest single-source). **Keep-on-evidence rule:** each idea stays only if it beats the baseline on
+**#112** (the #51 rule). ⏩ = scheduled early.
+
+| # | Idea | Buys | Placement |
+|---|---|---|---|
+| **97** | ⏩ **Fixed coding workflow** — localize → reproduce → edit → test → submit, not a free agent loop | Small open models 19% vs 3% (32B) **[V]** | coding core 5d |
+| **98** | ⏩ **Loop breaker** — repeated action/sequence detected → forced strategy switch (search, not paging) or escalate | Loops in 25–29% of small-model tasks; a 10-step repeat = 89% failure **[V]** | coding core 5d |
+| **99** | **Patch vote** (upgrades #9) — k patches, pick the most common | +4.5 pts; +12 with model-written repro tests | mini PC |
+| **100** | **Evolve patches** (EvoScale) — 10 samples, keep 5, regenerate ≤ 4 rounds | 32B Best@50 = 70B Best@500 | mini PC |
+| **101** | **Patch checker model** (SWE-RM-style verifier) | best-of-32 +10 pts **[V]**; needs 128K context and 20K+ training samples | mini PC |
+| **102** | ⏩ **Overwrite guard** — write refuses existing files; edit only | fired on 57% of tasks in a small-model agent | coding core 5d |
+| **103** | **Thinking cap** — 2,048 reasoning tokens, then retry with thinking off | no runaway thinking on Lane B/C/NIM | after test #3 |
+| **104** | ⏩ **Prompt diet + skill cards** — ~200-token system prompt; 80–150-token tool cards per turn, ≤ 500; idle schemas dropped | more of 4K left for the task; MCP schemas cost 7–9% | coding core 5d |
+| **105** | ⏩ **Lessons ledger** — ~200-token lesson per task (success and failure), top-1 recall, similarity-gated, model-agnostic | +3–5 pts SWE-bench Verified, up to 16% fewer steps | coding core 5d |
+| **106** | **Teacher rule for #90** — LoRA needs a stronger open teacher + verified samples; never own outputs alone | self-training alone fell 15.3% → 8.7% **[V]** | rule now |
+| **107** | ⏩ **Specific tool-error messages** — say what was wrong, never the answer | small models recover from tool errors ~20% vs > 50% frontier | coding core 5d |
+| **108** | ⏩ **Repeat-call breaker** — same failing call twice → show the schema, then escalate | stops invalid-call loops | coding core 5d |
+| **109** | **Keep the lazy grammar; never force a tool-name enum** | hard schemas cut small-model accuracy up to 43 pts; an enum kills "no tool needed" | rule now |
+| **110** | **Malformed-call gate** — > 5% malformed → fix config first; reuse llama.cpp `tool_bench.py` | trustworthy evals | after test #3 |
+| **111** | **Startup template self-test** — one tool call at boot | catches silent template breakage | after test #3 |
+| **112** | ⏩ **Personal repo eval** (upgrades #13) — ~20 real bug fixes from git history, parent commit + `verify.sh`; 8 easy / 8 medium / 4 hard + traps; pass rate, turns to green, wall time, diff size, cheat rate | test #3 made repeatable; every change measured on your code | coding core 5d → test #3 |
+| **113** | **Separate scores** — valid · correct · executable · wrong-but-valid | nothing hidden behind one number | with #112, after test #3 |
+| **114** | **Bug generator** (SWE-smith style) — inject bugs into your own repos | hundreds of verified tasks at $0 | after test #3 |
+| **115** | **Scout then escalate** (upgrades #2) — 3 resident turns; a small judge reads them; stay or escalate | prompt-only routing failed on SWE-Bench; +15 pts Route-AUC | after test #3 |
+| **116** | **Calibrated confidence** (upgrades #11) — logprob margin → isotonic error probability → cost threshold | −31% cost in one NER study | after test #3 |
+| **117** | **Per-leaf quality estimates first** (evidence for #14) | estimate quality matters more than router cleverness | Phase 7 |
+| **118** | **Gemma MTP head** — measure 1 slot + MTP vs 3 slots | 26B-A4B +45%; a separate drafter −27% | mini PC |
+| **119** | **n-gram drafting** for prompt-echo skills only | free speed on extraction/edits; −17% on fresh writing | mini PC |
+| **120** | ⏩ **Strix Halo defaults** — Vulkan RADV stable, ROCm fast path; `-fa 1`, `--load-mode none`; tune SWA checkpoints | avoids crashes and slowdowns | Linux port |
+| **121** | **Test other residents** — Qwen3-Coder-Next 80B-A3B, Qwen 3.6 35B-A3B; 3-bit vs higher quant on tool calls | Gemma 4 26B-A4B reported weak in long tool loops | mini PC / Phase 10 |
+| **122** | ⚠️ **DeepSeek V4 Flash prefill check** — exact prefill ~23 tok/s on Strix Halo | blocks agent use until sparse prefill matures | before the 7/10 local-model plan relies on it |
+| **123** | **Taint check** — files Kildall wrote are marked; trusted tools running them need confirmation; block `docker.sock` | 2026 sandbox-escape class | after test #3 |
+| **124** | **Full-command allow-list** — match full argv, not names | `git show` bypass class | after test #3 |
+| **125** | **Every-tool-type gate test** | proves the single permission boundary | after test #3 |
+| **126** | **Argument-level policy rules** (Progent-style) | attack success 25.8% → 4.2% | after test #3 |
+
+## Signature features *(v53)*
+
+| | Feature | Why only Kildall | Placement |
+|---|---|---|---|
+| **S1** | **Type-ahead reading** — prefill repo map, files and memory while the user types | reading is 92% of the answer wait (measured); local compute is free | after 5b2 + test #3 |
+| **S2** | **Night Shift** — idle hours run #99/#100 on hard tasks and #112; morning report with tests green | best-of-50 for $0 | mini PC |
+| **S3** | **Scout & Escalate per skill leaf** — escalate to the best model for that exact leaf, carrying the scout's findings | 302-leaf routing mid-task | after #115 |
+| **S4** | **Your Repo Gym** — #112 + #114 score every model swap, LoRA and router change on your code; blind model duels per skill | Phase 10 "best per skill" measured on your work | after #112, #114 |
+| **S5** | **Lessons survive model swaps** — the #105 ledger is model-agnostic | new models inherit what old ones learned | built with #105 |
+| **S6** | **Live taint map** — show and block agent-written code/config before trusted tools run it | answer to the 2026 sandbox escapes | after #123 |
+
 ## The honest shape of this list
 
 **Most of these are small. Three are not.** #1 (spec decoding) may not work at all. #42 (distillation)
@@ -1210,6 +1262,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-10-20 (v53)** — **30 deep-research ideas (#97–#126) and 6 signature features (S1–S6) added** (user: "add them all"). 9 scheduled early: #97, #98, #102, #104, #105, #107, #108, #112 join the coding core (test #3 is scored on #112); #120 joins the Linux port. Keep-on-evidence rule: each stays only if it beats the baseline on #112. Same day: speculative-decoding note corrected (26B-A4B: separate drafter −27%, MTP head +45%). Source: `Researchhub/sample3/kildallideas.md`. Checklist +8.
 - **2026-10-19 (v52)** — **Prompt-reuse slice added as 5b2** (user: "add it then wherever you think is good"): #81 moved up, after the platform layer and before the NVIDIA provider. Evidence: answer slot 92% reading, `cache_prompt=False` on answers/subagents, memory at the prompt top (research: `Researchhub/sample3/macspeed hwmini.md`). Speculative-decoding note made per skill, with Strix Halo evidence. Checklist +1.
 - **2026-10-14 (v51)** — **6 user-picked improvements added, #91–#96:** code skeletons (joins the coding core before test #3), session-history search, self-healing, resume long jobs, answer-length budget, llama.cpp build tracker (an after-test-#3 batch). Checklist +6.
 - **2026-10-14 (v50)** — **9.12 Shadow Twin added** (user idea): learns each user's style from prompts, edits, accepted/rejected outputs, own writing/repos and activity; stored in a **new per-user memory scope**, not global; style card + own examples + per-user LoRA + one-click proactive drafts; full user controls; gates: blind A/B ≥ 70% preference and cross-user isolation. Checklist +4.
