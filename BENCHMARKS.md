@@ -2597,3 +2597,30 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Slot1 child borrowing | RECORDED existing limitation: a child borrowing slot1 overwrites parent cached prompt; assignment unchanged; no redesign | measurement-protocol.json; source.json |
 | Fixtures / production config / model-facing source outside slice | PASS protected hashes unchanged; benchmark-only cache settings unchanged; no dependencies, prompts wording, grammar, routing or catalog changes | before.json; source.json; stop-verification.json |
 | Wired limit / runtime cleanup | PASS20480; owned runtimes stopped, ports8123/8124 closed, temporary baseline worktree removed | stop-verification.json; cleanup.json |
+
+
+| PR#11 2026-10-21 fresh rerun — gate | Result | Evidence under `.session/prompt-reuse-rerun-20261021/` |
+| --- | --- | --- |
+| PR#11 authorized rerun / candidate | NOT QUALIFIED: soak warning gate FAIL; source9b1c068 vs main5c630ed; draft only | measurement-protocol.json; candidate/soak/summary.json |
+| Pre-inference protocol / harness / failures retained | PASS: corrected ordered-read rule and explicit Auto-read-only extras frozen before inference; all39TTFT observers exclude progress; prior01-A/02-B/paired_run-original.py unchanged | pre-inference.json; harness-sha.json; retained-evidence-sha.json; verified-result.json |
+| Guard development checks | PASS before inference: valid ordered reads/extras accepted, Confirm/Never/write/reversed reads/wrong final/<3requests refused; initial double-JSON audit comparison error corrected before inference | guard-controls.json; workload_guard.py |
+| Fixed ABABAB both scripts / tool safety | PASS6runs,12scripts; all ordered reads and exact final answers correct; all tool decisions Auto/done; no Confirm/Never/write calls | paired-state.json; 01-A/summary.json; 02-B/summary.json; 03-A/summary.json; 04-B/summary.json; 05-A/summary.json; 06-B/summary.json |
+| Extra calls per run / variant | A01/03/05:0/0/0,total0; B02/04/06:1/1/1,total3,all glob_files; three-turn extras0 throughout | paired-result.json; */multi_tool/decisions.json |
+| B tool rounds2+ cache_n>0 | PASS all9later tool requests:1253/1346/1393 perrun; prompt_n93/47/47 | per-request-timings.json; */multi_tool/telemetry.json |
+| B three-turn turns2+ cache>=system+tools | PASS all6later turns:1211/1227 perrun >=1203prefix tokens; prompt_n73/114 | per-request-timings.json; */three_turn/telemetry.json |
+| Tool script mean wall / native read-write | PASS A22.279849s>B11.070118s; mean read A19.706527s/B7.618765s; mean write A2.043548s/B3.003602s | paired-result.json |
+| Three-turn mean wall / native read-write | PASS A20.739547s>B7.911101s; mean read A19.630560s/B7.214993s; mean write A0.190976s/B0.184499s | paired-result.json |
+| Tool-script first-token time | VALID39/39overall; mean initial A6529.384ms/B6209.589ms; mean later A6697.756ms/B528.939ms | verified-result.json; per-request-timings.json; */multi_tool/requests.json |
+| Three-turn first-token time | Mean initial A6393.283ms/B6093.496ms; mean later A6865.841ms/B641.313ms; progress excluded in every run | verified-result.json; per-request-timings.json; */three_turn/requests.json |
+| Recall frozen1slot + answer slots1/2 | PASS20/20 +20/20 +20/20; request bodies match after permitted historical path normalization | candidate/recall/summary.json; candidate/recall/request-comparison.json |
+| Routing category / lane / r17 / warmth | PASS20/20,20/20,X→C,0cold; mean0.882106950s<=0.906; p500.922231s,p991.052679s,first0.825240s | candidate/routing/summary.json |
+| Abstention / callable JSON / tools | PASS20/20,20/20,17/20first→20/20retry; t07/t09/t12 accepted retry failures retained | candidate/regressions/summary.json; candidate/regressions/quality.json |
+| CLI recall checks — product moved-memory path | PASS: global remember; real recall of global fact from another project; stored-conversation continuation | candidate/regressions/cli-recall.json; candidate/regressions/cli.json; regressions.log |
+| CLI full suite | PASS18/18 | candidate/regressions/cli.json |
+| 26controls + newreuse / hooks / Phase3 hard test | PASS retained on exact unchanged candidate source:26+1suites,hooks5/5,prompt-free Never refusal; not redundantly rerun | ../prompt-reuse-20261020/controls/results.json; source.json; verified-result.json |
+| Interactive100requests +4warmups | PASS p996.162942416s<=6.726;p505.896134125s;zerochildren,slot1 | candidate/latency/summary.json; candidate/latency/protocol.json |
+| 600s real-child soak,121samples | FAIL117warnings>103limit;4normal/117warning/0critical;600.021014s observation,611.756655s load,84children/42batches | candidate/soak/summary.json; candidate/soak/pressure.json; candidate/soak/children.json; candidate/soak/actions.json |
+| Soak memory peaks, separately reported | ProcessRSS12791382016bytes(11.912903GiB);deviceGPUinuse14567440384bytes(13.566986GiB);deviceGPUallocated15475310592bytes(14.412506GiB) | candidate/soak/summary.json |
+| Nuke dry-run0outside / check.sh0 | NOT RUN: stopped after soak failure; no score or threshold changes, no repeat-until-pass | candidate/soak/failure.json; verified-result.json |
+| Frozen fixtures / production / cleanup | PASS source+frozen+config+harness unchanged; wired20480; ports8123/8124closed; temporaryAworktree removed; no paidAPI/HFsync/merge | before.json; source.json; verified-result.json |
+| Slot1 child borrowing | UNCHANGED: child onslot1 overwrites parent cached prompt; recorded only, no redesign | measurement-protocol.json |
