@@ -2624,3 +2624,27 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Nuke dry-run0outside / check.sh0 | NOT RUN: stopped after soak failure; no score or threshold changes, no repeat-until-pass | candidate/soak/failure.json; verified-result.json |
 | Frozen fixtures / production / cleanup | PASS source+frozen+config+harness unchanged; wired20480; ports8123/8124closed; temporaryAworktree removed; no paidAPI/HFsync/merge | before.json; source.json; verified-result.json |
 | Slot1 child borrowing | UNCHANGED: child onslot1 overwrites parent cached prompt; recorded only, no redesign | measurement-protocol.json |
+
+
+| PR#11 soak-only re-check, 2026-10-23–24 | Idle start (+07:00) | Start swap MB / free % / pressure | Normal / warning / critical (121 samples) | Children / batches | Peak RSS GiB | Peak GPU in-use / allocated GiB |
+| --- | --- | --- | --- | --- | --- | --- |
+| 01-A (main5c630ed) | 10-23 22:09:29 | 0.000 / 77 / normal | 89 / 32 / 0 | 50 / 25 | 6.924759 | 13.521545 / 14.016602 |
+| 02-B (PRb73b239) | 10-23 22:20:52 | 2538.865 / 78 / normal | 98 / 23 / 0 | 80 / 40 | 12.569092 | 13.486420 / 13.928329 |
+| 03-A (main5c630ed) | 10-23 22:31:44 | 2362.641 / 78 / normal | 99 / 22 / 0 | 52 / 26 | 12.328140 | 13.370132 / 13.834763 |
+| 04-B (PRb73b239) | 10-24 06:43:28 | 1569.320 / 84 / normal | 113 / 8 / 0 | 86 / 43 | 12.390320 | 13.393051 / 13.998627 |
+
+| PR#11 soak-only re-check — gate or limitation | Result | Evidence under `.session/prompt-reuse-soak-ab-20261023/` |
+| --- | --- | --- |
+| Scope / frozen order | PASS: one A B A B sequence, four attempts, zero reruns; A clean detached main5c630ed, B b73b239; source, prompts, production config, fixtures and thresholds unchanged | measurement-protocol.json; pre-inference.json; harness-sha256.json; source-A.json; source-B.json |
+| Preflight | PASS: wired20480, check.sh exit0, ports8123/8124 closed, frozen and retained harness hashes unchanged | preflight.json; check-before.json; frozen-verification.json |
+| Idle admission / top10 RSS | PASS: first run normal with0MB swap<=3000MB; later runs normal immediately, each wait<0.03s<=600s; top10 RSS captured per run. MB=1000000bytes; raw swap text retained | */starting-host.json; */start-rule-checks.json |
+| Unchanged real-child workload | PASS:64-token reply cap,2children per batch on workslots1–2,121samples every5s; observation A1/B1/A2/B2=600.034450/600.038538/600.026827/600.032406s; identical isolated configs and fixed project path | */runtime/soak/pressure.json; */runtime/soak/children.json; */runtime/soak/batches.json; result.json |
+| Every B: warnings<=103,critical0,noGPUOOM | PASS: B1=23warnings,B2=8warnings; critical0 and GPUOOM0 in both; native logs checked | 02-B/result.json; 04-B/result.json; */runtime/soak/.session/*.log |
+| Mean B warnings<=mean A+12 | PASS: meanA=(32+22)/2=27; meanB=(23+8)/2=15.5<=39; deltaB−A=−11.5 | result.json |
+| Idle admission versus sample0 | A1 admitted normal/swap0MB, then sample0 warning with1491.00M swap after startup; B1/A2/B2 sample0 normal. Keep startup state separate from the600s counts | */starting-host.json; */runtime/soak/pressure.json |
+| Overnight continuation limitation | A2 ended10-23 22:42:31; B2 started10-24 06:43:28 after user continuation:8h00m56.824s gap. B2 started with1569.320MB swap/free84%. Not an uninterrupted40-minute comparison; no inter-run gap limit was declared, and B2 admission passed | result.json; 03-A/result.json; 04-B/starting-host.json |
+| Interpretation / old failure retained | No pressure regression reproduced under these start rules; host-state explanation for the old117/121warning failure is supported, not proven. Unequal host states and overnight gap limit causality; the old failure remains valid | result.json; ../prompt-reuse-rerun-20261021/candidate/soak/summary.json |
+| Live nuke dry-run / health | PASS: nuke exit0,33323entries,0outside,0outward rejections; post-soak check.sh exit0; each command run once | delivery/nuke.stdout; delivery/check.stdout; delivery/summary.json |
+| Reporting failure preserved | Metadata wrapper exited1 after successful nuke: applied len() to integer rejected_outward_paths. Recovered summary from original stdout; no nuke or soak repeated; check.sh then ran for the first time | delivery/reporting-failure.json; delivery/summary.json |
+| Other qualification suites | NOT RERUN: soak-only scope; prior quality/cache/CLI/latency results above remain historical. CLI product-memory recall remains on its own row above | ../prompt-reuse-rerun-20261021/verified-result.json |
+| Cleanup / delivery scope | PASS: owned runtimes stopped,ports8123/8124 closed,A worktree removed; BENCHMARKS tables only; draft PR retained; no merge,HFsync,paidAPI,sudo,reboot,user-process termination or next slice | cleanup.json; */result.json; delivery/summary.json |
