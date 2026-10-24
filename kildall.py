@@ -597,6 +597,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
             secrets = ()  # Cloud admission separately fails closed; local answers remain available.
         prompt = redact(prompt, tuple(s for s in secrets if s))
     cloud_needed, cloud_client, cloud_exhausted = False, None, False
+    catalog_model, cloud_selections = None, []
     task = Task(config["paths"]["db_path"], session)
     # Extra schemas change model behavior even on unrelated requests. Keep the
     # established surface until the user explicitly requests a Git/skill task.
@@ -636,6 +637,7 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 print(f"Decision {task.id}: {describe(decision)}", file=sys.stderr, flush=True)
             if decision["lane"] != "A" and cloud_enabled:
                 cloud_needed = True
+                catalog_model = decision["model"]
                 route_status = 'running'
             elif decision["lane"] != "A":
                 text = f'would route to {decision["model"] or "unassigned model"} (Lane {decision["lane"]}) — not installed'
@@ -670,15 +672,47 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 if cloud_client is None:
                     cloud_client = Client(config)
                 task.set('waiting')
-                reply = cloud_client.reply(messages, tool_options.get('tools', BASE_TOOLS), task.id)
+                reply = cloud_client.reply(messages, tool_options.get('tools', BASE_TOOLS), task.id,
+                                           catalog_model=catalog_model)
                 if reply is None:
                     cloud_exhausted = True
                     print(EXHAUSTED, file=sys.stderr, flush=True)
                     task.message(dict(role='assistant', content=EXHAUSTED))
+                    local_model = config['lanes']['a']['model'].name if overflow is None else None
+                    if route_recorded:
+                        with database(task.path) as db:
+                            row = db.execute('SELECT decision FROM orbi_routes WHERE task=?', (task.id,)).fetchone()
+                            if row is None:
+                                raise RuntimeError('Routing decision disappeared while saving')
+                            recorded = json.loads(row['decision'])
+                            recorded.update(cloud_provider=None, cloud_model=None, cloud_requested_model=None,
+                                            exact_match=False, execution_source='local_fallback' if local_model else 'exhausted',
+                                            model_used=local_model, cloud_calls=cloud_selections)
+                            db.execute('UPDATE orbi_routes SET decision=?,updated=? WHERE task=?',
+                                       (json.dumps(recorded, ensure_ascii=False), time.time(), task.id))
+                    if explain:
+                        print(f'Fallback {task.id}: {local_model or "unavailable"}; exact_match=false',
+                              file=sys.stderr, flush=True)
                     if overflow is not None:
                         raise overflow
                 else:
                     cloud_reply = True
+                    selection = cloud_client.selection
+                    if selection is not None:
+                        selection = dict(selection, execution_source='cloud', model_used=selection['cloud_model'])
+                        cloud_selections.append(selection)
+                        if route_recorded:
+                            with database(task.path) as db:
+                                row = db.execute('SELECT decision FROM orbi_routes WHERE task=?', (task.id,)).fetchone()
+                                if row is None:
+                                    raise RuntimeError('Routing decision disappeared while saving')
+                                recorded = json.loads(row['decision'])
+                                recorded.update(selection, cloud_calls=cloud_selections)
+                                db.execute('UPDATE orbi_routes SET decision=?,updated=? WHERE task=?',
+                                           (json.dumps(recorded, ensure_ascii=False), time.time(), task.id))
+                        if explain:
+                            print(f"Cloud {task.id}: {selection['cloud_provider']} → {selection['cloud_model']}; "
+                                  f"exact_match={str(selection['exact_match']).lower()}", file=sys.stderr, flush=True)
                     task.message(reply)
                     print(reply['content'], end='', flush=True)
             if reply is None:

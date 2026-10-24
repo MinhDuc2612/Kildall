@@ -20,7 +20,12 @@ PROVIDERS = {
     'openrouter': ('https://openrouter.ai/api/v1', 'OPENROUTER_API_KEY', {
         'nvidia/nemotron-3-super-120b-a12b:free', 'nvidia/nemotron-3-ultra-550b-a55b:free',
         'poolside/laguna-s-2.1:free', 'cohere/north-mini-code:free'}),
+    'nvidia': ('https://integrate.api.nvidia.com/v1', 'NVIDIA_API_KEY', {
+        'nvidia/nemotron-3-ultra-550b-a55b'}),
 }
+# Identity only, never authorization: the ID must also be configured/allow-listed.
+# Kimi K2.6 is listed by NIM but its 2026-10-24 READY call returned404, so inactive.
+EXACT_MODELS = {'Kimi K2.6': {'nvidia': 'moonshotai/kimi-k2.6'}}
 EXHAUSTED = 'cloud exhausted — answering locally'
 
 
@@ -140,6 +145,7 @@ class Client:
         from kildall import database
         self.providers = providers(config)
         self.path = config['paths']['db_path']
+        self.selection = None
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
         with database(self.path) as db:
             db.executescript('''
@@ -200,8 +206,9 @@ class Client:
         with database(self.path) as db:
             db.execute('UPDATE cloud_state SET disabled=0 WHERE provider=?', (name,))
 
-    def reply(self, messages, tools, task=None):
+    def reply(self, messages, tools, task=None, *, catalog_model=None):
         from cloud_keys import KeychainError, get_key, redact
+        self.selection = None
         # Read all eligible secrets at call time, so a prompt cannot leak another
         # configured provider's key. Excluded key formats are scrubbed by redact.
         try:
@@ -212,11 +219,15 @@ class Client:
         except KeychainError:
             return None  # Cannot safely scrub unknown credentials; stay local.
         secrets = tuple(key for key in credentials.values() if key)
-        for name, item in self.providers.items():
+        exact = {name: model for name, model in EXACT_MODELS.get(catalog_model, {}).items()
+                 if name in self.providers and model in self.providers[name]['allowed_models']}
+        for name in dict.fromkeys([*exact, *self.providers]):
+            item = self.providers[name]
             key = keys[name]
             if item['key_name'] and not key and not item.get('keyless', False):
                 continue
-            body = redact(dict(model=item['allowed_models'][0], messages=messages, tools=tools,
+            model = exact.get(name, item['allowed_models'][0])
+            body = redact(dict(model=model, messages=messages, tools=tools,
                                tool_choice='auto', parallel_tool_calls=False,
                                temperature=0, max_tokens=512, stream=False), secrets)
             if not tools:
@@ -276,6 +287,9 @@ class Client:
                 usage = result.get('usage', {}).get('total_tokens') if isinstance(result.get('usage', {}), dict) else None
                 usage = usage if type(usage) is int and usage > 0 else None
                 try:
+                    actual_model = result.get('model', model)
+                    if actual_model not in item['allowed_models']:
+                        raise ValueError('Cloud returned an unauthorized model ID')
                     message = validate_message(result, tools)
                     scrubbed = redact(message, secrets)
                     if scrubbed.get('tool_calls') != message.get('tool_calls'):
@@ -285,6 +299,8 @@ class Client:
                     self.finish(request_id, name, 'malformed_rejected', tokens=usage)
                     raise
                 self.finish(request_id, name, 'answered', tokens=usage)
+                self.selection = dict(cloud_provider=name, cloud_model=actual_model,
+                                      cloud_requested_model=model, exact_match=exact.get(name) == actual_model)
                 return message
             except (TimeoutError, urllib.error.URLError, OSError):
                 self.finish(request_id, name, 'transport_cooldown', cooldown=time.time() + 60)

@@ -44,7 +44,8 @@ def config(work, names=('llm7',)):
         items[name] = dict(base_url=base, key_name=key, allowed_models=[sorted(models)[0]],
                            context_tokens=100_000, limits_status='unverified', trains_on_data='unknown',
                            daily_requests=0, daily_tokens=0)
-    return dict(paths=dict(db_path=work / 'test.db'), cloud=dict(enabled=True, providers=items))
+    return dict(paths=dict(db_path=work / 'test.db'), cloud=dict(enabled=True, providers=items),
+                lanes={'a':{'model':Path('test-local.gguf')}})
 
 
 class HTTPFixture:
@@ -302,7 +303,8 @@ def test_malformed(work, http):
     rejected(lambda: client(config(work), http).reply([], kildall.BASE_TOOLS))
 
 
-def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixture', overflow=False):
+def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixture', overflow=False,
+             catalog_model='test-model', cloud_client=None, explain=False):
     kildall.initialize(conf['paths']['db_path'])
     session = 'session-' + str(time.monotonic_ns())
     with kildall.database(conf['paths']['db_path']) as db:
@@ -310,7 +312,7 @@ def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixtu
     memory = Mock()
     memory.retrieve.return_value = dict(text='', items=[], truncated=False)
     memory.add.return_value = 1
-    decision = dict(skill='general', lane=lane, model='test-model')
+    decision = dict(skill='general', lane=lane, model=catalog_model)
     cloud_reply = Mock(side_effect=cloud_replies or [dict(role='assistant', content='cloud answer')])
     output, errors = io.StringIO(), io.StringIO()
     def fit(config, system, memory_text, previous, current, **kwargs):
@@ -323,11 +325,15 @@ def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixtu
         stack.enter_context(patch.object(kildall, 'fit_messages', side_effect=fit))
         local = stack.enter_context(patch.object(kildall, 'stream_reply', return_value=dict(role='assistant', content='local answer')))
         stack.enter_context(patch('routing.decide', return_value=decision))
-        stack.enter_context(patch.object(cloud.Client, 'reply', cloud_reply))
+        if cloud_client is None:
+            stack.enter_context(patch.object(cloud.Client, 'reply', cloud_reply))
+        else:
+            stack.enter_context(patch.object(cloud, 'Client', return_value=cloud_client))
+        stack.enter_context(patch('routing.describe', return_value='catalog decision'))
         stack.enter_context(redirect_stdout(output))
         stack.enter_context(redirect_stderr(errors))
         try:
-            status = kildall._run_turn(conf, memory, session, str(work), prompt, route_mode='auto')
+            status = kildall._run_turn(conf, memory, session, str(work), prompt, route_mode='auto', explain=explain)
         except (ValueError, PermissionError, RuntimeError) as error:
             status = error
     return status, cloud_reply, local, memory, output.getvalue(), errors.getvalue()
@@ -376,10 +382,124 @@ def test_turn_permissions(work, http):
         memory.add.assert_not_called()
 
 
+def test_nvidia(work, http):
+    conf = config(work, ('nvidia',))
+    c = client(conf, http)
+    model = conf['cloud']['providers']['nvidia']['allowed_models'][0]
+    http.add(body=response(model=model))
+    assert c.reply([], [])['content'] == 'answer'
+    assert c.selection == dict(cloud_provider='nvidia', cloud_model=model,
+                               cloud_requested_model=model, exact_match=False)
+    assert http.captured[-1]['headers']['Authorization'] == 'Bearer ' + FAKE_KEY
+    for status, header, delay, expected in [(429, '90', False, 'cooldown'),
+            (429, email.utils.formatdate(NOW + 120, usegmt=True), False, 'cooldown'),
+            (401, None, False, 'key_invalid'), (402, None, False, 'billing_disabled'),
+            (200, None, True, 'transport_cooldown')]:
+        with kildall.database(c.path) as db:
+            db.execute('DELETE FROM cloud_state')
+        http.add(status, headers={'Retry-After':header} if header else {}, delay=delay)
+        with patch.object(cloud.time, 'time', return_value=NOW):
+            assert c.reply([], []) is None and c.selection is None
+            assert rows(conf)[-1]['status'] == expected
+            state = rows(conf, 'cloud_state')[0]
+            if status == 429:
+                assert state['cooldown'] == NOW + (90 if header == '90' else 120)
+            if status == 402:
+                assert state['disabled'] == 1
+            count = len(http.captured)
+            assert client(conf, http).reply([], []) is None and len(http.captured) == count
+    bad = copy.deepcopy(conf)
+    bad['cloud']['providers']['nvidia']['allowed_models'] = ['moonshotai/kimi-k2.6']
+    rejected(lambda: cloud.Client(bad))  # Listed but failed READY: still unauthorized.
+    bad['cloud']['providers']['nvidia']['allowed_models'] = [model]
+    bad['cloud']['providers']['nvidia']['keyless'] = True
+    rejected(lambda: cloud.Client(bad))
+    with kildall.database(c.path) as db:
+        db.execute('DELETE FROM cloud_state')
+    http.add(body=response(tool(arguments={'path':2})))
+    with patch.object(permissions, 'execute') as execute:
+        rejected(lambda: c.reply([], kildall.BASE_TOOLS))
+        execute.assert_not_called()
+    assert rows(conf)[-1]['status'] == 'malformed_rejected'
+
+
+def test_exact_selection(work, http):
+    model = 'moonshotai/kimi-k2.6'
+    base, key, allowed = cloud.PROVIDERS['nvidia']
+    # Mock availability only: the failed live ID remains excluded in production.
+    with patch.dict(cloud.PROVIDERS, nvidia=(base, key, allowed | {model})):
+        conf = config(work, ('llm7', 'nvidia'))
+        conf['cloud']['providers']['nvidia']['allowed_models'] = [sorted(allowed)[0], model]
+        c = client(conf, http)
+        http.add(body=response(model=model))
+        assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
+        assert http.captured[-1]['path'] == '/nvidia' and http.captured[-1]['body']['model'] == model
+        assert c.selection['exact_match'] is True
+        for pick in ('Kimi K3', 'DeepSeek-V4-Pro-0813', 'Kimi K2.6 Thinking'):
+            http.add()
+            assert c.reply([], [], catalog_model=pick)['content'] == 'answer'
+            assert http.captured[-1]['path'] == '/llm7' and c.selection['exact_match'] is False
+        with patch.object(cloud_keys, 'get_key', side_effect=lambda name: None if name == key else FAKE_KEY):
+            http.add()
+            assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
+            assert http.captured[-1]['path'] == '/llm7' and c.selection['exact_match'] is False
+        http.add(429)
+        http.add()
+        start = len(http.captured)
+        assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
+        assert [r['path'] for r in http.captured[start:]] == ['/nvidia', '/llm7']
+        assert c.selection['exact_match'] is False
+        with kildall.database(c.path) as db:
+            db.execute('DELETE FROM cloud_state')
+        # An allowed but different reported ID is explicit; an unallowed ID fails closed.
+        http.add(body=response(model=sorted(allowed)[0]))
+        assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
+        assert c.selection['cloud_model'] == sorted(allowed)[0] and not c.selection['exact_match']
+        http.add(body=response(model='unapproved-model'))
+        rejected(lambda: c.reply([], [], catalog_model='Kimi K2.6'))
+        assert c.selection is None
+        (work / 'a.txt').write_text('READY')
+        http.add(body=response(tool(), model=model))
+        http.add(body=response(model=model))
+        status, _, local, _, _, errors = run_turn(conf, work, lane='C', catalog_model='Kimi K2.6', cloud_client=c, explain=True)
+        assert status == 0 and local.call_count == 0, status
+        recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
+        assert recorded['model'] == 'Kimi K2.6' and recorded['cloud_model'] == model
+        assert recorded['exact_match'] is True and len(recorded['cloud_calls']) == 2
+        assert all(r['exact_match'] for r in recorded['cloud_calls'])
+        assert model in errors and 'exact_match=true' in errors
+        assert all('cloud_model' not in r['payload'] for r in rows(conf, 'orbi_messages'))
+        assert rows(conf, 'orbi_permissions')[-1]['status'] == 'done'
+        http.add()
+        status, _, local, _, _, errors = run_turn(conf, work, lane='B', catalog_model='DeepSeek-V4-Pro-0813', cloud_client=c, explain=True)
+        recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
+        assert status == 0 and not recorded['exact_match'] and local.call_count == 0
+        assert recorded['cloud_model'] == 'codestral-latest' and 'exact_match=false' in errors
+        conf['cloud']['providers']['nvidia']['allowed_models'].remove(model)
+        http.add()
+        assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
+        assert http.captured[-1]['path'] == '/llm7' and c.selection['exact_match'] is False
+
+
+def test_final_local_identity(work, http):
+    conf = config(work, ('nvidia',))
+    c = client(conf, http)
+    (work / 'a.txt').write_text('READY')
+    http.add(body=response(tool()))
+    http.add(429)
+    status, _, local, _, _, errors = run_turn(conf, work, lane='C', cloud_client=c, explain=True)
+    recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
+    assert status == 0 and local.call_count == 1
+    assert recorded['execution_source'] == 'local_fallback' and recorded['model_used'] == 'test-local.gguf'
+    assert recorded['cloud_model'] is None and recorded['exact_match'] is False
+    assert len(recorded['cloud_calls']) == 1 and recorded['cloud_calls'][0]['execution_source'] == 'cloud'
+    assert 'test-local.gguf' in errors and 'exact_match=false' in errors
+
+
 def main():
     checks = [test_http_and_redaction, test_cooldown, test_timeout_rotation, test_invalid_credentials,
               test_billing, test_exhausted, test_quotas, test_allowlist, test_malformed,
-              test_turn_policy, test_turn_permissions]
+              test_turn_policy, test_turn_permissions, test_nvidia, test_exact_selection, test_final_local_identity]
     failures = []
     # A mistake in the test seam must never read the actual login Keychain.
     with patch.object(darwin_keys, 'security', side_effect=AssertionError('Keychain forbidden in test')), \

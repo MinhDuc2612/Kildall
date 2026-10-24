@@ -86,3 +86,17 @@ requests_per_minute = 20
 limits_status = "unverified"
 limits_source = "Researchhub/sample3/Cloudcall/freellmapiccapi.md"
 trains_on_data = true
+
+# Only IDs listed live and answering READY on2026-10-24; failed candidates excluded.
+[cloud.providers.nvidia]
+base_url = "https://integrate.api.nvidia.com/v1"
+key_name = "NVIDIA_API_KEY"
+keyless = false
+allowed_models = ["nvidia/nemotron-3-ultra-550b-a55b"]
+context_tokens = 32000 # conservative client ceiling, not a published model limit
+daily_requests = 0 # undocumented; not an unlimited-service claim
+requests_per_minute = 0 # per-model, unpublished; forum report ~40 RPM is unverified
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/nvidianimccapi.md; https://forums.developer.nvidia.com/t/382830"
+# NVIDIA terms: trial use only; logs and trains on prompts, no opt-out.
+trains_on_data = true
