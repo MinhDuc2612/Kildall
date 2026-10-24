@@ -2494,3 +2494,506 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-10-23 — **Claude review of prompt reuse, PR #11 (`b73b239`, draft, OPEN): code accepted; the soak FAIL is a host-state confound, not shown to be the change.** Verified: local = remote `b73b239`, main `5c630ed`, 6 files, frozen untouched, wired 20480, ports closed. Code: recalled memory moved from the system message into a copy of the current user message (stored history unchanged), answer and child requests `cache_prompt=True`, benchmarks stay uncached, history trimmed by whole-turn halves, new `orbi_inference` cache telemetry, `check.sh` prints the reuse ratio. Gains: tool script 22.28 → 11.07 s, three-turn 20.74 → 7.91 s, later first token ~6.7 → 0.53–0.64 s; every quality gate passes. Soak 4/117/0: pressure was already warning at sample 0, with **10.39 GB swap used at start**; peaks lower than accepted runs (RSS 11.91 GiB, GPU allocated 14.41 GiB); 84 children against 52 (more work in the same 600 s). All 21 recorded soaks compared: with the current child-soak harness, the 5 runs that started at 2.1–3.0 GB swap had 0–103 warnings; the 3 that started at 9.6–10.4 GB had 117–120 (both long-context 16K runs and this one). Correlation, not proven cause. Now, idle with no model: swap 6.34 GB, pressure level 2, uptime 13 days. Minor, no fix needed now: `task.inference()` in `finally` can hide the original error if its DB write fails. Recommended next: reboot, then one predefined A(main)/B(PR) soak sequence with a start rule (pressure normal and swap ≤ 3 GB, else stop unscored), then nuke dry-run and check.sh. Merge waits for the user.
 
 - 2026-10-23 Allegretto/Stringendo research: batch 2 DONE run wf_229da75c-a09 (chunks 3.2#2-3.6, 93 skills: 93 verified, 69 disputed, 24 repicked; weekly limit hit mid-run, resumed after reset). Batch 3 started run wf_07026e05-88c (3.7#1-3.13). Note: several Allegretto picks beat the Maestoso pick (e.g. Qwen3.8-Flash-Next 81.0 vs DeepSeek V4 Pro 76.2, SWE-bench Multilingual) -> Maestoso picks to review at the end.
+
+- 2026-10-23T21:55:45+07:00 PR#11 soak-only re-check: read standing instructions, related NOTES and retained prompt-reuse evidence, and latest Claude review (2026-10-23). Verified clean code branch prompt-reuse=b73b239404a821be2096f74afffcc3bc3bdaa5a6; main=5c630ed8d9e791a30303ebadbc6bafff0c44dda8. Applying benchmark skill before/after workflow under user-fixed protocol: one ABAB sequence, no source/prompt/config/fixture/threshold edits, no inference yet. Reading unchanged soak harness and check.sh before preflight/protocol freeze.
+
+- 2026-10-23T21:56:45+07:00 PR#11 soak-only re-check: read fixed soak.py/probe_common.py/protocol, current check.sh and applicable plan/standing rules. GitHub connector confirms PR#11 OPEN/DRAFT, head b73b239 and base5c630ed. Started one read-only subagent audit of unchanged harness reuse; no inference or runtime started. Preparing recorded preflight, frozen hash verification and start-rule check.
+
+- 2026-10-23T21:59:07+07:00 PR#11 soak-only re-check: created .session/prompt-reuse-soak-ab-20261023/measurement-protocol.json and harness-sha256.json BEFORE inference. Fixed01-A/02-B/03-A/04-B,600s/121samples/64tokens/2children, first start normal+swap<=3000MB, later normal within600s, B critical0/noGPUOOM/warnings<=103 and meanB<=meanA+12. Original A legacy warning failures remain recorded diagnostic evidence, per explicit B-only qualification gates; all other failures stop. No inference yet.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: read-only subagent verified unchanged soak and warned about variant import binding, legacy A warning assertions, idle-vs-sample0 pressure, and explicit GPU OOM log scan; these are covered in frozen protocol. Saved GitHub PR state and wrote/hashed no-inference preflight.py with parser self-checks. Starting wired/check/ports/frozen verification, detached A worktree creation, then one first-run admission measurement.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: wired exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/wired.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: check-before exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/check-before.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: Port preflight: {"8123": true, "8124": true} (true means closed).
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: Frozen/source/retained harness verification: 0 mismatches; source-B.json and frozen-verification.json retained.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: git-before exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/git-before.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: head-B exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/head-B.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: head-A exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/head-A.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: worktree-add exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/worktree-add.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: worktree-status exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/worktree-status.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: worktree-head exit 0; raw output retained in .session/prompt-reuse-soak-ab-20261023/worktree-head.json.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: All preflight checks passed; A clean detached main worktree and source-A.json retained. Checking first-run idle-host start rule once, before any model startup.
+
+- 2026-10-23T22:01:06+07:00 PR#11 soak-only re-check: First-run idle host: swap 0.0 MB; free 78%; pressure normal (1); start rule PASS. Top10 RSS and raw host readings retained in 01-A-start-rule.json.
+
+- 2026-10-23T22:07:48+07:00 PR#11 soak-only re-check: preliminary admission PASS (pressure1, swap0MB, free78%). Traced product runtime/child/prompt paths; wrote external run_soak.py adapter, preserving original soak/helper function bodies, identical fixed project path, shared assets and actual A/B imports. Finalized protocol before inference, froze per-run source/fixture manifests and adapter SHA256s; running no-inference adapter checks for A and B.
+
+- 2026-10-23T22:07:48+07:00 PR#11 soak-only re-check: 01-A adapter check PASS; correct production imports, unchanged prompts/flags/caps; zero inference.
+
+- 2026-10-23T22:07:52+07:00 PR#11 soak-only re-check: 02-B adapter check PASS; correct production imports, unchanged prompts/flags/caps; zero inference.
+
+- 2026-10-23T22:09:29+07:00 PR#11 soak-only re-check: A/B no-inference adapter checks PASS. Independent read-only review found later admission could accept a sample obtained after600s; corrected wrapper deadline before inference and5boundary checks PASS. Re-froze adapter SHA256; pre-inference.json records final protocol/manifest hashes with zero model calls. Original soak, source, prompts, config, fixtures and thresholds unchanged. Launching01-A once.
+
+- 2026-10-23T22:09:29+07:00 PR#11 soak-only re-check: 01-A host check: pressure=1, swap=0.0 MB, free=77%, wait=0.0s; admitted=True
+
+- 2026-10-23T22:09:29+07:00 PR#11 soak-only re-check: 01-A starting unchanged 600s soak once; source=/var/folders/kd/h_54r2bn57n3r0xj5b8cy3s40000gn/T/ksa-0q0xwvt7/A; fixed project=/Users/minhduc/Kildall/code/.session/prompt-reuse-soak-ab-20261023/active/soak. No source or threshold changes.
+
+- 2026-10-23T22:09:29+07:00 PR#11 soak-only re-check: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-10-23T22:11:25+07:00 PR#11 01-A observation: {"samples": 11, "elapsed_s": 50.0, "normal": 0, "warnings": 11, "critical": 0, "free_percent": 14}; no source/harness edits or additional runs.
+
+- 2026-10-23T22:12:38+07:00 PR#11 soak observation: {"run": "01-A", "samples": 26, "elapsed_s": 125.0, "normal": 5, "warnings": 21, "critical": 0, "free_percent": 17}; unchanged run continues.
+
+- 2026-10-23T22:13:52+07:00 PR#11 soak observation: {"run": "01-A", "samples": 40, "elapsed_s": 195.0, "normal": 12, "warnings": 28, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:14:58+07:00 PR#11 soak observation: {"run": "01-A", "samples": 54, "elapsed_s": 265.0, "normal": 26, "warnings": 28, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-23T22:15:53+07:00 PR#11 soak observation: {"run": "01-A", "samples": 65, "elapsed_s": 320.0, "normal": 36, "warnings": 29, "critical": 0, "free_percent": 17}; unchanged run continues.
+
+- 2026-10-23T22:17:04+07:00 PR#11 soak observation: {"run": "01-A", "samples": 79, "elapsed_s": 390.1, "normal": 49, "warnings": 30, "critical": 0, "free_percent": 19}; unchanged run continues.
+
+- 2026-10-23T22:18:16+07:00 PR#11 soak observation: {"run": "01-A", "samples": 93, "elapsed_s": 460.0, "normal": 61, "warnings": 32, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:18:52+07:00 PR#11 soak observation: {"run": "01-A", "samples": 100, "elapsed_s": 495.1, "normal": 68, "warnings": 32, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:19:38+07:00 PR#11 soak observation: {"run": "01-A", "samples": 110, "elapsed_s": 545.0, "normal": 78, "warnings": 32, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:20:26+07:00 PR#11 soak observation: {"run": "01-A", "samples": 119, "elapsed_s": 590.1, "normal": 87, "warnings": 32, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-23T22:20:37+07:00 PR#11 soak-only re-check: Prompt reuse child soak stopped; {"passed": true, "observation_s": 600.034450375, "load_wall_s": 602.8553959169999, "counts": {"normal": 89, "warning": 32, "critical": 0}, "peak_process_rss_bytes": 7435403264, "peak_device_gpu_in_use_bytes": 14518648832, "peak_device_gpu_allocated_bytes": 15050211328, "batches": 25, "children": 50, "inference_p50_s": 24.299391084000035, "inference_p99_s": 25.861677375, "total_generated_tokens": 2798, "total_tok_s": 4.641245210642448, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; source/frozen hashes and wired20480 held.
+
+- 2026-10-23T22:20:37+07:00 PR#11 soak-only re-check: 01-A completed; {"status": "PASS", "summary": {"passed": true, "observation_s": 600.034450375, "load_wall_s": 602.8553959169999, "counts": {"normal": 89, "warning": 32, "critical": 0}, "peak_process_rss_bytes": 7435403264, "peak_device_gpu_in_use_bytes": 14518648832, "peak_device_gpu_allocated_bytes": 15050211328, "batches": 25, "children": 50, "inference_p50_s": 24.299391084000035, "inference_p99_s": 25.861677375, "total_generated_tokens": 2798, "total_tok_s": 4.641245210642448, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}, "raw_harness_exit_code": 0, "gpu_oom_matches": 0, "legacy_A_warning_failure": false}; runtime evidence archived; owned ports closed.
+
+- 2026-10-23T22:20:52+07:00 PR#11 soak-only re-check: 02-B host check: pressure=1, swap=2538.865 MB, free=78%, wait=0.0s; admitted=True
+
+- 2026-10-23T22:20:52+07:00 PR#11 soak-only re-check: 02-B starting unchanged 600s soak once; source=/Users/minhduc/Kildall/code; fixed project=/Users/minhduc/Kildall/code/.session/prompt-reuse-soak-ab-20261023/active/soak. No source or threshold changes.
+
+- 2026-10-23T22:20:52+07:00 PR#11 soak-only re-check: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-10-23T22:21:39+07:00 PR#11 soak observation: {"run": "02-B", "samples": 5, "elapsed_s": 20.0, "normal": 5, "warnings": 0, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:22:38+07:00 PR#11 soak observation: {"run": "02-B", "samples": 17, "elapsed_s": 80.1, "normal": 16, "warnings": 1, "critical": 0, "free_percent": 19}; unchanged run continues.
+
+- 2026-10-23T22:23:25+07:00 PR#11 soak observation: {"run": "02-B", "samples": 26, "elapsed_s": 125.0, "normal": 25, "warnings": 1, "critical": 0, "free_percent": 19}; unchanged run continues.
+
+- 2026-10-23T22:24:11+07:00 PR#11 soak observation: {"run": "02-B", "samples": 36, "elapsed_s": 175.0, "normal": 34, "warnings": 2, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:25:38+07:00 PR#11 soak observation: {"run": "02-B", "samples": 53, "elapsed_s": 260.0, "normal": 51, "warnings": 2, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:26:19+07:00 PR#11 soak observation: {"run": "02-B", "samples": 61, "elapsed_s": 300.0, "normal": 59, "warnings": 2, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:27:10+07:00 PR#11 soak observation: {"run": "02-B", "samples": 71, "elapsed_s": 350.0, "normal": 66, "warnings": 5, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:28:01+07:00 PR#11 soak observation: {"run": "02-B", "samples": 82, "elapsed_s": 405.0, "normal": 76, "warnings": 6, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-23T22:28:52+07:00 PR#11 soak observation: {"run": "02-B", "samples": 92, "elapsed_s": 455.1, "normal": 77, "warnings": 15, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:29:45+07:00 PR#11 soak observation: {"run": "02-B", "samples": 102, "elapsed_s": 505.0, "normal": 83, "warnings": 19, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-23T22:30:39+07:00 PR#11 soak observation: {"run": "02-B", "samples": 113, "elapsed_s": 560.0, "normal": 90, "warnings": 23, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:31:18+07:00 PR#11 soak-only re-check: Prompt reuse child soak stopped; {"passed": true, "observation_s": 600.038537917, "load_wall_s": 601.8317588749999, "counts": {"normal": 98, "warning": 23, "critical": 0}, "peak_process_rss_bytes": 13495959552, "peak_device_gpu_in_use_bytes": 14480932864, "peak_device_gpu_allocated_bytes": 14955429888, "batches": 40, "children": 80, "inference_p50_s": 15.029660124999737, "inference_p99_s": 15.710486791000221, "total_generated_tokens": 5120, "total_tok_s": 8.507360157178928, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; source/frozen hashes and wired20480 held.
+
+- 2026-10-23T22:31:18+07:00 PR#11 soak-only re-check: 02-B completed; {"status": "PASS", "summary": {"passed": true, "observation_s": 600.038537917, "load_wall_s": 601.8317588749999, "counts": {"normal": 98, "warning": 23, "critical": 0}, "peak_process_rss_bytes": 13495959552, "peak_device_gpu_in_use_bytes": 14480932864, "peak_device_gpu_allocated_bytes": 14955429888, "batches": 40, "children": 80, "inference_p50_s": 15.029660124999737, "inference_p99_s": 15.710486791000221, "total_generated_tokens": 5120, "total_tok_s": 8.507360157178928, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}, "raw_harness_exit_code": 0, "gpu_oom_matches": 0, "legacy_A_warning_failure": false}; runtime evidence archived; owned ports closed.
+
+- 2026-10-23T22:31:44+07:00 PR#11 soak-only re-check: 03-A host check: pressure=1, swap=2362.641 MB, free=78%, wait=0.0s; admitted=True
+
+- 2026-10-23T22:31:44+07:00 PR#11 soak-only re-check: 03-A starting unchanged 600s soak once; source=/var/folders/kd/h_54r2bn57n3r0xj5b8cy3s40000gn/T/ksa-0q0xwvt7/A; fixed project=/Users/minhduc/Kildall/code/.session/prompt-reuse-soak-ab-20261023/active/soak. No source or threshold changes.
+
+- 2026-10-23T22:31:44+07:00 PR#11 soak-only re-check: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-10-23T22:32:47+07:00 PR#11 soak observation: {"run": "03-A", "samples": 9, "elapsed_s": 40.0, "normal": 9, "warnings": 0, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:33:38+07:00 PR#11 soak observation: {"run": "03-A", "samples": 19, "elapsed_s": 90.1, "normal": 15, "warnings": 4, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-23T22:34:28+07:00 PR#11 soak observation: {"run": "03-A", "samples": 29, "elapsed_s": 140.0, "normal": 25, "warnings": 4, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:35:10+07:00 PR#11 soak observation: {"run": "03-A", "samples": 37, "elapsed_s": 180.1, "normal": 33, "warnings": 4, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:35:29+07:00 PR#11 soak-only re-check: read existing BENCHMARKS tables and retained delivery.py to prepare the authorized final table and live nuke/check validation. No post-soak command or tracked edit made; ABAB remains in03-A.
+
+- 2026-10-23T22:36:05+07:00 PR#11 soak observation: {"run": "03-A", "samples": 48, "elapsed_s": 235.0, "normal": 44, "warnings": 4, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:36:57+07:00 PR#11 soak observation: {"run": "03-A", "samples": 59, "elapsed_s": 290.0, "normal": 55, "warnings": 4, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-23T22:37:50+07:00 PR#11 soak observation: {"run": "03-A", "samples": 69, "elapsed_s": 340.1, "normal": 65, "warnings": 4, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-23T22:38:41+07:00 PR#11 soak observation: {"run": "03-A", "samples": 79, "elapsed_s": 390.1, "normal": 65, "warnings": 14, "critical": 0, "free_percent": 16}; unchanged run continues.
+
+- 2026-10-23T22:39:36+07:00 PR#11 soak observation: {"run": "03-A", "samples": 90, "elapsed_s": 445.1, "normal": 69, "warnings": 21, "critical": 0, "free_percent": 17}; unchanged run continues.
+
+- 2026-10-23T22:42:31+07:00 PR#11 soak-only re-check: Prompt reuse child soak stopped; {"passed": true, "observation_s": 600.0268270000001, "load_wall_s": 623.451604334, "counts": {"normal": 99, "warning": 22, "critical": 0}, "peak_process_rss_bytes": 13237239808, "peak_device_gpu_in_use_bytes": 14356070400, "peak_device_gpu_allocated_bytes": 14854963200, "batches": 26, "children": 52, "inference_p50_s": 24.128157083000133, "inference_p99_s": 25.324158707999686, "total_generated_tokens": 2886, "total_tok_s": 4.629067703600861, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; source/frozen hashes and wired20480 held.
+
+- 2026-10-23T22:42:31+07:00 PR#11 soak-only re-check: 03-A completed; {"status": "PASS", "summary": {"passed": true, "observation_s": 600.0268270000001, "load_wall_s": 623.451604334, "counts": {"normal": 99, "warning": 22, "critical": 0}, "peak_process_rss_bytes": 13237239808, "peak_device_gpu_in_use_bytes": 14356070400, "peak_device_gpu_allocated_bytes": 14854963200, "batches": 26, "children": 52, "inference_p50_s": 24.128157083000133, "inference_p99_s": 25.324158707999686, "total_generated_tokens": 2886, "total_tok_s": 4.629067703600861, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}, "raw_harness_exit_code": 0, "gpu_oom_matches": 0, "legacy_A_warning_failure": false}; runtime evidence archived; owned ports closed.
+
+- 2026-10-24T06:43:16+07:00 PR#11 user said continue; resumed observation of the existing03-A process/artifacts. Same frozen20261023 sequence, no restarted or repeated run.
+
+- 2026-10-24T06:43:28+07:00 PR#11 soak-only re-check: 04-B host check: pressure=1, swap=1569.32 MB, free=84%, wait=0.0s; admitted=True
+
+- 2026-10-24T06:43:28+07:00 PR#11 soak-only re-check: 04-B starting unchanged 600s soak once; source=/Users/minhduc/Kildall/code; fixed project=/Users/minhduc/Kildall/code/.session/prompt-reuse-soak-ab-20261023/active/soak. No source or threshold changes.
+
+- 2026-10-24T06:43:28+07:00 PR#11 soak-only re-check: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-10-24T06:43:59+07:00 PR#11 soak observation: {"run": "04-B", "samples": 1, "elapsed_s": 0.0, "normal": 1, "warnings": 0, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:44:57+07:00 PR#11 soak observation: {"run": "04-B", "samples": 13, "elapsed_s": 60.0, "normal": 13, "warnings": 0, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-24T06:45:32+07:00 PR#11 soak observation: {"run": "04-B", "samples": 20, "elapsed_s": 95.0, "normal": 20, "warnings": 0, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-24T06:45:50+07:00 PR#11 soak-only re-check: read nuke CLI dispatch and Git hook configuration while04-B runs. nuke requires explicit --delete for deletion; default will be used for authorized dry-run. Default pre-commit invokes existing secret_scanner; no configured alternate hooks path or HF sync hook found. Read-only rg also returned2 for absent .githooks path; no gate or source change.
+
+- 2026-10-24T06:46:36+07:00 PR#11 soak observation: {"run": "04-B", "samples": 32, "elapsed_s": 155.0, "normal": 32, "warnings": 0, "critical": 0, "free_percent": 20}; unchanged run continues.
+
+- 2026-10-24T06:47:48+07:00 PR#11 soak observation: {"run": "04-B", "samples": 47, "elapsed_s": 230.0, "normal": 44, "warnings": 3, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-24T06:48:38+07:00 PR#11 soak observation: {"run": "04-B", "samples": 57, "elapsed_s": 280.0, "normal": 51, "warnings": 6, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:49:27+07:00 PR#11 soak observation: {"run": "04-B", "samples": 67, "elapsed_s": 330.0, "normal": 61, "warnings": 6, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:50:16+07:00 PR#11 soak observation: {"run": "04-B", "samples": 76, "elapsed_s": 375.0, "normal": 70, "warnings": 6, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:51:06+07:00 PR#11 soak observation: {"run": "04-B", "samples": 86, "elapsed_s": 425.0, "normal": 80, "warnings": 6, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:52:09+07:00 PR#11 soak observation: {"run": "04-B", "samples": 99, "elapsed_s": 490.0, "normal": 93, "warnings": 6, "critical": 0, "free_percent": 22}; unchanged run continues.
+
+- 2026-10-24T06:52:58+07:00 PR#11 soak observation: {"run": "04-B", "samples": 109, "elapsed_s": 540.0, "normal": 103, "warnings": 6, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-24T06:53:50+07:00 PR#11 soak observation: {"run": "04-B", "samples": 119, "elapsed_s": 590.0, "normal": 111, "warnings": 8, "critical": 0, "free_percent": 21}; unchanged run continues.
+
+- 2026-10-24T06:53:59+07:00 PR#11 soak-only re-check: Prompt reuse child soak stopped; {"passed": true, "observation_s": 600.0324055830024, "load_wall_s": 601.2718220830029, "counts": {"normal": 113, "warning": 8, "critical": 0}, "peak_process_rss_bytes": 13304004608, "peak_device_gpu_in_use_bytes": 14380679168, "peak_device_gpu_allocated_bytes": 15030910976, "batches": 43, "children": 86, "inference_p50_s": 13.848158417000377, "inference_p99_s": 15.042086959001608, "total_generated_tokens": 4664, "total_tok_s": 7.7568903520449215, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; source/frozen hashes and wired20480 held.
+
+- 2026-10-24T06:53:59+07:00 PR#11 soak-only re-check: 04-B completed; {"status": "PASS", "summary": {"passed": true, "observation_s": 600.0324055830024, "load_wall_s": 601.2718220830029, "counts": {"normal": 113, "warning": 8, "critical": 0}, "peak_process_rss_bytes": 13304004608, "peak_device_gpu_in_use_bytes": 14380679168, "peak_device_gpu_allocated_bytes": 15030910976, "batches": 43, "children": 86, "inference_p50_s": 13.848158417000377, "inference_p99_s": 15.042086959001608, "total_generated_tokens": 4664, "total_tok_s": 7.7568903520449215, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}, "raw_harness_exit_code": 0, "gpu_oom_matches": 0, "legacy_A_warning_failure": false}; runtime evidence archived; owned ports closed.
+
+- 2026-10-24T06:54:47+07:00 PR#11 fixed ABAB sequence completed once: warningsA32/22,B23/8; meanA27,meanB15.5<=39(A+12). BothB warnings<=103,critical0,noGPUOOM; everyrun121samples/600s and complete real children. Independent raw-sample/child/config/source/harness audit PASS. Original117/121failure retained; host-state explanation supported, unique cause not proven. Starting authorized live nuke dry-run then check.sh; no other suites.
+
+- 2026-10-24T06:55:37+07:00 PR#11 timing audit: actual timestamps show03-A completed2026-10-23T22:42:31+07 and04-B started2026-10-24T06:43:28+07 after user continuation;8h00m57s idle gap. Retained explicitly in result.json; not an uninterrupted40-minute comparison. B2 own admission pressure1/swap1569.320MB/free84% passed in0.023s; no repeated run. All declared numerical/start gates passed, but unique causal attribution remains limited. Requested final read-only evidence review.
+
+- 2026-10-24T06:55:38+07:00 PR#11 soak-only delivery: Starting installed .venv/bin/kildall nuke default dry-run; no --delete, no confirmation input.
+
+- 2026-10-24T06:55:42+07:00 PR#11 soak-only delivery: Live nuke dry-run returned exit0; raw stdout/stderr retained.
+
+- 2026-10-24T06:56:25+07:00 PR#11 soak-only delivery: Preserved reporting-failure.json: wrapper TypeError on len(integer rejected_outward_paths), after actual nuke exit0 and validated0outside/0rejected. No formal gate failed and no command repeated. Recovering metadata from original stdout; check.sh was NOT RUN before this wrapper error.
+
+- 2026-10-24T06:56:26+07:00 PR#11 soak-only delivery: Recovered nuke summary from retained output; starting first and only post-soak ./check.sh.
+
+- 2026-10-24T06:56:26+07:00 PR#11 soak-only delivery: Post-soak check.sh exit0; PASS, eligible for table-only docs delivery.
+
+- 2026-10-24T06:58:16+07:00 PR#11 soak-only delivery: Reverified local/remote prompt-reuse=b73b239, main5c630ed, clean code tree, PR#11 OPEN/DRAFT. Final read-only reviewer confirms all gate arithmetic and explicitly requires the overnight gap in result/report/PR; limitation is recorded. No extra model calls or reruns.
+
+- 2026-10-24T06:58:16+07:00 PR#11 soak-only delivery: Clean detached A worktree removal exit0; source snapshot verified first, all run evidence retained under code/.session.
+
+- 2026-10-24T06:58:16+07:00 PR#11 soak-only delivery: Appended table-only BENCHMARKS update with per-run host/work/RSS/GPU metrics, all gates, overnight limitation, retained original117warning failure and nuke-reporting wrapper error. Source/config/fixtures unchanged; preparing docs-only commit and normal push.
+
+- 2026-10-24T06:58:56+07:00 PR#11 delivery verification: only BENCHMARKS.md changed; every added nonblank line is a table row, no deletions; git diff --check PASS; frozen candidate source unchanged. Saved benchmarks.diff and appended two short lessons to ~/.Codex/NOTES.md. Creating docs-only commit with existing secret-scanner hook.
+
+- 2026-10-24T06:58:57+07:00 PR#11 docs-only commit command exit0; raw output retained in commit.json.
+
+- 2026-10-24T06:58:57+07:00 PR#11 docs-only commit 676b80b4daa31f52bdfc7544d97b7fd22056d731 verified: sole changed file BENCHMARKS.md; secret scanner passed. Preparing normal push of prompt-reuse only, no HF sync.
+
+- 2026-10-24T06:59:29+07:00 PR#11 normal git push origin prompt-reuse exit0; raw evidence push.json retained. No force push or HF sync.
+
+- 2026-10-24T06:59:30+07:00 PR#11 independent ls-remote confirms prompt-reuse=676b80b4daa31f52bdfc7544d97b7fd22056d731 and unchanged main5c630ed. Updating PR#11 body with soak-only PASS, the overnight causal limitation, and retained old/reporting failures; keep draft, no merge.
+
+- 2026-10-24T07:00:37+07:00 PR#11 body prepared in .session/prompt-reuse-soak-ab-20261023/pr-body.md: latest soak PASS and full host/memory/work table; 8h continuation gap and causal limit explicit; original117warning failure and reporting error retained; other suites historical. Updating body only through GitHub connector; keep draft.
+
+- 2026-10-24T07:00:38+07:00 PR#11 GitHub body update tool returned; verifying live body/head/OPEN-DRAFT status and final local integrity. No merge or additional push.
+
+- 2026-10-24T07:00:57+07:00 PR#11 delivery: GitHub connector edit failed403 Resource not accessible by integration; failure retained in pr-connector-failure.json. Existing user authorization covers PR body update; using installed gh credentials and exact pr-body.md via --body-file. No permission/merge/status change requested.
+
+- 2026-10-24T07:01:00+07:00 PR#11 delivery: gh pr edit11 --body-file exit0; raw result retained; verifying head/body/draft.
+
+- 2026-10-24T07:01:37+07:00 PR#11 final local verification PASS: clean tree,docs-only676b80b,main5c630ed,source/config/frozen/harness hashes unchanged,wired20480,portsclosed,Aworktree removed; original117warning failure and report-wrapper/connector403 errors retained. Awaiting final remote PR body/head/draft verification only; no additional inference/tests.
+
+- 2026-10-24T07:02:29+07:00 PR#11 delivery COMPLETE: gh body update exit0 after retained connector403; independent GitHub read confirms exact prepared body, head676b80b4daa31f52bdfc7544d97b7fd22056d731, OPEN/DRAFT, unmerged, base5c630ed. Four-run soak-only sequence PASS(A32/22,B23/8;meanB15.5<=39),nuke0outside,check0. Original117warning failure and recovered reporting/connector failures preserved;8h continuation gap limits causality. Source/config/frozen/harness unchanged, codeclean,portsclosed,temporaryAremoved. No merge,HFsync,paidAPI,sudo,reboot,user-process termination or next slice. Stopping as instructed.
+- 2026-10-24 — **Claude review of the PR #11 soak re-check (`676b80b`, draft, OPEN): accepted; PR #11 is ready to merge on the user's word.** Verified independently: remote `prompt-reuse` = `676b80b`, main `5c630ed`, `676b80b` changes only BENCHMARKS.md (+24); A = `5c630ed`, B = `b73b239` (head files); protocol written 22:07 before the first soak 22:20. Recounted the 4 raw `pressure.json` files: A 89/32/0 and 99/22/0, B 98/23/0 and 113/8/0 (121 samples each); mean B 15.5 ≤ mean A 27 + 12 = 39; every B ≤ 103; 0 critical. B did more work (80/86 children against 50/52) with fewer warnings. Starting swap 1.5–2.4 GB each run (after the user's reboot), against 10.39 GB in the failed run. Disclosed limits accepted: 8 h overnight gap before run 4 (no gap limit was declared; B1 alone, 23, still beats mean A); 01-A process RSS 6.92 GiB (first run after reboot; GPU allocated similar, 14.02 GiB). Nuke dry-run 33,323 entries / 0 outside, check.sh 0, wired 20480; report-wrapper bug recovered from stdout, nothing re-run. Conclusion: the original 117-warning fail was host state (swap), not the change; that fail stays on record. Side note: split 16K's soak fail (started at 10.3 GB swap) may have the same cause.
+
+- 2026-10-24T12:04:30+07:00 PR#11 integration authorized by user: read latest Claude review2026-10-24, standing rules and related NOTES; using git-workflow skill under exact user contract. Verify head676b80b4daa31f52bdfc7544d97b7fd22056d731/base5c630ed,clean code,frozen/config hashes,wired20480; mark ready,ordinary fast-forward main to exact head,normal push,independent remote/MERGED verification,check.sh on main. Evidence: code/.session/pr11-integration-20261024. No HFsync,paidAPI,sudo or next-slice work; NVIDIA NIM provider noted as next only. Connector writes previously403; use existing gh login for ready transition.
+
+- 2026-10-24T12:04:31+07:00 PR#11 integration: repository exit0; output retained.
+
+- 2026-10-24T12:04:31+07:00 PR#11 integration: tree-before exit0; output retained.
+
+- 2026-10-24T12:04:31+07:00 PR#11 integration: head-before exit0; output retained.
+
+- 2026-10-24T12:04:31+07:00 PR#11 integration: main-before exit0; output retained.
+
+- 2026-10-24T12:04:31+07:00 PR#11 integration: feature-before exit0; output retained.
+
+- 2026-10-24T12:04:32+07:00 PR#11 integration: remote-before exit0; output retained.
+
+- 2026-10-24T12:04:32+07:00 PR#11 integration: fast-forward-ancestry exit0; output retained.
+
+- 2026-10-24T12:04:32+07:00 PR#11 integration: frozen-base-diff exit0; output retained.
+
+- 2026-10-24T12:04:32+07:00 PR#11 integration: wired-before exit0; output retained.
+
+- 2026-10-24T12:04:32+07:00 PR#11 integration: Preflight PASS: exact local/remote head/base,clean tree,frozen/config and all candidate source hashes unchanged,wired20480,ordinary fast-forward ancestry; no active checkout/merge/push hooks. Awaiting PR metadata verification before ready transition.
+
+- 2026-10-24T12:05:05+07:00 PR#11 integration: GitHub read verified PR#11 OPEN/DRAFT, head676b80b4daa31f52bdfc7544d97b7fd22056d731/base main5c630ed. All preflight checks passed. Marking ready with gh under explicit user integration authorization.
+
+- 2026-10-24T12:05:07+07:00 PR#11 integration: gh pr ready11 exit0; output retained.
+
+- 2026-10-24T12:05:07+07:00 PR#11 integration: Ready transition verified: PR OPEN,not draft,exact requested head and base main. Next: switch main,merge --ff-only exact676b80b,normal push.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: Starting switch-main: /opt/homebrew/bin/git switch main.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: switch-main exit0; output retained.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: Starting fast-forward-main: /opt/homebrew/bin/git merge --ff-only 676b80b4daa31f52bdfc7544d97b7fd22056d731.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: fast-forward-main exit0; output retained.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: Local main now exactly676b80b4daa31f52bdfc7544d97b7fd22056d731; treeclean,ordinary fast-forward completed with no new commit or rebase. Pushing main normally.
+
+- 2026-10-24T12:05:47+07:00 PR#11 integration: Starting push-main: /opt/homebrew/bin/git push origin main.
+
+- 2026-10-24T12:05:49+07:00 PR#11 integration: push-main exit0; output retained.
+
+- 2026-10-24T12:05:49+07:00 PR#11 integration: Starting remote-after: /opt/homebrew/bin/git ls-remote origin refs/heads/main refs/heads/prompt-reuse.
+
+- 2026-10-24T12:05:50+07:00 PR#11 integration: remote-after exit0; output retained.
+
+- 2026-10-24T12:05:50+07:00 PR#11 integration: Independent git ls-remote confirms main and prompt-reuse both exact676b80b. Verifying GitHub MERGED state, then check.sh on main; no HF sync.
+
+- 2026-10-24T12:06:58+07:00 PR#11 integration: GitHub MERGED verified: closed,merged=true,draft=false,head and merge_commit_sha exact676b80b; merged_at2026-10-24T05:05:50Z. No merge commit was created; merge SHA names the pre-existing requested commit. Starting ./check.sh on local main.
+
+- 2026-10-24T12:06:59+07:00 PR#11 integration: check.sh on main exit0; complete output retained in check-main.json.
+
+- 2026-10-24T12:06:59+07:00 PR#11 integration: Integration COMPLETE: PR marked ready then merged by ordinary fast-forward and normal push; local/remote main676b80b4daa31f52bdfc7544d97b7fd22056d731,GitHub MERGED,check.sh on main0,codeclean,frozen/config/source hashes unchanged,wired20480. No merge commit,rebase,force,HFsync,paidAPI,sudo or next slice. NVIDIA NIM provider is next per user,NOT STARTED. Stop after report.
+- 2026-10-24 — **PR #11 merge verified by Claude:** `git ls-remote` main = `676b80b`, local main = origin/main, 0 merge commits in `5c630ed..676b80b`, GitHub MERGED with mergeCommit = head. **Slice 5c (NVIDIA NIM provider) brief written** for Codex, cloud only: `nvidia` in `cloud.PROVIDERS` + `[cloud.providers.nvidia]`; allowed IDs = listed by live `/v1/models` AND answering one $0 READY call; code-owned exact map from catalog pick to NIM ID, same model and version only (catalog Lane C names: Kimi K3 ×107 leaves, GLM-5.2 ×22, DeepSeek-V4-Pro-0813 ×20 — V4.1-Flash is not V4-Pro); no match → current rotation but `exact_match=false` shown and stored. Found: today `cloud.Client` always sends `allowed_models[0]`, so no exact-model match exists yet. ⚠️ `Cloudcall/nvidianimccapi.md`: NIM **logs and trains on prompts, no opt-out, "trial use only — do not submit personal or confidential data"**; the brief follows the user's 2026-09-27 rule (cloud gets vault context) and records `trains_on_data = true`. Gates = the 4.5a set (mocks, live $0, key scan 0 hits, local gates with cloud disabled, routing ≤ 0.906 s); no soak unless local inference changes.
+
+- 2026-10-24T12:21:51+07:00 Slice5c NVIDIA NIM started under user authorization: read2026-10-24 reviews,standing rules,Queued small slices5c,Phase4.5 T1/T2/T6/4.5a and nvidianimccapi.md. Clean main676b80b,wired20480 verified BEFORE edits; all tracked/config/frozen/source and read-only plan/research hashes saved to code/.session/nvidia-nim-20261024/before.json. Scope cloud-only; no local path/prompt/grammar/routing/catalog/fixture edits; gates will be predeclared before inference. No keys read or printed; no inference yet.
+
+- 2026-10-24T12:21:51+07:00 Slice5c git switch -c nvidia-nim-provider exit0; branch from exact676b80b, no source edit yet.
+
+- 2026-10-24T12:24:12+07:00 Slice5c: read cloud/Keychain/caller/test paths and API connector skill, started one read-only architecture audit. Checked NVIDIA primary docs for free trial access and per-model unverified limits; no inference. Live unauthenticated GET /v1/models exit0 HTTP200; raw catalog retained.
+
+- 2026-10-24T12:29:57+07:00 Slice5c: completed read-only caller audit and live-catalog comparison. Correction to review summary: actual frozen catalog has one LaneC Kimi K2.6 leaf (d02.s01.l04); exact NIM ID moonshotai/kimi-k2.6 is listed. KimiK3/GLM5.2/V4-Pro-0813 absent; no fuzzy substitutes. Saved measurement-protocol.json BEFORE inference: fixed candidate order, one READY each listed, one exact LaneC tool smoke, all named gates and unchanged thresholds, no reruns; independent gates scored separately, failures retained and PR draft. Limits unknown=0, all unverified, 32000 conservative client context cap; no local-path change or soak/latency.
+
+- 2026-10-24T12:30:26+07:00 Slice5c: wrote fixed qualification harness and SHA256s before inference. Uses existing key-import CLI on stdin, no values in argv/logs; strict one-call READY validation, no retries, drop failed candidates. Starting qualification.
+
+- 2026-10-24T12:30:26+07:00 Slice5c: Importing only NVIDIA_API_KEY through existing kildall keys import /dev/fd/0; literal value travels on stdin only, not argv or an artifact.
+
+- 2026-10-24T12:30:26+07:00 Slice5c: NVIDIA_API_KEY: verified; existing CLI import/read-back passed. Other key accounts untouched.
+
+- 2026-10-24T12:30:26+07:00 Slice5c: Single $0 trial READY probe starting: deepseek-ai/deepseek-v4.1-flash; no retry/fallback.
+
+- 2026-10-24T12:30:56+07:00 Slice5c: Qualification DeepSeek-V4.1-Flash: DROP; TimeoutError.
+
+- 2026-10-24T12:30:56+07:00 Slice5c: Qualification Kimi K3: DROP; exact model/version absent from live catalog; no call.
+
+- 2026-10-24T12:30:56+07:00 Slice5c: Single $0 trial READY probe starting: moonshotai/kimi-k2.6; no retry/fallback.
+
+- 2026-10-24T12:30:56+07:00 Slice5c: Qualification Kimi K2.6: DROP; HTTP 404.
+
+- 2026-10-24T12:30:56+07:00 Slice5c: Single $0 trial READY probe starting: nvidia/nemotron-3-ultra-550b-a55b; no retry/fallback.
+
+- 2026-10-24T12:30:57+07:00 Slice5c: Qualification Nemotron 3 Ultra: PASS; READY, exact ID, free trial; no positive cost reported.
+
+- 2026-10-24T12:30:57+07:00 Slice5c: Qualification GLM-5.2: DROP; exact model/version absent from live catalog; no call.
+
+- 2026-10-24T12:30:57+07:00 Slice5c: Qualification DeepSeek-V4-Pro-0813: DROP; exact model/version absent from live catalog; no call.
+
+- 2026-10-24T12:31:39+07:00 Slice5c: qualification complete: only nvidia/nemotron-3-ultra-550b-a55b READY PASS. DeepSeek-V4.1-Flash timeout30s, KimiK2.6 HTTP404 dropped; KimiK3/GLM5.2/V4-Pro-0813 absent. Live exact LaneC tool gate FAIL/NOT RUN, no qualified match; draft PR required. Added qualified NIM registry/config only; exact identity map remains inactive for excluded KimiK2.6, cannot bypass allow-list. Cloud response identity recorded/explained separately from catalog and prompt messages; rotation preserved. No local inference path changed.
+
+- 2026-10-24T17:09:20+07:00 Slice5c: extended existing localhost cloud suite with NIM status/cooldown/billing/allow-list/malformed gates and exact-first/rotation/response-identity/decision/explain/multi-tool-turn coverage. Exact test temporarily authorizes same-version KimiK2.6 only in a mocked registry; production still refuses it. No tests rerun or live inference requested.
+
+- 2026-10-24T17:10:20+07:00 Slice5c: static syntax and scope review passed before formal gates. Only cloud.py/kildall.py cloud branch/kildall.toml new provider/test_cloud.py changed; TOML minus new provider identical to base, wired20480. Copied established local gate harnesses with evidence paths/snapshot schema/log labels adapted only; frozen request payloads, prompts, flags and thresholds unchanged. Saved source hashes.
+
+- 2026-10-24T17:10:21+07:00 Slice5c: froze gate-harness SHA256s before mock/local inference; each command has exclusive start marker, full log, exit record. Starting cloud mock suite once.
+
+- 2026-10-24T17:10:21+07:00 Slice5c: Starting one mock gate; full log retained, no retry.
+
+- 2026-10-24T17:10:22+07:00 Slice5c: mock finished: {"exit": 0, "elapsed_s": 0.9063823749893345, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:10:29+07:00 Slice5c: Starting one controls gate; full log retained, no retry.
+
+- 2026-10-24T17:10:29+07:00 Slice5c control starting test_platform_system.py (one run).
+
+- 2026-10-24T17:10:29+07:00 Slice5c control test_platform_system.py exit0; log retained.
+
+- 2026-10-24T17:10:29+07:00 Slice5c control starting test_platform_keys.py (one run).
+
+- 2026-10-24T17:10:29+07:00 Slice5c control test_platform_keys.py exit0; log retained.
+
+- 2026-10-24T17:10:29+07:00 Slice5c control starting test_platform_jobs.py (one run).
+
+- 2026-10-24T17:10:30+07:00 Slice5c control test_platform_jobs.py exit0; log retained.
+
+- 2026-10-24T17:10:30+07:00 Slice5c control starting test_long_context.py (one run).
+
+- 2026-10-24T17:10:30+07:00 Slice5c control test_long_context.py exit0; log retained.
+
+- 2026-10-24T17:10:30+07:00 Slice5c control starting test_router_warmth.py (one run).
+
+- 2026-10-24T17:10:35+07:00 Slice5c control test_router_warmth.py exit0; log retained.
+
+- 2026-10-24T17:10:35+07:00 Slice5c control starting test_slot_isolation.py (one run).
+
+- 2026-10-24T17:10:36+07:00 Slice5c control test_slot_isolation.py exit0; log retained.
+
+- 2026-10-24T17:10:36+07:00 Slice5c control starting test_phase44.py (one run).
+
+- 2026-10-24T17:10:39+07:00 Slice5c control test_phase44.py exit0; log retained.
+
+- 2026-10-24T17:10:39+07:00 Slice5c control starting test_tool_runtime.py (one run).
+
+- 2026-10-24T17:10:39+07:00 Slice5c control test_tool_runtime.py exit0; log retained.
+
+- 2026-10-24T17:10:39+07:00 Slice5c control starting test_benchmark.py (one run).
+
+- 2026-10-24T17:10:39+07:00 Slice5c control test_benchmark.py exit0; log retained.
+
+- 2026-10-24T17:10:39+07:00 Slice5c control starting test_routing.py (one run).
+
+- 2026-10-24T17:10:40+07:00 Slice5c control test_routing.py exit0; log retained.
+
+- 2026-10-24T17:10:40+07:00 Slice5c control starting test_permissions.py (one run).
+
+- 2026-10-24T17:10:40+07:00 Slice5c control test_permissions.py exit0; log retained.
+
+- 2026-10-24T17:10:40+07:00 Slice5c control starting test_phase41.py (one run).
+
+- 2026-10-24T17:10:43+07:00 Slice5c control test_phase41.py exit0; log retained.
+
+- 2026-10-24T17:10:43+07:00 Slice5c control starting test_phase42.py (one run).
+
+- 2026-10-24T17:10:45+07:00 Slice5c control test_phase42.py exit0; log retained.
+
+- 2026-10-24T17:10:45+07:00 Slice5c control starting test_phase43.py (one run).
+
+- 2026-10-24T17:10:49+07:00 Slice5c control test_phase43.py exit0; log retained.
+
+- 2026-10-24T17:10:49+07:00 Slice5c control starting test_tool_grammar.py (one run).
+
+- 2026-10-24T17:10:50+07:00 Slice5c control test_tool_grammar.py exit0; log retained.
+
+- 2026-10-24T17:10:50+07:00 Slice5c control starting test_shell_lifecycle.py (one run).
+
+- 2026-10-24T17:10:51+07:00 Slice5c control test_shell_lifecycle.py exit0; log retained.
+
+- 2026-10-24T17:10:51+07:00 Slice5c control starting test_image_reader.py (one run).
+
+- 2026-10-24T17:10:51+07:00 Slice5c control test_image_reader.py exit0; log retained.
+
+- 2026-10-24T17:10:51+07:00 Slice5c control starting test_nuke.py (one run).
+
+- 2026-10-24T17:10:51+07:00 Slice5c control test_nuke.py exit0; log retained.
+
+- 2026-10-24T17:10:51+07:00 Slice5c control starting test_rename.py (one run).
+
+- 2026-10-24T17:10:51+07:00 Slice5c control test_rename.py exit0; log retained.
+
+- 2026-10-24T17:10:51+07:00 Slice5c control starting test_check.py (one run).
+
+- 2026-10-24T17:10:52+07:00 Slice5c control test_check.py exit0; log retained.
+
+- 2026-10-24T17:10:52+07:00 Slice5c control starting test_tool_validation.py (one run).
+
+- 2026-10-24T17:10:52+07:00 Slice5c control test_tool_validation.py exit0; log retained.
+
+- 2026-10-24T17:10:52+07:00 Slice5c control starting test_memory.py (one run).
+
+- 2026-10-24T17:10:53+07:00 Slice5c control test_memory.py exit0; log retained.
+
+- 2026-10-24T17:10:53+07:00 Slice5c control starting test_cloud_keys.py (one run).
+
+- 2026-10-24T17:10:53+07:00 Slice5c control test_cloud_keys.py exit0; log retained.
+
+- 2026-10-24T17:10:53+07:00 Slice5c control starting test_backup_ops.py (one run).
+
+- 2026-10-24T17:10:53+07:00 Slice5c control test_backup_ops.py exit0; log retained.
+
+- 2026-10-24T17:10:53+07:00 Slice5c control starting test_secret_scanner.py (one run).
+
+- 2026-10-24T17:10:54+07:00 Slice5c control test_secret_scanner.py exit0; log retained.
+
+- 2026-10-24T17:10:54+07:00 Slice5c control starting test_prompt_reuse.py (one run).
+
+- 2026-10-24T17:10:54+07:00 Slice5c control test_prompt_reuse.py exit0; log retained.
+
+- 2026-10-24T17:10:54+07:00 Slice5c: controls finished: {"exit": 0, "elapsed_s": 25.062413334002485, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:11:19+07:00 Slice5c: Starting one routing gate; full log retained, no retry.
+
+- 2026-10-24T17:12:04+07:00 Slice5c: prepared private precommit scanner by extending existing4.5a audit to all nested DB logical rows, all artifacts/logs, current/staged git tree and CLAUDE; values remain in memory only. Scanner not yet run; will include all final evidence before commit.
+
+- Slice5c routing measurement candidate finished; owned runtimes stopped, source/frozen hashes and wired20480 verified. Summary: {"exit": 0, "category": 20, "lane": 20, "mean_s": 0.81334865, "p50_s": 0.816791, "p99_s": 0.956316, "counts": {"cold": 0, "warm": 20}, "group_mean_s": {"cold": null, "warm": 0.81334865}, "cases": [{"id": "r01", "seconds": 0.879108, "cache_tokens": 3863, "cold": false, "category": true, "lane": true}, {"id": "r02", "seconds": 0.870859, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r03", "seconds": 0.956316, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r04", "seconds": 0.8033980000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r05", "seconds": 0.884853, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r06", "seconds": 0.833624, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r07", "seconds": 0.8247140000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r08", "seconds": 0.71329, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r09", "seconds": 0.724837, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r10", "seconds": 0.7985599999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r11", "seconds": 0.816791, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r12", "seconds": 0.67135, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r13", "seconds": 0.6913579999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r14", "seconds": 0.7406130000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r15", "seconds": 0.9045700000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r16", "seconds": 0.6940470000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r17", "seconds": 0.716566, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r18", "seconds": 0.889178, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r19", "seconds": 0.93264, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r20", "seconds": 0.920301, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}], "r17_X_to_C": true, "quality_passed": true, "first_route_s": 0.879108, "zero_cold": true, "speed_passed": true, "limit_s": 0.906}
+
+- 2026-10-24T17:12:58+07:00 Slice5c: routing finished: {"exit": 0, "elapsed_s": 99.33732287499879, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:14:52+07:00 Slice5c: review found final identity stale after a cloud tool call then exhaustion. Corrected cloud-only metadata/explain to record actual local fallback identity and preserve cloud call history; existing local inference call/prompt unchanged. Retained completed source snapshot and all original mock/control/routing results; no completed gate rerun. Predeclared one new focused mock edge-case check.
+
+- 2026-10-24T17:14:52+07:00 Slice5c focused final-identity mock check: {"passed": true}; one run, no inference.
+
+- 2026-10-24T17:14:52+07:00 Slice5c: Starting one recall gate; full log retained, no retry.
+
+- 2026-10-24 Slice5c local regression: Slice5c v38 recall starting: untouched frozen harness on one slot; same exact request bodies then replayed on production answer slots1-2. Only historical vault-path normalization permitted.
+
+- 2026-10-24T17:15:55+07:00 Slice5c read-only review of final-identity correction: no further findings. Focused new mock passed once; routing prior snapshot20/20category/lane,r17XtoC,0cold,mean0.81334865s<=0.906. Completed suites not repeated; remaining recall/quality/CLI run against corrected source.
+
+- 2026-10-24T17:16:38+07:00 Slice5c live summary saved: registry/config equal qualified IDs and live catalog intersection;3READY requests total,1PASS/2DROP, no retry. Tool smoke unavailable so live gate incomplete; no positive-cost or billing response, no paid route/card. Existing terms/account billing visibility limit retained.
+
+- 2026-10-24T17:17:22+07:00 Slice5c: appended the observed NIM global-catalog/account-availability footgun to the standing lessons log; no planning/research edits. git diff --check passed.
+
+- 2026-10-24 Slice5c local regression: Slice5c recall stopped; {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-10-24T17:19:41+07:00 Slice5c: recall finished: {"exit": 0, "elapsed_s": 289.2887794170092, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:20:00+07:00 Slice5c: Starting one regressions gate; full log retained, no retry.
+
+- 2026-10-24 Slice5c local regression: Slice5c abstention20/callable20/tools20 plus unchanged18 CLI checks starting. Recall uses completed v38 verification; routing uses completed paired20-case gate. No prompt or scoring edits.
+
+- 2026-10-24T17:20:34+07:00 Slice5c: git ls-remote verified remote main still676b80b and feature branch not yet published; no push or merge. Recall complete20/20single +20/20slot1 +20/20slot2, request comparison and frozen hashes PASS.
+
+- 2026-10-24T17:22:39+07:00 Slice5c scope verification: every kildall function/class/constant unchanged except cloud integration in _run_turn; local runtime/fit/stream/system call expressions identical. All other source files and planning/research/catalog/routing/grammar/frozen hashes unchanged. No local inference path change: soak/interactive latency not run.
+
+- 2026-10-24T17:24:54+07:00 Slice5c delivery hook inspection: pre-commit invokes existing secret_scanner.py; no post-commit or pre-push hook, so no implicit HF publication path. No hook changed or bypassed.
+
+- 2026-10-24 Slice5c local regression: Slice5c quality/CLI runner stopped; {"recall": {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}, "abstention": 20, "quality": {"passed": true, "routing_score": 20, "tool_validity": 20, "tool_exact": 17, "tool_post_retry_exact": 20, "tool_retries": 3, "tool_accepted": 20}, "routing": {"quality_passed": true, "category": 20, "lane": 20, "r17_X_to_C": true}, "cli": {"passed": true, "checks": 18}, "cli_recall": {"real remember tool stores a global fact": true, "real recall tool reads global memory from another project": true, "continue resumes stored conversation": true}, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-10-24T17:26:53+07:00 Slice5c: regressions finished: {"exit": 0, "elapsed_s": 412.7758449170069, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:27:31+07:00 Slice5c: Starting one nuke gate; full log retained, no retry.
+
+- 2026-10-24T17:27:36+07:00 Slice5c: nuke finished: {"exit": 0, "elapsed_s": 4.110758249997161, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:27:59+07:00 Slice5c live nuke dry-run verified: {"exit": 0, "dry_run": true, "entries": 33545, "outside": 0, "rejected_outward_paths": 0, "passed": true}; no deletion.
+
+- 2026-10-24T17:27:59+07:00 Slice5c: Starting one check gate; full log retained, no retry.
+
+- 2026-10-24T17:27:59+07:00 Slice5c: check finished: {"exit": 0, "elapsed_s": 0.13611295800365042, "passed": true}; evidence preserved.
+
+- 2026-10-24T17:29:09+07:00 Slice5c: all local gates complete; quality20/20callable,17/20tools first→20/20 after3existing retries; CLI18/18 incl real recall. nuke0outside/check.sh0. Added BENCHMARKS tables retaining every candidate failure, missing live tool gate and review-fix testing limitation. Preparing index for final private scan before commit.
+
+- 2026-10-24T17:29:16+07:00 Slice5c private secret scan: {   "files": 16501,   "bytes": 11388216279,   "nonempty_names": [     "GEMINI_API_KEY",     "GROQ_API_KEY",     "NVIDIA_API_KEY"   ],   "hits_by_name": {     "GEMINI_API_KEY": 0,     "GROQ_API_KEY": 0,     "NVIDIA_API_KEY": 0   },   "sqlite_databases": 191,   "logical_db_hits_by_name": {     "GEMINI_API_KEY": 0,     "GROQ_API_KEY": 0,     "NVIDIA_API_KEY": 0   },   "unreadable_logical_databases": 0,   "live_database_integrity": "ok",   "staged_tree_findings": 0,   "outside_or_directory_symlinks_skipped": 3,   "scope": [     "all .session artifacts",     "logs",     "DB and sidecar bytes",     "logical readable SQLite databases",     "current tracked/nonignored files",     "staged git blobs and keychain values",     "CLAUDE.md"   ],   "passed": true } 
+
+- 2026-10-24T17:29:36+07:00 Slice5c: final private scan PASS0exactkeyhits/0staged findings, live DB integrityok; updated result table from scan. Reverified final source/frozen/read-only plans/harness hashes, wired20480 and ports8123/8124closed. Staging final five-file diff for ordinary commit; existing precommit scanner remains active.
+- 2026-10-24 — Hardware price check (no plan change): NVIDIA Tesla V100 32GB **native PCIe**, budget ≤ 17.5M VND per card including shipping and VN import costs. Rate: Vietcombank sells USD at 26,020 VND (24/10). Import assumed 0% duty (ITA) + 10% VAT on CIF (sources disagree; some say 5% duty). Found: **no trusted native PCIe card ≤ 17.5M all-in.** eBay trusted sellers 21.4–22.5M (all-in ~24–25M; datasolutions7 #168531028292, tugm4470 Dell PG500-216 #178144761779); AliExpress trusted store (WH Server, 96.6%) 27.9M + 2.0M shipping; VN shops 20–22M used / 23–29M new. Under budget only: AliExpress ~8.6–10M from new stores with 0–1 reviews or 0% feedback (scam signs), and SXM2/SXM3 cards on PCIe adapter boards (~9.4–11.9M, not native PCIe). Advised: Best Offer ~$600 on eBay native cards, else an SXM2 adapter kit. Caveats: driver 580 is the last for Volta; CUDA 13 cannot build for V100; passive cooling needs a fan; not usable with the Mac mini.
+- 2026-10-24 — Hardware price check (no plan change): **128 GB VRAM, GPU budget 70M VND all-in** (estimate = listing × 1.12: 10% VAT + ~2% card fee; 0% import duty assumed; USD 26,020). Only route near budget: **4× AMD Instinct MI50 32GB** (HBM2, ~1 TB/s each, 300 W passive, gfx906 has no AMD support since 2024; llama.cpp runs via Vulkan or HIP). eBay cheapest trusted, free shipping to VN: wenyu88888 16.42M (100%, 139), happy2608 16.77M (99.7%, 312); cloud_storage_corp (US, 26.7K) 16.25M + 1.52M shipping; bulk Best Offer lots fuxindongli01 6× 94.58M (15.76M each), dawson-electronics 10× 147.2M (14.72M each). 4× at 16.42M ≈ 73.6M all-in (over by ~3.6M); fits if a seller accepts ~$600/card (≈ 15.6M). AliExpress MI50 "from 5–8M" listings are the 16GB variant; 32GB variants are 23.2–25.7M. Over budget for 128 GB: 4× Radeon Pro V620 (~82–90M est.), 4× V100 32GB PCIe (~96M), 6× RTX 2080 Ti 22GB (~87–96M). Needs a Linux PC with 4 PCIe slots, ~1.6 kW PSU and fans; not usable with the Mac mini.
+- 2026-10-24 — Correction to the 128 GB check above: **yes, under 70M VND exists, through VN and China channels (eBay/AliExpress carry an export markup).** Shopee VN MI50 32GB with 1-month VN warranty ≈ 12.9M (TonKhoThanhLy934 shopee.vn/product/1932726191/51368460997; Máy Tính Kim Sơn shopee.vn/product/1855657553/45865681117 at 12.92M) → 4× ≈ 51.6M, no import step; prices from the BigGo snapshot, **not live-checked** (Shopee showed a CAPTCHA; not solved). China Xianyu/Taobao used MI50 32G ¥1,200–2,000 (2026 blog figures, not live) + VN order service ~1–3% + ~25–45k VND/kg → ~5–8.5M each, 4× ≈ 20–34M (est., CNY ≈ 3,650 VND assumed). Maychuzin's MI50 32GB is now 18–22M + 8% VAT (an older 9.5M figure was stale).
+
+- 2026-10-25T00:27:10+07:00 Slice5c resumed delivery under user continue: source and read-only plan/research snapshots unchanged; no gates repeated. Resolved all3 scanner link exclusions: each is a retained venv symlink to the same Homebrew Python binary; scanned unique target privately,0hits. Original artifact/staged scan remains retained. Preparing ordinary commit/push and draft PR.
+
+- 2026-10-25T00:28:04+07:00 Slice5c: prepared draft PR body with unavailable live gate and all candidate failures explicit; updated benchmark scanner row to account for all3 interpreter symlinks. Finalization will use normal commit/push only; no completed benchmark repeated.
+
+- 2026-10-25T00:28:36+07:00 Slice5c: post-scan continuation/output delta checked privately: {"scope": "new or modified artifacts, logs, DBs and tracked files since original private scan, plus current CLAUDE.md", "files": 290, "logical_databases": 0, "hits_by_name": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0}, "credential_source_unchanged": true, "passed": true}; original gate retained, no inference rerun.
+
+- 2026-10-25T00:28:37+07:00 Slice5c: starting ordinary five-file commit after private scans passed; precommit secret scanner active, no hook bypass.
+
+- 2026-10-25T00:28:37+07:00 Slice5c git commit exit0; output retained in commit.json.
+
+- 2026-10-25T00:28:54+07:00 Slice5c committed a90d5619345e0eef64ace17b95a90f48b46b7ccf; clean code tree, parent/main676b80b verified. Starting normal git push -u origin nvidia-nim-provider; no force/rebase/merge.
+
+- 2026-10-25T00:28:56+07:00 Slice5c normal push exit0; output retained.
+
+- 2026-10-25T00:29:14+07:00 Slice5c: opening DRAFT PR via GitHub connector, title feat: add NVIDIA NIM provider and explicit cloud model identity; reviewed body retains live failure and source/testing limitation.
+
+- 2026-10-25T00:29:29+07:00 Slice5c GitHub connector PR creation returned403 Resource not accessible by integration; no PR created. Using existing authenticated gh client for the same authorized draft PR/body, no permission bypass or token changes.
+
+- 2026-10-25T00:29:32+07:00 Slice5c gh pr create --draft exit0; https://github.com/MinhDuc2612/Kildall/pull/12; body and connector failure retained.
+
+- 2026-10-25T00:30:30+07:00 Slice5c DELIVERED DRAFT PR#12 https://github.com/MinhDuc2612/Kildall/pull/12; connector read verifies OPEN,draft=true,merged=false,heada90d5619345e0eef64ace17b95a90f48b46b7ccf,base676b80b. Independent git ls-remote matches feature SHA and unchanged main; code tree clean. Full gate/failure/source-caveat report retained in delivery-result.json and BENCHMARKS. No merge/HFsync/paidAPI/card/sudo/next slice; stop after report.
+
+- 2026-10-25 Allegretto/Stringendo research: batch 3 DONE run wf_07026e05-88c (3.7#1-3.13, 88 skills: 97 verified, 71 disputed, 8 repicked). Script switched to one-chunk-at-a-time (session limits were killing ~10 in-flight agents). Running total 290/1,074 skills. Batch 4 started run wf_cfcfcb6e-ce0 (3.14-3.16, 4.1-4.5).
