@@ -1,0 +1,35 @@
+{
+  "id": "shell-poll-completion",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Polling a background command occasionally reports it as interrupted just as it finishes, discarding the completed output.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_shell_lifecycle.py",
+    "test_phase41.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "shell_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+    "provenance": "documented_precommit",
+    "path": "shell_tools.py",
+    "evidence": "BENCHMARKS.md:1616-1618 shell poll completion race",
+    "fixed_hunk_sha256": "21d669bb70bd96cacd66ce89eac1796ebfff41afe98ecbaeb8e8d5e1f5776b3f"
+  },
+  "selection_frozen": false
+}

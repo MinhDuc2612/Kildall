@@ -1,0 +1,34 @@
+{
+  "id": "unsupported-keys-diagnostic",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "On an unsupported operating system, importing credentials reports a generic credential failure, so I cannot tell that the secure store is unavailable.",
+  "difficulty": "easy",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_platform_keys.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "kildall.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "75c13f92762695b61f51f3bdeb9518e98e79b084",
+    "provenance": "documented_precommit",
+    "path": "kildall.py",
+    "evidence": "BENCHMARKS.md:2493 unsupported key CLI diagnostic correction",
+    "fixed_hunk_sha256": "976095bc4ba72351560715cc73941274cd1af056c32e4ae558f8aa32acac1e3f"
+  },
+  "selection_frozen": false
+}

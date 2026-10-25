@@ -1,0 +1,11 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -490,7 +490,7 @@
+ def nuke_database(root=CODE_ROOT):
+     guard_path(root, root)
+     path = Path(root) / "kildall.db"
+-    for suffix in ("", "-wal", "-shm", "-journal"):
++    for suffix in ("",):
+         candidate = Path(str(path) + suffix)
+         guard_path(candidate, root)
+         if os.path.lexists(candidate):

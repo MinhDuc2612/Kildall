@@ -1,0 +1,11 @@
+--- a/cloud.py
++++ b/cloud.py
+@@ -105,8 +105,6 @@
+         if content is not None and type(content) is not str:
+             raise ValueError()
+         calls = message.get('tool_calls', [])
+-        if calls is None:
+-            calls = []  # OpenAI-compatible nullable field: no tool call was emitted.
+         if not isinstance(calls, list) or len(calls) > 1:
+             raise ValueError()
+         if calls:

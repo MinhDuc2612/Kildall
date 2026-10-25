@@ -1,0 +1,11 @@
+--- a/kildall.py
++++ b/kildall.py
+@@ -388,8 +388,6 @@
+         self.lock = threading.RLock()
+         with database(path) as db:
+             db.execute("BEGIN IMMEDIATE")
+-            if not db.execute("SELECT 1 FROM orbi_sessions WHERE id=?", (session,)).fetchone():
+-                raise RuntimeError("Session no longer exists; start a new session after restoring")
+             if parent is None and db.execute("SELECT 1 FROM orbi_tasks WHERE session=? AND outcome IS NULL", (session,)).fetchone():
+                 raise RuntimeError("This session is active in another process")
+             if parent is not None:

@@ -1,0 +1,11 @@
+--- a/subagents.py
++++ b/subagents.py
+@@ -290,7 +290,7 @@
+         with decision(self.parent.path, self.project, operation, args, child['task'].id,
+                       requested=self.requested, hooks=self.hooks) as record:
+             record['memory_capability'] = self.memory
+-            if automatic and operation == '_agent_memory':
++            if operation == '_agent_memory':
+                 record['transcript_capability'] = True
+             result = execute(operation, args, record, self.project)
+             if 'memory_text' in record:

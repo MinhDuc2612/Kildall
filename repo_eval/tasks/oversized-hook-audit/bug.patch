@@ -1,0 +1,14 @@
+--- a/hooks.py
++++ b/hooks.py
+@@ -121,9 +121,9 @@
+                         parent=record['id'], event=event)
+         result = None
+         try:
++            if len(encoded) > 65536:
++                raise ValueError('Hook input exceeds 64 KiB')
+             with decision(record['db_path'], project, '_hook', metadata, record['task']) as child:
+-                if len(encoded) > 65536:
+-                    raise ValueError('Hook input exceeds 64 KiB')
+                 # Capability stays in process memory; a model/CLI JSON argument
+                 # cannot populate this record or create executable hook authority.
+                 child['hook_capability'] = (source, [phase, operation, encoded,

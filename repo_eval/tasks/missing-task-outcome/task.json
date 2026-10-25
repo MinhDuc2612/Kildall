@@ -1,0 +1,34 @@
+{
+  "id": "missing-task-outcome",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A completed task appears successful even though its final outcome was not saved because its row disappeared.",
+  "difficulty": "easy",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_cli.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "kildall.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+    "provenance": "git_parent",
+    "path": "orbi.py",
+    "evidence": "Public commit e638df0 and its lost-row regressions",
+    "fixed_hunk_sha256": "2099d74c3b67723f04029fb4ba201012264f7b44533734bfdd12054954c2983e"
+  },
+  "selection_frozen": false
+}

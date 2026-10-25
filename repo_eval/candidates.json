@@ -1,0 +1,3139 @@
+{
+  "selection_frozen": false,
+  "candidates": [
+    {
+      "id": "action-background-outcome",
+      "source_fix": {
+        "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+        "provenance": "git_parent",
+        "path": "permissions.py",
+        "evidence": "Public commit 32de78d preserves background and terminal shell statuses",
+        "fixed_hunk_sha256": "cd624f4fc96f139ebd28b01634db825e8d414e43ff4a7f3c37e1ecd09e40a6a6"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/action-background-outcome",
+      "task": "tasks/action-background-outcome/task.json",
+      "issue": "Starting a background command immediately marks the action done in the audit log, before the worker has completed.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "child-background-outcome",
+      "source_fix": {
+        "commit": "3b6b8908eb5337c9d5b6fe58601da8835e2bea5c",
+        "provenance": "documented_precommit",
+        "path": "subagents.py",
+        "evidence": "BENCHMARKS.md:2014 retained background false-success regression",
+        "fixed_hunk_sha256": "1c38da7d79b6348a4c78f569206aaa7c2eccb9ca83eebb8ce104c231ed149e93"
+      },
+      "files": [
+        "subagents.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/child-background-outcome",
+      "task": "tasks/child-background-outcome/task.json",
+      "issue": "A child reports success after returning while its background work is still running, even though cleanup then cancels that work.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 1,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 1,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "cloud-anonymous-key",
+      "source_fix": {
+        "commit": "10bad9b228d486da1de3914a748ecdd715bdf1de",
+        "provenance": "documented_precommit",
+        "path": "cloud.py",
+        "evidence": "BENCHMARKS.md:2251; CLAUDE.md cloud anonymous None-key correction",
+        "fixed_hunk_sha256": "01805e937328314944ef1f1e9bb456dbd750bfdcd66e87331300fca11e71f857"
+      },
+      "files": [
+        "cloud.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/cloud-anonymous-key",
+      "task": "tasks/cloud-anonymous-key/task.json",
+      "issue": "Anonymous cloud access crashes even though this provider permits requests without an account token.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "cloud-duplicate-fields",
+      "source_fix": {
+        "commit": "10bad9b228d486da1de3914a748ecdd715bdf1de",
+        "provenance": "documented_precommit",
+        "path": "cloud.py",
+        "evidence": "BENCHMARKS.md:2251",
+        "fixed_hunk_sha256": "4e9f754895598a2cee3a146626aea2954817507a33c364d6f894d245dda4576f"
+      },
+      "files": [
+        "cloud.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/cloud-duplicate-fields",
+      "task": "tasks/cloud-duplicate-fields/task.json",
+      "issue": "A cloud response with conflicting repeated fields is accepted, leaving it unclear which value was actually authorized.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "cloud-null-calls",
+      "source_fix": {
+        "commit": "10bad9b228d486da1de3914a748ecdd715bdf1de",
+        "provenance": "documented_precommit",
+        "path": "cloud.py",
+        "evidence": "BENCHMARKS.md:2251",
+        "fixed_hunk_sha256": "b170b7446e367b0fbbb29a6228b54ffc256871f6d5172f624bccda8a13bee88a"
+      },
+      "files": [
+        "cloud.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/cloud-null-calls",
+      "task": "tasks/cloud-null-calls/task.json",
+      "issue": "A free cloud response contains a normal text answer, but the assistant rejects it as malformed instead of showing the answer.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "disabled-interval-clock",
+      "source_fix": {
+        "commit": "10bad9b228d486da1de3914a748ecdd715bdf1de",
+        "provenance": "documented_precommit",
+        "path": "cloud.py",
+        "evidence": "BENCHMARKS.md:2245 retained disabled-interval clock rewind regression",
+        "fixed_hunk_sha256": "6ae6063a5155bb1c23a9ee584b0087e812d23466538aca0bc65fac60d8493f31"
+      },
+      "files": [
+        "cloud.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/disabled-interval-clock",
+      "task": "tasks/disabled-interval-clock/task.json",
+      "issue": "A clock correction prevents cloud requests even though the minimum request interval is disabled and no quota or cooldown is active.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "explain-never-policy",
+      "source_fix": {
+        "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+        "provenance": "documented_correct_behavior",
+        "path": "permissions.py",
+        "evidence": "BENCHMARKS.md Phase3 empty-system Never and deliberate computer guard"
+      },
+      "files": [],
+      "difficulty": "medium",
+      "trap": true,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "explanation",
+      "trap_kind": "no-code-change",
+      "validity": {
+        "silent_noop_fails": true,
+        "explanation_empty_diff_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/explain-never-policy",
+      "task": "tasks/explain-never-policy/task.json",
+      "issue": "I removed the system instructions for a computer-control request, but it is still refused as Never. Is this a bug, or should the behavior remain? Explain the outcome without changing working behavior.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": 1,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": 1,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "foreground-warm-lock",
+      "source_fix": {
+        "commit": "aef3d02ac2832931991355a02b044069a142aa9c",
+        "provenance": "documented_precommit",
+        "path": "router_warmth.py",
+        "evidence": "CLAUDE.md 2026-10-08 router warmth review: blocking foreground lock",
+        "fixed_hunk_sha256": "d525fc5534c796d170a5877721d66f3dc9528c28a06c76708493ea3fe14a549d"
+      },
+      "files": [
+        "router_warmth.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/foreground-warm-lock",
+      "task": "tasks/foreground-warm-lock/task.json",
+      "issue": "A foreground request can wait behind an idle maintenance lock, even though maintenance is meant to yield immediately.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      },
+      "source_adaptation": "aef3d02 uses fcntl.LOCK_SH | fcntl.LOCK_NB; the pinned base has the same operation as system().lock(exclusive=False, nonblocking=True). The patch removes only the nonblocking flag."
+    },
+    {
+      "id": "internal-transcript-capability",
+      "source_fix": {
+        "commit": "3b6b8908eb5337c9d5b6fe58601da8835e2bea5c",
+        "provenance": "documented_precommit",
+        "path": "subagents.py",
+        "evidence": "BENCHMARKS.md:2010",
+        "fixed_hunk_sha256": "547f143afb347a3f22297ec0a3493cebfacd7511bfb7ec0c40ca5c35a484de0b"
+      },
+      "files": [
+        "subagents.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/internal-transcript-capability",
+      "task": "tasks/internal-transcript-capability/task.json",
+      "issue": "A child can request an internal transcript operation directly and gain a write permission that was intended only for trusted automatic bookkeeping.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "local-common-directory",
+      "source_fix": {
+        "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+        "provenance": "documented_precommit",
+        "path": "permissions.py",
+        "evidence": "BENCHMARKS.md Phase3; CLAUDE.md 2026-09-21 commondir bypass correction",
+        "fixed_hunk_sha256": "88b17ca4534c88d06a16c5043f35f962ae6b00c4f5b6eeedfb23ece9dc7ede8e"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/local-common-directory",
+      "task": "tasks/local-common-directory/task.json",
+      "issue": "A repository can move its Git metadata outside the approved project through an indirection file, while ordinary guarded Git operations still accept it.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "metadata-case-alias",
+      "source_fix": {
+        "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+        "provenance": "documented_precommit",
+        "path": "permissions.py",
+        "evidence": "BENCHMARKS.md Phase3; CLAUDE.md 2026-09-21 case-insensitive .GIT bypass correction",
+        "fixed_hunk_sha256": "ccfa05348b53540aa4be1ca6c011cba24b8062c4f67d96ef0a70ed2589de641d"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/metadata-case-alias",
+      "task": "tasks/metadata-case-alias/task.json",
+      "issue": "On a case-insensitive disk, changing the capitalization of repository metadata lets an ordinary file write bypass the metadata restriction.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "missing-message-write",
+      "source_fix": {
+        "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+        "provenance": "git_parent",
+        "path": "orbi.py",
+        "evidence": "Public commit e638df0 and its lost-row regressions",
+        "fixed_hunk_sha256": "ec42a5fa199f37c1f2f0235ffb033c4aa3f3dc11e0651b78befe59ed7cadd545"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/missing-message-write",
+      "task": "tasks/missing-message-write/task.json",
+      "issue": "Editing a saved conversation message reports success even when the message is gone; the new text is lost.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "missing-session-admission",
+      "source_fix": {
+        "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+        "provenance": "git_parent",
+        "path": "orbi.py",
+        "evidence": "Public commit e638df0 and its test_cli regression",
+        "fixed_hunk_sha256": "c7eba79b99b624b6e6c9c64871ab769efddeff0ef379909cb562926a3b670326"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/missing-session-admission",
+      "task": "tasks/missing-session-admission/task.json",
+      "issue": "After restoring an older backup, continuing a session that no longer exists silently starts a new task with nowhere to save its history.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "missing-task-outcome",
+      "source_fix": {
+        "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+        "provenance": "git_parent",
+        "path": "orbi.py",
+        "evidence": "Public commit e638df0 and its lost-row regressions",
+        "fixed_hunk_sha256": "2099d74c3b67723f04029fb4ba201012264f7b44533734bfdd12054954c2983e"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/missing-task-outcome",
+      "task": "tasks/missing-task-outcome/task.json",
+      "issue": "A completed task appears successful even though its final outcome was not saved because its row disappeared.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "missing-task-state",
+      "source_fix": {
+        "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+        "provenance": "git_parent",
+        "path": "orbi.py",
+        "evidence": "Public commit e638df0 and its lost-row regressions",
+        "fixed_hunk_sha256": "7fe91092765187cfef130332d469c0c63e986175d9461c8aef8d29175de875b3"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/missing-task-state",
+      "task": "tasks/missing-task-state/task.json",
+      "issue": "A task reports a state change as saved after its database row has disappeared.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "nuke-sidecar-before-open",
+      "source_fix": {
+        "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+        "provenance": "documented_precommit",
+        "path": "permissions.py",
+        "evidence": "CLAUDE.md 2026-09-21 pre-initialization database/sidecar outward-symlink correction",
+        "fixed_hunk_sha256": "47a56bde42148b2908f6c9d21a2e68f16c8339882c1b723dd784cc5b49618dd4"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/nuke-sidecar-before-open",
+      "task": "tasks/nuke-sidecar-before-open/task.json",
+      "issue": "The dry-run audit may open a SQLite sidecar that points outside the deletion scope. It should refuse before opening the audit database.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "oversized-hook-audit",
+      "source_fix": {
+        "commit": "e257865bb57c189fbf40e8b8ec1c679e31a54c53",
+        "provenance": "documented_precommit",
+        "path": "hooks.py",
+        "evidence": "CLAUDE.md:1736 oversized-hook event audit correction",
+        "fixed_hunk_sha256": "fb860d2ef6d6dca0bfd9cdcce029518603192a7635b504742e22a06e8795343f"
+      },
+      "files": [
+        "hooks.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/oversized-hook-audit",
+      "task": "tasks/oversized-hook-audit/task.json",
+      "issue": "An oversized action result correctly stops a reporting hook, but the failed hook has no audit entry.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "partial-router-warm",
+      "source_fix": {
+        "commit": "aef3d02ac2832931991355a02b044069a142aa9c",
+        "provenance": "documented_precommit",
+        "path": "router_warmth.py",
+        "evidence": "CLAUDE.md 2026-10-08 router warmth review: partial-warm validity",
+        "fixed_hunk_sha256": "a803a7e71a3509c2ddcaf6c2529947e0bde99628bf318b337f31f115aaf8700a"
+      },
+      "files": [
+        "router_warmth.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/partial-router-warm",
+      "task": "tasks/partial-router-warm/task.json",
+      "issue": "Startup marks the router ready after only part of its prefix was evaluated, so the next request unexpectedly pays for a cold router.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "pdf-byte-boundary",
+      "source_fix": {
+        "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+        "provenance": "documented_precommit",
+        "path": "file_tools.py",
+        "evidence": "BENCHMARKS.md:1636-1653",
+        "fixed_hunk_sha256": "407402156e9ba1542b3a4bde0f98b18d8b16a7376e5ff7d70cdfab9c52df7e29"
+      },
+      "files": [
+        "file_tools.py"
+      ],
+      "difficulty": "medium",
+      "trap": true,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": "cross-file-cause",
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/pdf-byte-boundary",
+      "task": "tasks/pdf-byte-boundary/task.json",
+      "issue": "Reading a long PDF loses the last captured bytes when the output limit splits a non-ASCII character. The underlying capture still contains those bytes.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "post-hook-status",
+      "source_fix": {
+        "commit": "e257865bb57c189fbf40e8b8ec1c679e31a54c53",
+        "provenance": "documented_precommit",
+        "path": "permissions.py",
+        "evidence": "BENCHMARKS.md Phase4.3; CLAUDE.md:1726",
+        "fixed_hunk_sha256": "5d7cab44b6db2aca668d979ff6debb18705a515c5c342d6279542983d60c5378"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "hard",
+      "trap": true,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": "preserve-completed-action",
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/post-hook-status",
+      "task": "tasks/post-hook-status/task.json",
+      "issue": "A reporting hook fails after a background action has started, and the action itself is incorrectly recorded as failed.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "remote-hook-execution",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1682; BENCHMARKS.md Phase4.2 local receive-pack regression",
+        "fixed_hunk_sha256": "24fb65ec4d2aa15a64a62e01bd911d63f83500890014c7e2cd520c7d4ef049de"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/remote-hook-execution",
+      "task": "tasks/remote-hook-execution/task.json",
+      "issue": "Pushing to a local repository can unexpectedly execute a hook even though client hooks are disabled. Refuse that destination before transport.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "remote-macos-config",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1680; Phase4.2 first failed controls",
+        "fixed_hunk_sha256": "e43f78e36e0b10c9b1c67c60ffd54d6751e576c7c1abbc49b3d4a34a99d7531b"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/remote-macos-config",
+      "task": "tasks/remote-macos-config/task.json",
+      "issue": "A normal bare repository created on macOS is refused as unsafe even though it has no custom helpers or hooks.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "remote-metadata-redirect",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1700; BENCHMARKS.md Phase4.2 redirected stores regression",
+        "fixed_hunk_sha256": "2a8bc402d0f6db6e3e124a65405f82bfcbf1c432ae373fedf7b68d2789ac6974"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/remote-metadata-redirect",
+      "task": "tasks/remote-metadata-redirect/task.json",
+      "issue": "A local push destination can redirect its object storage outside the approved repository without using a symlink. The preview should not approve it.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "remote-symbolic-ref",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1700; BENCHMARKS.md Phase4.2 symbolic feature-ref regression",
+        "fixed_hunk_sha256": "5fc17b85067b0548a40abe181fa51fa36f90891c5e29a73cafdde9d378390103"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/remote-symbolic-ref",
+      "task": "tasks/remote-symbolic-ref/task.json",
+      "issue": "A destination branch advertised as a feature branch can redirect a push onto the protected main branch. It must be refused before any push.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "router-save-link",
+      "source_fix": {
+        "commit": "aef3d02ac2832931991355a02b044069a142aa9c",
+        "provenance": "documented_precommit",
+        "path": "router_warmth.py",
+        "evidence": "CLAUDE.md 2026-10-08 router warmth review: pending-save symlink exposure",
+        "fixed_hunk_sha256": "99e1aa748fb7f580e1fafc01339a4bf25d8b721dff03d93ef2ae0c4781b34ab9"
+      },
+      "files": [
+        "router_warmth.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/router-save-link",
+      "task": "tasks/router-save-link/task.json",
+      "issue": "Saving router startup state can overwrite another file if a leftover destination link already exists. Startup should refuse the destination before asking the server to save.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "scanner-word-boundary",
+      "source_fix": {
+        "commit": "69e83f270e165084daf9f928bcfa0bbf8df6d8b6",
+        "provenance": "documented_precommit",
+        "path": "secret_scanner.py",
+        "evidence": "BENCHMARKS.md:2353 retained scanner false positives",
+        "fixed_hunk_sha256": "55dd42812ad0eacda85ce3b19fbbd354448f3a1e95b51122bc224e8935dbc23a"
+      },
+      "files": [
+        "secret_scanner.py"
+      ],
+      "difficulty": "easy",
+      "trap": true,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": "correct-test-looks-wrong",
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/scanner-word-boundary",
+      "task": "tasks/scanner-word-boundary/task.json",
+      "issue": "A clean commit containing an ordinary long task identifier is rejected as a leaked credential. Credential detection must still work for actual token-shaped values.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "server-port-ownership",
+      "source_fix": {
+        "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+        "provenance": "git_parent",
+        "path": "orbi.py",
+        "evidence": "Public commit e638df0 runtime ownership fix",
+        "fixed_hunk_sha256": "f4a2462c934545a205e5034c51737b87ee4544f6c1b621436163430854dab4bc"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/server-port-ownership",
+      "task": "tasks/server-port-ownership/task.json",
+      "issue": "A runtime registry entry is treated as owned even when the matching process is serving the same model on a different port.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "shell-binary-output",
+      "source_fix": {
+        "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+        "provenance": "documented_precommit",
+        "path": "shell_tools.py",
+        "evidence": "BENCHMARKS.md:1636-1653 binary output and UTF-8 boundary capture correction",
+        "fixed_hunk_sha256": "6f9398cff383a7f6bbd88341c7e7cada32eaaf89eaf4a5c57be318d6ce84d147"
+      },
+      "files": [
+        "shell_tools.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/shell-binary-output",
+      "task": "tasks/shell-binary-output/task.json",
+      "issue": "Captured command output containing a non-UTF-8 byte is corrupted instead of being returned losslessly.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "shell-poll-completion",
+      "source_fix": {
+        "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+        "provenance": "documented_precommit",
+        "path": "shell_tools.py",
+        "evidence": "BENCHMARKS.md:1616-1618 shell poll completion race",
+        "fixed_hunk_sha256": "21d669bb70bd96cacd66ce89eac1796ebfff41afe98ecbaeb8e8d5e1f5776b3f"
+      },
+      "files": [
+        "shell_tools.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/shell-poll-completion",
+      "task": "tasks/shell-poll-completion/task.json",
+      "issue": "Polling a background command occasionally reports it as interrupted just as it finishes, discarding the completed output.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "submodule-worktree-diff",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1700 gitlink visibility and worktree diff review correction",
+        "fixed_hunk_sha256": "8e991191c112897d22c38c08dba4f339e98708eaccaba3282831b982481012ba"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "medium",
+      "trap": false,
+      "difficulty_estimate": "medium",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/submodule-worktree-diff",
+      "task": "tasks/submodule-worktree-diff/task.json",
+      "issue": "A worktree diff can silently omit submodule changes, giving me an incomplete preview. Unsupported worktree inspection should fail clearly.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "switch-hidden-index",
+      "source_fix": {
+        "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+        "provenance": "documented_precommit",
+        "path": "git_tools.py",
+        "evidence": "CLAUDE.md:1700 hidden assume-unchanged and skip-worktree review correction",
+        "fixed_hunk_sha256": "2839e528577a5a391b5e2541cf2cd4512aa7444c5fb783b3f8f08ab45b62c587"
+      },
+      "files": [
+        "git_tools.py"
+      ],
+      "difficulty": "hard",
+      "trap": false,
+      "difficulty_estimate": "hard",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/switch-hidden-index",
+      "task": "tasks/switch-hidden-index/task.json",
+      "issue": "Switching branches accepts a supposedly clean working tree even when index flags hide local edits. The hidden edits must not be overwritten.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "terminal-nonseekable",
+      "source_fix": {
+        "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+        "provenance": "documented_precommit",
+        "path": "permissions.py",
+        "evidence": "BENCHMARKS.md:1484; real PTY confirmation failure",
+        "fixed_hunk_sha256": "846a5895730187353005c0041093e79dda9b8999af21b80954a21cfae02824b6"
+      },
+      "files": [
+        "permissions.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/terminal-nonseekable",
+      "task": "tasks/terminal-nonseekable/task.json",
+      "issue": "Approving a file edit from a real terminal fails with \u201cFile or stream is not seekable\u201d before I can enter my answer.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    },
+    {
+      "id": "unsupported-keys-diagnostic",
+      "source_fix": {
+        "commit": "75c13f92762695b61f51f3bdeb9518e98e79b084",
+        "provenance": "documented_precommit",
+        "path": "kildall.py",
+        "evidence": "BENCHMARKS.md:2493 unsupported key CLI diagnostic correction",
+        "fixed_hunk_sha256": "976095bc4ba72351560715cc73941274cd1af056c32e4ae558f8aa32acac1e3f"
+      },
+      "files": [
+        "kildall.py"
+      ],
+      "difficulty": "easy",
+      "trap": false,
+      "difficulty_estimate": "easy",
+      "selection_frozen": false,
+      "kind": "bug",
+      "trap_kind": null,
+      "validity": {
+        "buggy_fails": true,
+        "fixed_passes": true
+      },
+      "self_tests": {
+        "fix_agent_passes": true,
+        "no_op_fails": true,
+        "cheat_flagged": true
+      },
+      "accepted": true,
+      "evidence": ".session/repo-eval-20261025/validation-02/unsupported-keys-diagnostic",
+      "task": "tasks/unsupported-keys-diagnostic/task.json",
+      "issue": "On an unsupported operating system, importing credentials reports a generic credential failure, so I cannot tell that the secure store is unavailable.",
+      "outcomes": {
+        "buggy": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "fixed": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "fix-agent": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": 2,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "no-op": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 1,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        },
+        "cheat": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "executable": true,
+          "cheat": true,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 0,
+          "verify_exit": 1
+        }
+      }
+    }
+  ],
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_candidates": 32,
+  "extra_explanation_traps": 1,
+  "proposed_final_mix": {
+    "easy": 8,
+    "medium": 8,
+    "hard": 4
+  },
+  "model_inference": false,
+  "baseline_runs": 0,
+  "all_product_files_unchanged": true,
+  "validation_evidence": ".session/repo-eval-20261025/validation-02",
+  "retained_failures": [
+    {
+      "evidence": ".session/repo-eval-20261025/validation-01",
+      "finding": "30/31 accepted; cheat detector falsely flagged skip-worktree diagnostic in the real fix. Fixed AST detector; rejected result retained."
+    },
+    {
+      "evidence": ".session/repo-eval-20261025/controls/test_slot_isolation.py.log",
+      "finding": "Unchanged cancellation control raises JSONDecodeError on empty HTTP response; standing controls26/27, no rerun or source change."
+    }
+  ],
+  "next_run_plan": {
+    "fresh_copy_under": ".session",
+    "project_root": "task copy",
+    "cloud_enabled": false,
+    "lane": "A",
+    "caps": {
+      "tool_calls": 40,
+      "wall_seconds": 900
+    },
+    "requires_claude_candidate_review": true,
+    "selection_frozen": false
+  }
+}

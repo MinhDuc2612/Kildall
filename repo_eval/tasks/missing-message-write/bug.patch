@@ -1,0 +1,13 @@
+--- a/kildall.py
++++ b/kildall.py
+@@ -440,9 +440,7 @@
+             if message_id is None:
+                 return db.execute("INSERT INTO orbi_messages(session,task,payload) VALUES(?,?,?)",
+                                   (self.session, self.id, serialized)).lastrowid
+-            if db.execute("UPDATE orbi_messages SET payload=? WHERE id=? AND task=?",
+-                          (serialized, message_id, self.id)).rowcount != 1:
+-                raise RuntimeError("Message disappeared while saving its contents")
++            db.execute("UPDATE orbi_messages SET payload=? WHERE id=? AND task=?", (serialized,message_id,self.id))
+         return message_id
+ 
+     def inference(self, response):

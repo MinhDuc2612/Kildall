@@ -1,0 +1,34 @@
+{
+  "id": "disabled-interval-clock",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A clock correction prevents cloud requests even though the minimum request interval is disabled and no quota or cooldown is active.",
+  "difficulty": "easy",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_cloud.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "cloud.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "10bad9b228d486da1de3914a748ecdd715bdf1de",
+    "provenance": "documented_precommit",
+    "path": "cloud.py",
+    "evidence": "BENCHMARKS.md:2245 retained disabled-interval clock rewind regression",
+    "fixed_hunk_sha256": "6ae6063a5155bb1c23a9ee584b0087e812d23466538aca0bc65fac60d8493f31"
+  },
+  "selection_frozen": false
+}

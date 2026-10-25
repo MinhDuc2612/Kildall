@@ -1,0 +1,34 @@
+{
+  "id": "router-save-link",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Saving router startup state can overwrite another file if a leftover destination link already exists. Startup should refuse the destination before asking the server to save.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_router_warmth.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "router_warmth.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "aef3d02ac2832931991355a02b044069a142aa9c",
+    "provenance": "documented_precommit",
+    "path": "router_warmth.py",
+    "evidence": "CLAUDE.md 2026-10-08 router warmth review: pending-save symlink exposure",
+    "fixed_hunk_sha256": "99e1aa748fb7f580e1fafc01339a4bf25d8b721dff03d93ef2ae0c4781b34ab9"
+  },
+  "selection_frozen": false
+}

@@ -1,0 +1,35 @@
+{
+  "id": "nuke-sidecar-before-open",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "The dry-run audit may open a SQLite sidecar that points outside the deletion scope. It should refuse before opening the audit database.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_permissions.py",
+    "test_nuke.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "permissions.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+    "provenance": "documented_precommit",
+    "path": "permissions.py",
+    "evidence": "CLAUDE.md 2026-09-21 pre-initialization database/sidecar outward-symlink correction",
+    "fixed_hunk_sha256": "47a56bde42148b2908f6c9d21a2e68f16c8339882c1b723dd784cc5b49618dd4"
+  },
+  "selection_frozen": false
+}

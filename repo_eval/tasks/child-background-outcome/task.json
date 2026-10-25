@@ -1,0 +1,34 @@
+{
+  "id": "child-background-outcome",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A child reports success after returning while its background work is still running, even though cleanup then cancels that work.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase44.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "subagents.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "3b6b8908eb5337c9d5b6fe58601da8835e2bea5c",
+    "provenance": "documented_precommit",
+    "path": "subagents.py",
+    "evidence": "BENCHMARKS.md:2014 retained background false-success regression",
+    "fixed_hunk_sha256": "1c38da7d79b6348a4c78f569206aaa7c2eccb9ca83eebb8ce104c231ed149e93"
+  },
+  "selection_frozen": false
+}

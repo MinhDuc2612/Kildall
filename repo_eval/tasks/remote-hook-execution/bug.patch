@@ -1,0 +1,11 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -75,8 +75,6 @@
+             if not (entry.is_file() or entry.is_dir()):
+                 raise PermissionError('Remote metadata must be regular files or directories')
+             # Local receive-pack does not inherit the client's -c hooksPath setting.
+-            if entry.parent == path / 'hooks' and entry.is_file() and not entry.name.endswith('.sample'):
+-                raise PermissionError('Local remote hooks are unsupported')
+             if path / 'refs' in entry.parents and entry.is_file() and file_bytes(entry).startswith(b'ref:'):
+                 raise PermissionError('Symbolic remote refs can redirect a feature push and are forbidden')
+     config = subprocess.run([system().executable('git'), 'config', '--file', str(path / 'config'),

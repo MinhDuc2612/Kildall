@@ -1,0 +1,12 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -131,9 +131,6 @@
+             return dict(log=git(repo, 'log', '-20', '--no-show-signature', '--no-decorate',
+                 '--format=%h %s', '--').decode())
+         cached = args.get('staged', False)
+-        if not cached and (any(e.startswith(b'160000 ') for e in git(repo, 'ls-files', '--stage', '-z').split(b'\0'))
+-                           or any(e.startswith(b'160000 ') for e in git(repo, 'ls-tree', '-rz', 'HEAD').split(b'\0'))):
+-            raise PermissionError('Submodule worktree diff is unsupported; use staged diff for exact gitlink changes')
+         diff = git(repo, 'diff', *(['--cached'] if cached else []), *DIFF, 'HEAD', '--')
+         digest = hashlib.sha256(diff).hexdigest()
+         record['update'](preview=dict(repository=str(repo), staged=cached, diff_sha256=digest))

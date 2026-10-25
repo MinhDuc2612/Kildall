@@ -1,0 +1,34 @@
+{
+  "id": "oversized-hook-audit",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "An oversized action result correctly stops a reporting hook, but the failed hook has no audit entry.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase43.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "hooks.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "e257865bb57c189fbf40e8b8ec1c679e31a54c53",
+    "provenance": "documented_precommit",
+    "path": "hooks.py",
+    "evidence": "CLAUDE.md:1736 oversized-hook event audit correction",
+    "fixed_hunk_sha256": "fb860d2ef6d6dca0bfd9cdcce029518603192a7635b504742e22a06e8795343f"
+  },
+  "selection_frozen": false
+}
