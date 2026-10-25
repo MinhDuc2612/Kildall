@@ -1,0 +1,34 @@
+{
+  "id": "switch-hidden-index",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Switching branches accepts a supposedly clean working tree even when index flags hide local edits. The hidden edits must not be overwritten.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase42.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "git_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+    "provenance": "documented_precommit",
+    "path": "git_tools.py",
+    "evidence": "CLAUDE.md:1700 hidden assume-unchanged and skip-worktree review correction",
+    "fixed_hunk_sha256": "2839e528577a5a391b5e2541cf2cd4512aa7444c5fb783b3f8f08ab45b62c587"
+  },
+  "selection_frozen": false
+}

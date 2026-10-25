@@ -1,0 +1,11 @@
+--- a/secret_scanner.py
++++ b/secret_scanner.py
+@@ -13,7 +13,7 @@
+ 
+ 
+ ROOT = Path(__file__).resolve().parent
+-PATTERNS = tuple((name, re.compile(rb'(?<![A-Za-z0-9_-])' + pattern)) for name, pattern in (
++PATTERNS = tuple((name, re.compile(pattern)) for name, pattern in (
+     ('openai-pattern', rb'sk-[A-Za-z0-9_-]{12,}'),
+     ('groq-pattern', rb'gsk_[A-Za-z0-9_-]{12,}'),
+     ('google-pattern', rb'AIza[A-Za-z0-9_-]{20,}'),

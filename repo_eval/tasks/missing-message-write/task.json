@@ -1,0 +1,34 @@
+{
+  "id": "missing-message-write",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Editing a saved conversation message reports success even when the message is gone; the new text is lost.",
+  "difficulty": "easy",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_cli.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "kildall.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "e638df06b2490e2c29b0d8f249b6419c85bc1d49",
+    "provenance": "git_parent",
+    "path": "orbi.py",
+    "evidence": "Public commit e638df0 and its lost-row regressions",
+    "fixed_hunk_sha256": "ec42a5fa199f37c1f2f0235ffb033c4aa3f3dc11e0651b78befe59ed7cadd545"
+  },
+  "selection_frozen": false
+}

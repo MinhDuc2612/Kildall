@@ -1,0 +1,34 @@
+{
+  "id": "submodule-worktree-diff",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A worktree diff can silently omit submodule changes, giving me an incomplete preview. Unsupported worktree inspection should fail clearly.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase42.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "git_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+    "provenance": "documented_precommit",
+    "path": "git_tools.py",
+    "evidence": "CLAUDE.md:1700 gitlink visibility and worktree diff review correction",
+    "fixed_hunk_sha256": "8e991191c112897d22c38c08dba4f339e98708eaccaba3282831b982481012ba"
+  },
+  "selection_frozen": false
+}

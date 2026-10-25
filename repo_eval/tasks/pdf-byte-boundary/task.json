@@ -1,0 +1,35 @@
+{
+  "id": "pdf-byte-boundary",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Reading a long PDF loses the last captured bytes when the output limit splits a non-ASCII character. The underlying capture still contains those bytes.",
+  "difficulty": "medium",
+  "trap": true,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase41.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "file_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+    "provenance": "documented_precommit",
+    "path": "file_tools.py",
+    "evidence": "BENCHMARKS.md:1636-1653",
+    "fixed_hunk_sha256": "407402156e9ba1542b3a4bde0f98b18d8b16a7376e5ff7d70cdfab9c52df7e29"
+  },
+  "selection_frozen": false,
+  "trap_kind": "cross-file-cause"
+}

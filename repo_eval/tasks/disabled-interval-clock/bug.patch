@@ -1,0 +1,11 @@
+--- a/cloud.py
++++ b/cloud.py
+@@ -181,7 +181,7 @@
+                 if item.get(field, 0) and count >= item[field]:
+                     return None
+             latest = db.execute('SELECT max(created) FROM cloud_requests WHERE provider=?', (name,)).fetchone()[0]
+-            if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:
++            if latest and now - latest < item.get('min_interval_seconds', 0):
+                 return None
+             request_id = uuid.uuid4().hex
+             # Reserve before dispatch; a crash/timeout keeps the conservative debit.

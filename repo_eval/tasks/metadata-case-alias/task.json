@@ -1,0 +1,34 @@
+{
+  "id": "metadata-case-alias",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "On a case-insensitive disk, changing the capitalization of repository metadata lets an ordinary file write bypass the metadata restriction.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_permissions.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "permissions.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "a2415b66f22daac796ff90acfcdc6b16cd8801df",
+    "provenance": "documented_precommit",
+    "path": "permissions.py",
+    "evidence": "BENCHMARKS.md Phase3; CLAUDE.md 2026-09-21 case-insensitive .GIT bypass correction",
+    "fixed_hunk_sha256": "ccfa05348b53540aa4be1ca6c011cba24b8062c4f67d96ef0a70ed2589de641d"
+  },
+  "selection_frozen": false
+}

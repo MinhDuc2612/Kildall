@@ -1,0 +1,34 @@
+{
+  "id": "foreground-warm-lock",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A foreground request can wait behind an idle maintenance lock, even though maintenance is meant to yield immediately.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_router_warmth.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "router_warmth.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "aef3d02ac2832931991355a02b044069a142aa9c",
+    "provenance": "documented_precommit",
+    "path": "router_warmth.py",
+    "evidence": "CLAUDE.md 2026-10-08 router warmth review: blocking foreground lock",
+    "fixed_hunk_sha256": "d525fc5534c796d170a5877721d66f3dc9528c28a06c76708493ea3fe14a549d"
+  },
+  "selection_frozen": false
+}

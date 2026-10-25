@@ -1,0 +1,34 @@
+{
+  "id": "remote-symbolic-ref",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A destination branch advertised as a feature branch can redirect a push onto the protected main branch. It must be refused before any push.",
+  "difficulty": "hard",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase42.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "git_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+    "provenance": "documented_precommit",
+    "path": "git_tools.py",
+    "evidence": "CLAUDE.md:1700; BENCHMARKS.md Phase4.2 symbolic feature-ref regression",
+    "fixed_hunk_sha256": "5fc17b85067b0548a40abe181fa51fa36f90891c5e29a73cafdde9d378390103"
+  },
+  "selection_frozen": false
+}

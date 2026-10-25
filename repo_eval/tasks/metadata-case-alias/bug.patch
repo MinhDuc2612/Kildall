@@ -1,0 +1,11 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -358,7 +358,7 @@
+         fields(args, *(('path', 'old', 'new') if operation == "edit" else
+                        ('source', 'path') if operation == "install" else ('path', 'content')))
+         path = guard_path(args["path"])
+-        if ".git" in (part.casefold() for part in path.relative_to(CODE_ROOT).parts):
++        if ".git" in path.relative_to(CODE_ROOT).parts:
+             raise PermissionError("Git metadata may only be changed by the commit operation")
+         before = snapshot(path)
+         if operation == "edit":

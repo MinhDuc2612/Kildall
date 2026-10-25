@@ -1,0 +1,14 @@
+--- a/shell_tools.py
++++ b/shell_tools.py
+@@ -166,10 +166,7 @@
+             authorize(record, 'Auto')
+             result = json.loads(row['result']) if row['result'] else None
+             if result is None and process_start(row['pid']) != row['owner_start']:
+-                # Worker may have committed between our first read and the liveness check.
+-                db.execute("UPDATE orbi_permissions SET status='interrupted',reason='Worker ended without a result',updated=? WHERE id=? AND EXISTS (SELECT 1 FROM orbi_shell_jobs WHERE id=? AND result IS NULL)", (time.time(), row['id'], row['id']))
+-                row = db.execute('SELECT j.*, p.status FROM orbi_shell_jobs j JOIN orbi_permissions p ON j.id=p.id WHERE j.id=?', (row['id'],)).fetchone()
+-                result = json.loads(row['result']) if row['result'] else None
++                db.execute("UPDATE orbi_permissions SET status='interrupted',reason='Worker ended without a result',updated=? WHERE id=?", (time.time(), row['id']))
+                 if result is None:
+                     stop_owned_child(row['child_pid'], row['child_start'])
+             return dict(id=row['id'], status=row['status'], result=result)

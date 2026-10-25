@@ -1,0 +1,12 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -118,7 +118,8 @@
+ 
+ def terminal_confirm(preview, word="yes"):
+     # Never consume piped page/model content as approval. No --yes bypass exists.
+-    with open("/dev/tty", "r") as response, open("/dev/tty", "w") as terminal:
++    with open("/dev/tty", "r+") as response:
++        terminal = response
+         terminal.write(json.dumps(preview, ensure_ascii=True, indent=2) + "\n")
+         terminal.write(f"Type {word!r} to confirm: ")
+         terminal.flush()

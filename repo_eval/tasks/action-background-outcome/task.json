@@ -1,0 +1,35 @@
+{
+  "id": "action-background-outcome",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Starting a background command immediately marks the action done in the audit log, before the worker has completed.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase41.py",
+    "test_shell_lifecycle.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "permissions.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+    "provenance": "git_parent",
+    "path": "permissions.py",
+    "evidence": "Public commit 32de78d preserves background and terminal shell statuses",
+    "fixed_hunk_sha256": "cd624f4fc96f139ebd28b01634db825e8d414e43ff4a7f3c37e1ecd09e40a6a6"
+  },
+  "selection_frozen": false
+}

@@ -1,0 +1,35 @@
+{
+  "id": "shell-binary-output",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "Captured command output containing a non-UTF-8 byte is corrupted instead of being returned losslessly.",
+  "difficulty": "medium",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_shell_lifecycle.py",
+    "test_phase41.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "shell_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "32de78d0d92d58205c186cd8368db58ea0c6ae01",
+    "provenance": "documented_precommit",
+    "path": "shell_tools.py",
+    "evidence": "BENCHMARKS.md:1636-1653 binary output and UTF-8 boundary capture correction",
+    "fixed_hunk_sha256": "6f9398cff383a7f6bbd88341c7e7cada32eaaf89eaf4a5c57be318d6ce84d147"
+  },
+  "selection_frozen": false
+}

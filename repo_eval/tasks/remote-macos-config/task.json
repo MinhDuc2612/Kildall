@@ -1,0 +1,34 @@
+{
+  "id": "remote-macos-config",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A normal bare repository created on macOS is refused as unsafe even though it has no custom helpers or hooks.",
+  "difficulty": "easy",
+  "trap": false,
+  "hidden_test_files": [
+    ".repo_eval_verify.py",
+    "test_phase42.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "git_tools.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "c45a0921804497c400ec5d7d524e6e95a0368f66",
+    "provenance": "documented_precommit",
+    "path": "git_tools.py",
+    "evidence": "CLAUDE.md:1680; Phase4.2 first failed controls",
+    "fixed_hunk_sha256": "e43f78e36e0b10c9b1c67c60ffd54d6751e576c7c1abbc49b3d4a34a99d7531b"
+  },
+  "selection_frozen": false
+}

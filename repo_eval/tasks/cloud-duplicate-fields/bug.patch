@@ -1,0 +1,11 @@
+--- a/cloud.py
++++ b/cloud.py
+@@ -89,7 +89,7 @@
+ 
+     def invalid(value):
+         raise ValueError('Nonfinite JSON number')
+-    return json.loads(text, object_pairs_hook=unique, parse_constant=invalid)
++    return json.loads(text, parse_constant=invalid)
+ 
+ 
+ def validate_message(response, tools):
