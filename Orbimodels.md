@@ -158,7 +158,7 @@ runs for seconds, and unloads. Until the drive arrives, install selectively on t
 | 5 | Tool calling | `zai-org/GLM-5.3` | **744 B** | ~40B | **372 GB** | Custom *GLM-5.3* | **#2 tool calling (35.4).** 200K ctx |
 | 6 | Cheap reasoning | `zai-org/GLM-5.3-Flash` | **320 B** | 18B | **160 GB** | **MIT** | Shipped ahead of the flagship |
 | 7 | Cheap coding | `deepseek-ai/DeepSeek-V4-Flash-0731` ✅ | **284 B** | 13B | **142 GB** | **MIT** | 79.0% SWE-bench Verified at **1/6 the size** of V4-Pro. Production release 31 Jul 2026 |
-| 7b | Cheap coding — **newest** | `deepseek-ai/DeepSeek-V4.1-Flash` ✅ (2026-09-10) | **763 B** (HF API) | ⚠️ unpublished here | **~380 GB @4-bit** | **MIT** | 🔄 **Latest DeepSeek Flash (added 2026-10-13).** Too big to be resident on a 128 GB machine (~286 GB even at 3-bit) — use it **free via NVIDIA NIM** (verified live 2026-10-13) or as a Lane C model. ⚠️ HF API puts V4-Flash-0731 at **304 B**, not the 284 B above |
+| 7b | Cheap coding — **newest** | `deepseek-ai/DeepSeek-V4.1-Flash` ✅ (2026-09-10) | **763 B** (HF API) | ⚠️ unpublished here | **~380 GB @4-bit** | **MIT** | 🔄 **Latest DeepSeek Flash (added 2026-10-13).** Too big for a 128 GB machine (~286 GB even at 3-bit), but **v54 (2026-10-30): fits the reward server's 512 GB RAM + 64 GB VRAM** — a resident candidate there, speed unmeasured. Until then: **NVIDIA NIM** (live 2026-10-13; ⚠️ slice 5c on 2026-10-24: timed out once at 30 s, not qualified) or Lane C. ⚠️ HF API puts V4-Flash-0731 at **304 B**, not the 284 B above |
 | 8 | ⚠️ **Reasoning + tools** | `tencent/Hy4-preview` ⚠️ **PREVIEW** | **770 B** | **49B** | **385 GB** | **Apache-2.0** | **SWE-Bench Pro 65.7 · GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1.** 256 routed + 1 shared expert, top-8/token, 78 layers, 1M ctx, text-only. Ships a **built-in MTP layer** for speculative decoding. 🔴 **No GGUF or MLX — vLLM/SGLang on 8 GPUs. Cannot run on Metal today.** Released 2026-08-28 |
 
 ### ⚡ Lane C speed is NOT one number — it varies ~8× by model
@@ -518,3 +518,4 @@ three generations in six months.
   ceiling, so **two giants may co-reside — which is the precondition for cross-lane speculative
   decoding** (#1), the critic pass (#10) and ensembles (#12). Flagged as unverified: overhead decides
   it, not the active-param arithmetic.
+- **2026-10-30 (plan v54)** — Reward machine is now the Kildall server (MI210 64 GB HBM2e + 512 GB DDR4 on 8 channels + 8 TB NVMe). Row 7b: DeepSeek-V4.1-Flash (~380 GB at 4-bit) now fits that server's RAM + VRAM as a resident candidate, speed unmeasured; its NIM status corrected with slice 5c (timed out once, not qualified). No model added or removed.

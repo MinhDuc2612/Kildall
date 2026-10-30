@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v53 · 2026-10-20.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v54 · 2026-10-30.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -29,7 +29,8 @@ this file = how it gets built.
 | **Built by** | **you, via Codex (GPT-6 Astra)** — the only builder. **Claude (Opus 5.5)** writes design specs for judgment-heavy phases (4.5, 4C, 9.5, 9.11…) and reviews every slice before merge |
 | **Name** | ✅ **Kildall** — renamed from Orbi 2026-09-27 (code `70eb4e8`, repo `MinhDuc2612/Kildall`), after Gary Kildall (CP/M). `orbi` still works as a command alias for one release |
 | **Licence** | ✅ **MIT** — Orbi's own code. **Model weights keep their own licences** (see risk 9) |
-| **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — drive is 1+ month out** |
+| **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — waits for the reward server (its 8 TB NVMe is already bought)** |
+| **Reward machine** | ✅ **Kildall server (v54, 2026-10-30)** — AMD Instinct MI210 **64 GB HBM2e** (1.6 TB/s) + EPYC 7543P + **512 GB** DDR4-3200 on all 8 channels + 8 TB NVMe, Linux + ROCm. **Bought only if Kildall succeeds; cost is not a constraint** (user). Replaces the GMKtec EVO-X2. Full build: `server_build.md` |
 
 ---
 
@@ -374,36 +375,48 @@ on all three (Metal / CUDA / ROCm / Vulkan / CPU); ~90% of the code is portable 
    gate identical.**
 2. **Linux, then Windows via WSL2 — before the first paid client.** Each OS re-passes **every** gate on real
    hardware, **above all the Phase 3 sandbox hard tests**. Settings (model size, slots, context) are re-tuned per
-   machine by #51 auto-fit. **v53: the mini PC starts from #120 Strix Halo defaults.**
-⚠️ **Needs a Linux or Windows PC with an NVIDIA GPU for the model gates** (GitHub runners cover code-only tests,
-#72). Not yet confirmed that one exists. An NVIDIA PC may read prompts far faster than this M4 (~85 tok/s).
+   machine by #51 auto-fit. **v54: the reward server (AMD MI210, ROCm gfx90a) starts from #120 MI210/ROCm
+   defaults** (v53's Strix Halo defaults are superseded).
+⚠️ **Model gates on Linux need real hardware:** the reward server (AMD + ROCm) once it exists; GitHub runners cover
+code-only tests (#72). **No NVIDIA/CUDA machine is planned**, so the CUDA path stays untested. The ROCm port must be
+code-complete and pass every code-only gate before the server arrives, then re-pass every model gate on it.
 
-## Road to 7/10 *(v44 · 2026-10-12 · starts only once a 128 GB machine exists)*
+## Road to 7/10 *(v44 · 2026-10-12 · v54 2026-10-30: starts once the reward server exists)*
 
 **Honest score today, if every phase were finished: ~3/10 as a Claude Code replacement** (Claude review, user asked
 for "ruthless"). **A 10 is not reachable locally at $0** — closed frontier models stay ahead of open ones; only
 paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic** with all four of these:
-1. **A 128 GB machine — DECIDED 2026-10-13: GMKtec EVO-X2 mini PC (AMD Ryzen AI Max+ 395, 128 GB unified, 256 GB/s),
-   the 128 GB/4 TB version + a second 4 TB NVMe = 8 TB inside; bought once the project succeeds.** Linux (distro picked
-   in the port slice by AMD GPU support evidence). **So the platform layer + Linux port are now REQUIRED, not optional,
-   and must be done before the machine arrives.** Earlier candidates (2026-10-12, VN prices): AMD Ryzen AI Max+ 395 mini PC 128 GB (~$3,650 + import;
-   Claude's pick), a desktop with 2 used RTX 3090s (~120–145M), or a Mac Studio M5 Max 128 GB (140.99M; no port
-   needed). User wants **8 TB built in** — no Mac with 8 TB fits the budget; the 8 TB NVMe price (22M–83M seen) decides.
-   **A non-Mac machine needs the Linux port (cross-platform section) before Kildall runs on it.**
-2. ⚠️ **Re-check before buying (2026-10-13):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB (≈106 GiB) at 3-bit. ✅ **Research 2026-10-13: on Linux the AMD GPU can use ~120 GiB** once `amdgpu.gttsize=131072 ttm.pages_limit=31457280` are set (default is only half the RAM; newer kernels may need the `amdttm.` prefix; 96 GB is the Windows limit) — so it **fits, tightly** (~10 GiB left for context + OS). Measured on this chip (llama.cpp Vulkan, community): gpt-oss-120b 55–60 tok/s writing / ~460–490 tok/s reading; Qwen3.6-35B-A3B ~63 / ~1,000; effective ~155–170 GB/s of 256 → the 7/10 model ≈ **20–30 tok/s writing, ~200 tok/s reading** (estimate); the newer **DeepSeek-V4.1-Flash is 763 B** (cloud/Lane C only, free on NVIDIA NIM). Pruning (now allowed) or a lower bit-width remain options if context needs more room — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
+1. **The reward server — DECIDED 2026-10-30 (v54), replacing the 2026-10-13 GMKtec EVO-X2 choice.** AMD Instinct
+   MI210 (**64 GB HBM2e, 1.6 TB/s**, passive, 300 W) · EPYC 7543P (32 cores) · Supermicro H12SSL-I · **512 GB
+   DDR4-3200 on all 8 channels (~205 GB/s)** · 8 TB NVMe (already bought) · 2000 W PSU · 4U case with a sealed GPU
+   duct. **Bought only if the project succeeds; cost is no longer a constraint** (user, 2026-10-30); estimate
+   208–217M VND landed. Linux + **ROCm** — the MI210 is not a CUDA card. **So the platform layer + Linux/ROCm port are
+   REQUIRED and must be done before the server arrives.** Parts, sellers, compatibility and assembly: `server_build.md`.
+   History: 2026-10-13 picked the EVO-X2 (Ryzen AI Max+ 395, 128 GB unified, 256 GB/s, 4 TB + 4 TB); 2026-10-12
+   candidates were that mini PC, a desktop with 2 used RTX 3090s, or a Mac Studio M5 Max 128 GB.
+2. ⚠️ **How the 7/10 model fits the server (v54):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB (≈106 GiB) at
+   3-bit — **too big for the 64 GB of VRAM alone.** Attention, shared layers and as many experts as fit stay on the
+   MI210; the remaining experts sit in the 512 GB RAM (llama.cpp expert offload, e.g. `--n-cpu-moe`). RAM bandwidth
+   then sets writing speed — the reason all 8 memory channels are filled (4 sticks would halve it). Rough estimate
+   **~20–40 tok/s writing at 3-bit — unmeasured.** 512 GB also allows **4-bit or higher** (less quality loss) at some
+   speed cost, and the newer **DeepSeek-V4.1-Flash (763 B, ~380 GB at 4-bit) now fits in RAM** as a resident
+   candidate (speed unmeasured). Prefill runs on the GPU (HBM, 1.6 TB/s). Superseded: the 2026-10-13 Strix Halo
+   research (~120 GiB usable with `amdgpu.gttsize`/`ttm.pages_limit`; community 20–30 tok/s estimate) applied only to
+   the EVO-X2. Pruning (now allowed) or a lower bit-width remain options — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
    Lane C today) at ~3-bit ≈ 107 GB. ⚠️ Fit, speed and 3-bit quality loss are **unmeasured**; gate them like any
    Lane A candidate (speed, routing, tools, 10-min soak).
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
 4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
    Code) pass. **No new features until then.**
-**Pre-purchase checks (v48, 2026-10-13 — both before spending the 125–130M):**
-- **A. Prove the big model on your tasks first:** run test #3 through Kildall using NVIDIA NIM's free DeepSeek-V4.1-Flash / Kimi K3 (needs the NVIDIA provider + coding core slices). If it fails, the 7/10 premise is wrong — rethink before buying.
-- **B. GPU memory limit — DONE (research above):** ~120 GiB usable on Linux with the GTT/TTM settings; the Linux port must apply and verify them (dmesg GTT size, `/sys/module/ttm/parameters/pages_limit`).
+**Pre-purchase checks (v48 · v54 updated — before buying the server):**
+- **A. Prove the big model on your tasks first:** run test #3 through Kildall using a free big model on NVIDIA NIM (needs the NVIDIA provider + coding core slices). If it fails, the 7/10 premise is wrong — rethink before buying. ⚠️ **v54 status (slice 5c, 2026-10-24): Kimi K3 is not on NIM; DeepSeek-V4.1-Flash timed out once (30 s, no retry); only Nemotron 3 Ultra qualified.** Re-qualify V4.1-Flash before relying on it.
+- **B. Server checks (v54; replaces the EVO-X2 GTT/TTM check):** (1) the current ROCm release still supports the MI210 (gfx90a) and llama.cpp's HIP build runs on it; (2) the used card comes with a passing test report, serial number and photos — the listing has no returns; (3) the sealed duct + fans hold a sustained 300 W load for ≥ 600 s without thermal throttling; (4) BIOS shows 512 GB on all 8 channels at DDR4-3200.
 **Extra levers now allowed (2026-10-13, user removed three rules; paid APIs stay banned forever):**
-- **Expert pruning** of big MoE models (REAP-style) so a stronger model fits 128 GB — measure the quality loss first.
+- **Expert pruning** of big MoE models (REAP-style) so a stronger model fits the server's 64 GB VRAM + 512 GB RAM — measure the quality loss first.
 - **Fine-tuning** (LoRA) on your own repos and accepted answers (#42 pairs) — from open/local model outputs only.
-- **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the AMD mini PC.
-  **v52: per skill** — on only for code/math leaves, off for prose/chat, where it can lose. Web evidence (2026-10-19):
+- **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the reward server (ROCm).
+  **v52: per skill** — on only for code/math leaves, off for prose/chat, where it can lose. Web evidence (2026-10-19;
+  measured on Strix Halo, not the MI210 — re-measure on the server):
   Strix Halo, llama.cpp Vulkan, Gemma 4 31B + E2B drafter **+103%** average (code +139%, creative +40%),
   `--draft-max 4`, `--parallel 1`. **Correction 2026-10-20 — 26B-A4B (Kildall's resident) is now measured on Strix
   Halo: a separate E2B drafter makes it 27% *slower*; Gemma's own MTP head gives +45% (43.6 → 63.2 tok/s; needed a
@@ -438,8 +451,8 @@ routing-fix slice, because that slice sets the slot count and every slot's windo
      the 12 items / 4,000 chars / 300 ms caps (raise only with measured evidence).
   4. **Map-reduce** — subagents summarise 4K–16K pieces on the work slots, then one combines; for whole-document
      summaries. Accuracy gate: a fixed long-document test set with known answers.
-  5. **On the 128 GB machine:** target **≥ 128K** with a compact-attention model (DeepSeek-style); measure KV per
-     token first — unmeasured today.
+  5. **On the reward server:** target **≥ 128K** with a compact-attention model (DeepSeek-style); KV goes in the
+     64 GB HBM, spilling to RAM only if measured acceptable. Measure KV per token first — unmeasured today.
 - **Later (option 5):** a faster Mac — the 2026-10-04 answer recommended an M5 Max 40-core GPU, 64 GB (614 GB/s,
   ≈5× this M4's 120 GB/s) — raises prefill and decode together. Not scheduled; user decision for later.
 
@@ -661,10 +674,13 @@ Lane A's 12–14 GB that means **about 1 VM at a time**.
 - **Image, video and 3D generation are queued jobs**, same machinery as Lane C. They never block the
   terminal
 
-## Phase 6 — Lane C giants ⏸ **PARKED — no drive for 1+ month**
+## Phase 6 — Lane C giants ⏸ **PARKED — waits for the reward server**
 
-**Do not start this phase.** The drive is not ordered as of 2026-09-05. Phases 0–5 and 7–8 deliver
-the whole product apart from the giants; come back here when the hardware exists.
+**Do not start this phase.** v54 (2026-10-30): Lane C runs on the reward server — its **8 TB NVMe is already bought**
+(internal PCIe 4.0 M.2, faster than the old Thunderbolt-enclosure plan) and its **512 GB RAM** can hold mid-size giants
+whole (e.g. GLM-5.2 ~376 GB at 4-bit), so only the largest (Kimi K3, ~1.7 TB) still streams from disk. Lane C times
+in this file are M4 + Thunderbolt estimates; re-measure on the server. Phases 0–5 and 7–8 deliver the whole product
+apart from the giants; come back here when the server exists.
 
 ### When it arrives — measure it first
 
@@ -823,7 +839,7 @@ works for — wording, tone per recipient, English/Vietnamese mix, code style, f
   (each client separate, 9.10); never mixed into another user's context; tagged **local-only** by default (#77) —
   raw keystrokes never leave the machine (9.5 rule).
 - **Uses:** a compact style card injected within the memory caps; your best past outputs as examples (#60); a per-user
-  LoRA adapter on the 128 GB machine (#90 data); **proactive drafts** you approve with one click — drafts only; acting
+  LoRA adapter on the reward server (#90 data); **proactive drafts** you approve with one click — drafts only; acting
   still goes through the normal permission tiers.
 - **Your controls:** see, edit, delete any learned trait; forget per item; pause learning; export the profile.
 - **Gates:** blind A/B on a fixed task set — you prefer the Twin's output over plain Kildall **≥ 70%** of the time;
@@ -1036,7 +1052,7 @@ Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits
 |---|---|---|---|
 | **88** | ⏩ **Repo map** — an index of every file, symbol and call site (tree-sitter + Harrier embeddings), so the small context always receives the right code | Context is the weakest score (1/10); coding agents live on finding the right code | Medium; index kept fresh on file change |
 | **89** | ⏩ **Test-driven fix loop** — for coding tasks, run the project's tests/linters, read failures, fix, repeat until green or a retry cap; then (#4 idea) escalate to free cloud (NIM) only after N local failures | The biggest single coding gain: execution feedback, as Claude Code uses | Medium; every command through `permissions.execute` |
-| **90** | ⏩ **Collect LoRA training data now** — store every accepted diff / answer with its prompt (consented, local, never Claude/GPT outputs) | The LoRA lever is ready the day the 128 GB machine arrives | Small; storage + privacy rules from 9.5 |
+| **90** | ⏩ **Collect LoRA training data now** — store every accepted diff / answer with its prompt (consented, local, never Claude/GPT outputs) | The LoRA lever is ready the day the reward server arrives | Small; storage + privacy rules from 9.5 |
 
 ## Added v51 — picked by the user (2026-10-14: "13, 20, 21, 11, 4 and 1 looks great")
 
@@ -1059,9 +1075,9 @@ Source: `Researchhub/sample3/kildallideas.md` (50 sources; verification partial 
 |---|---|---|---|
 | **97** | ⏩ **Fixed coding workflow** — localize → reproduce → edit → test → submit, not a free agent loop | Small open models 19% vs 3% (32B) **[V]** | coding core 5d |
 | **98** | ⏩ **Loop breaker** — repeated action/sequence detected → forced strategy switch (search, not paging) or escalate | Loops in 25–29% of small-model tasks; a 10-step repeat = 89% failure **[V]** | coding core 5d |
-| **99** | **Patch vote** (upgrades #9) — k patches, pick the most common | +4.5 pts; +12 with model-written repro tests | mini PC |
-| **100** | **Evolve patches** (EvoScale) — 10 samples, keep 5, regenerate ≤ 4 rounds | 32B Best@50 = 70B Best@500 | mini PC |
-| **101** | **Patch checker model** (SWE-RM-style verifier) | best-of-32 +10 pts **[V]**; needs 128K context and 20K+ training samples | mini PC |
+| **99** | **Patch vote** (upgrades #9) — k patches, pick the most common | +4.5 pts; +12 with model-written repro tests | server |
+| **100** | **Evolve patches** (EvoScale) — 10 samples, keep 5, regenerate ≤ 4 rounds | 32B Best@50 = 70B Best@500 | server |
+| **101** | **Patch checker model** (SWE-RM-style verifier) | best-of-32 +10 pts **[V]**; needs 128K context and 20K+ training samples | server |
 | **102** | ⏩ **Overwrite guard** — write refuses existing files; edit only | fired on 57% of tasks in a small-model agent | coding core 5d |
 | **103** | **Thinking cap** — 2,048 reasoning tokens, then retry with thinking off | no runaway thinking on Lane B/C/NIM | after test #3 |
 | **104** | ⏩ **Prompt diet + skill cards** — ~200-token system prompt; 80–150-token tool cards per turn, ≤ 500; idle schemas dropped | more of 4K left for the task; MCP schemas cost 7–9% | coding core 5d |
@@ -1078,11 +1094,11 @@ Source: `Researchhub/sample3/kildallideas.md` (50 sources; verification partial 
 | **115** | **Scout then escalate** (upgrades #2) — 3 resident turns; a small judge reads them; stay or escalate | prompt-only routing failed on SWE-Bench; +15 pts Route-AUC | after test #3 |
 | **116** | **Calibrated confidence** (upgrades #11) — logprob margin → isotonic error probability → cost threshold | −31% cost in one NER study | after test #3 |
 | **117** | **Per-leaf quality estimates first** (evidence for #14) | estimate quality matters more than router cleverness | Phase 7 |
-| **118** | **Gemma MTP head** — measure 1 slot + MTP vs 3 slots | 26B-A4B +45%; a separate drafter −27% | mini PC |
-| **119** | **n-gram drafting** for prompt-echo skills only | free speed on extraction/edits; −17% on fresh writing | mini PC |
-| **120** | ⏩ **Strix Halo defaults** — Vulkan RADV stable, ROCm fast path; `-fa 1`, `--load-mode none`; tune SWA checkpoints | avoids crashes and slowdowns | Linux port |
-| **121** | **Test other residents** — Qwen3-Coder-Next 80B-A3B, Qwen 3.6 35B-A3B; 3-bit vs higher quant on tool calls | Gemma 4 26B-A4B reported weak in long tool loops | mini PC / Phase 10 |
-| **122** | ⚠️ **DeepSeek V4 Flash prefill check** — exact prefill ~23 tok/s on Strix Halo | blocks agent use until sparse prefill matures | before the 7/10 local-model plan relies on it |
+| **118** | **Gemma MTP head** — measure 1 slot + MTP vs 3 slots | 26B-A4B +45%; a separate drafter −27% | server |
+| **119** | **n-gram drafting** for prompt-echo skills only | free speed on extraction/edits; −17% on fresh writing | server |
+| **120** | ⏩ **MI210 / ROCm defaults** (v54; replaces Strix Halo defaults) — llama.cpp HIP build for gfx90a, Vulkan as fallback; `-fa 1`; expert offload to RAM (`--n-cpu-moe`) for models over 64 GB; tune SWA checkpoints; all measured | avoids crashes and slowdowns | Linux port |
+| **121** | **Test other residents** — Qwen3-Coder-Next 80B-A3B, Qwen 3.6 35B-A3B; 3-bit vs higher quant on tool calls | Gemma 4 26B-A4B reported weak in long tool loops | server / Phase 10 |
+| **122** | ⚠️ **DeepSeek V4 Flash prefill check** — exact prefill ~23 tok/s on Strix Halo; re-measure on the MI210 | blocks agent use until sparse prefill matures | before the 7/10 local-model plan relies on it |
 | **123** | **Taint check** — files Kildall wrote are marked; trusted tools running them need confirmation; block `docker.sock` | 2026 sandbox-escape class | after test #3 |
 | **124** | **Full-command allow-list** — match full argv, not names | `git show` bypass class | after test #3 |
 | **125** | **Every-tool-type gate test** | proves the single permission boundary | after test #3 |
@@ -1093,7 +1109,7 @@ Source: `Researchhub/sample3/kildallideas.md` (50 sources; verification partial 
 | | Feature | Why only Kildall | Placement |
 |---|---|---|---|
 | **S1** | **Type-ahead reading** — prefill repo map, files and memory while the user types | reading is 92% of the answer wait (measured); local compute is free | after 5b2 + test #3 |
-| **S2** | **Night Shift** — idle hours run #99/#100 on hard tasks and #112; morning report with tests green | best-of-50 for $0 | mini PC |
+| **S2** | **Night Shift** — idle hours run #99/#100 on hard tasks and #112; morning report with tests green | best-of-50 for $0 | server |
 | **S3** | **Scout & Escalate per skill leaf** — escalate to the best model for that exact leaf, carrying the scout's findings | 302-leaf routing mid-task | after #115 |
 | **S4** | **Your Repo Gym** — #112 + #114 score every model swap, LoRA and router change on your code; blind model duels per skill | Phase 10 "best per skill" measured on your work | after #112, #114 |
 | **S5** | **Lessons survive model swaps** — the #105 ledger is model-agnostic | new models inherit what old ones learned | built with #105 |
@@ -1256,11 +1272,14 @@ one minute can thrash at minute six.
 2. **Which giants earn their disk?** Phase 6 measures each against Lane A.
 3. ~~**When does the 8 TB drive arrive?**~~ — **answered 2026-09-05: not ordered yet, likely 1+ month
    out.** **Phase 6 is parked.** Build Phases 0–5 and 7–8 first; they are the whole product minus the
-   giants. Do not design around Lane C arriving soon.
+   giants. Do not design around Lane C arriving soon. **v54 (2026-10-30):** the 8 TB NVMe is now bought, for the
+   reward server; Lane C still waits for that server.
 
 ---
 
 ## Change Log
+
+- **2026-10-30 (v54)** — **Reward machine changed to the Kildall server** (user: "update the plan, update everything"; "cost isn't a shit no more"): AMD Instinct MI210 64 GB HBM2e + EPYC 7543P + **512 GB DDR4-3200 on all 8 channels** + 8 TB NVMe (bought), Linux + ROCm, ~208–217M VND, bought only if Kildall succeeds. Replaces the 2026-10-13 GMKtec EVO-X2. RAM went from 4 to 8 sticks after Claude found 4 sticks halve memory bandwidth (4 of 8 channels). Updated: Answer first (new row), cross-platform (ROCm on the server, no NVIDIA machine), Road to 7/10 (machine, model fit by GPU + RAM expert offload, pre-purchase checks A and B), Phase 6 (8 TB NVMe bought, 512 GB RAM), context follow-up item 5, Shadow Twin, #90, #120 (MI210/ROCm defaults), #122, and every "mini PC" cell. Check A corrected with slice 5c's live results (Kimi K3 not on NIM; V4.1-Flash timed out; only Nemotron 3 Ultra qualified). Orbimodels row 7b and the checklist updated to match; checklist +3.
 
 - **2026-10-20 (v53)** — **30 deep-research ideas (#97–#126) and 6 signature features (S1–S6) added** (user: "add them all"). 9 scheduled early: #97, #98, #102, #104, #105, #107, #108, #112 join the coding core (test #3 is scored on #112); #120 joins the Linux port. Keep-on-evidence rule: each stays only if it beats the baseline on #112. Same day: speculative-decoding note corrected (26B-A4B: separate drafter −27%, MTP head +45%). Source: `Researchhub/sample3/kildallideas.md`. Checklist +8.
 - **2026-10-19 (v52)** — **Prompt-reuse slice added as 5b2** (user: "add it then wherever you think is good"): #81 moved up, after the platform layer and before the NVIDIA provider. Evidence: answer slot 92% reading, `cache_prompt=False` on answers/subagents, memory at the prompt top (research: `Researchhub/sample3/macspeed hwmini.md`). Speculative-decoding note made per skill, with Strix Halo evidence. Checklist +1.

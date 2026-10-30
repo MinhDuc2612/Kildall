@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **245** |
-| **Done now** | **14** of 245 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **248** |
+| **Done now** | **14** of 248 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -227,9 +227,9 @@
 - [ ] Notifies on completion
 - [ ] Output lands in a predictable directory
 
-## 16. Lane C giants — P2 *(Phase 6 — ⏸ PARKED, drive 1+ month out)*
+## 16. Lane C giants — P2 *(Phase 6 — ⏸ PARKED, waits for the reward server)*
 
-- [ ] External drive read/write speed measured before anything downloads
+- [ ] Server 8 TB NVMe read/write speed measured before anything downloads
 - [ ] Every ⚠ HF path resolved before a 4.9 TB download starts
 - [ ] `kimi-k3-in-c` runs the 2.8 T tier
 - [ ] Job queue runs detached and notifies
@@ -255,13 +255,16 @@
 - [ ] Every benchmark run **10 minutes minimum**, watching memory pressure
 - [ ] **Hardware auto-fit (#51, Phase 7, v37)** — reads chip, RAM and memory bandwidth; derives quant, context, batch, cache and lane; propose → short gate → adopt. Passes on this Mac and on a smaller RAM budget (10-minute soak, zero critical samples, every frozen gate held). Required before the first paid client
 - [ ] **Auto-expand upward only on an eval-harness (#13) win** — never on arithmetic alone
+- [ ] **Reward server qualified (v54):** the current ROCm release supports the MI210 (gfx90a), and llama.cpp's HIP build passes every Lane A gate on it
+- [ ] **MI210 cooling validated:** sealed duct + fans hold a sustained 300 W load for ≥ 600 s with no thermal throttling
+- [ ] **512 GB on all 8 channels at DDR4-3200** confirmed in BIOS; RAM expert offload (`--n-cpu-moe`) measured for the 7/10 model
 - [ ] **Per-slot context raised to 16K** (32K only if 16K passes) — KV/RSS/GPU per slot and prefill time measured; soak 0 critical, 0 GPU OOM
 - [ ] Long prompts show progress and an estimated read time; every 4,096-token assumption is config-driven
 - [ ] **4-bit KV cache** measured: ~2× context with no drop in recall, tools or routing
 - [ ] **Document KV saved to disk:** a big file re-asked about reloads in seconds, keyed by file hash + model + flags
 - [ ] **Retrieval for big files:** only relevant chunks enter the prompt, inside the memory caps
 - [ ] **Map-reduce summaries** pass a fixed long-document test set with known answers
-- [ ] **≥128K context on the 128 GB machine** with a compact-attention model, KV per token measured first
+- [ ] **≥128K context on the reward server** with a compact-attention model, KV per token measured first
 
 ## 18. Operations — P1 *(throughout)*
 
@@ -278,6 +281,7 @@
       Qwen3-Reranker-4B, Harrier-27B embeddings; Qwen3-VL-235B dropped
 - [ ] ⚠️ **Only Lane A goes on the internal disk** (it streams every request, needs the measured
       3.44 GB/s). **Lanes B and C go external.** Internal free: **93.3 GB, ~155 GB after emptying Trash**
+      *(Mac only. On the reward server every lane lives on its internal 8 TB NVMe.)*
 - [x] `kildall nuke`, dry-run by default, must type `kildall` to confirm
 - [ ] ⚠️ **`kildall nuke` deletes `~/Kildall/code/` and nothing else** — allow-list, not a deny-list.
       **Safety verified 2026-09-22: 14,918 paths listed, 0 outside `code/`.** Not fully ticked:
@@ -295,7 +299,7 @@
 - [ ] **Secret-scanner git hook (#55)** refuses commits containing a key
 - [ ] **Platform layer** — keys, jobs, sandbox, OCR, computer mode, memory probe behind one interface; zero behaviour change on the Mac
 - [ ] **Prompt reuse (#81)** — answers and subagents reuse their cached prompt (`cache_n` > 0 on later rounds and turns); fixed tool script faster than before; every gate holds
-- [ ] **Linux port** (any mainstream systemd distro; tested on Fedora + Ubuntu LTS) passes every gate on real hardware, incl. the Phase 3 sandbox tests; the mini PC starts from #120 Strix Halo defaults
+- [ ] **Linux port** (any mainstream systemd distro; tested on Fedora + Ubuntu LTS) passes every gate on real hardware, incl. the Phase 3 sandbox tests; the reward server starts from #120 MI210/ROCm defaults
 - [ ] **Windows via WSL2** passes every gate on real hardware; native Windows only if needed
 - [ ] **Self-healing (#93):** hung server restarted, daemons re-registered automatically, repeat failures alerted
 - [ ] **Resume long jobs (#94)** after a crash or reboot from checkpoints
@@ -370,6 +374,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-10-30** — Plan v54, reward server (MI210 + 512 GB + 8 TB NVMe) replaces the EVO-X2: 3 server items in Group 17 (ROCm/HIP qualification, MI210 cooling, 8-channel RAM + expert offload); Group 16, the ≥128K item, the internal-disk note and the Linux-port item now name the server: **248 items**.
 - **2026-10-20** — 8 items for the early-scheduled v53 ideas (#97, #98, #102, #104, #105, #107, #108, #112); Linux port item notes #120: **245 items**.
 - **2026-10-19** — 1 item: prompt reuse (#81 moved up): **237 items**.
 - **2026-10-14** — 6 items for #91–#96: **236 items**.
