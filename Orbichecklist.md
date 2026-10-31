@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| **Items** | **248** |
-| **Done now** | **14** of 248 *(ticks for 4.1–4.4 not yet recorded)* |
+| **Items** | **254** |
+| **Done now** | **14** of 254 *(ticks for 4.1–4.4 not yet recorded)* |
 | **The bar** | every P0 ticked, then the hard task, then one week with no Claude Code |
 | **Owner** | you, via Codex |
 
@@ -346,6 +346,17 @@
 
 ---
 
+## 20. Refresh — P0 *(Phase R, v55 — runs next)*
+
+- [ ] **Plan facts synced:** every Answer-first, lane and build-order fact cites a measurement or commit ≤ 30 days old, or is marked ⚠
+- [ ] **`Researchhub/sample4/` written** — dated, every pick ✓ benchmark-backed or ⚠ marked, quota-limited runs discarded; sample1–3 kept; CLAUDE.md's "which file" table points to it
+- [ ] **Runtime on a current llama.cpp build** with every frozen gate unchanged or better — or b10809 kept and the failing gate recorded
+- [ ] **Lane A re-picked on the new build** (Gemma ± MTP, Qwen3.8-27B + DFlash2, Flash-Next via Strata, any sample4 candidate): ≥ 15 tok/s, greedy output identical with and without the drafter, all Lane A gates
+- [ ] **Every Lane B specialist re-confirmed or replaced** through the model-load procedure and its gate; nothing deleted without your OK
+- [ ] **Lane C re-picked on paper**; `Orbimodels.md`, `kildall.toml` and `skill_catalog.py` agree with each other and with the measurements
+
+---
+
 # THE OTHER TWO TESTS
 
 ## Test #1 — one week, no Claude Code *(the long-term bar)*
@@ -374,6 +385,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-11-01** — Plan v55, Phase R (refresh everything): new Group 20, 6 items: **254 items**.
 - **2026-10-30** — Plan v54, reward server (MI210 + 512 GB + 8 TB NVMe) replaces the EVO-X2: 3 server items in Group 17 (ROCm/HIP qualification, MI210 cooling, 8-channel RAM + expert offload); Group 16, the ≥128K item, the internal-disk note and the Linux-port item now name the server: **248 items**.
 - **2026-10-20** — 8 items for the early-scheduled v53 ideas (#97, #98, #102, #104, #105, #107, #108, #112); Linux port item notes #120: **245 items**.
 - **2026-10-19** — 1 item: prompt reuse (#81 moved up): **237 items**.

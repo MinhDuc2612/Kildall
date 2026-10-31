@@ -3,6 +3,8 @@
 **v1 · 2026-09-05.** The concrete answer to "which models, how big, how much disk." *(Product renamed Kildall 2026-09-27; model list unchanged.)*
 Replaces the soft "~26 models, ~4.9 TB" in `Orbiplan.md`. **Every number here sums.**
 
+⚠️ **Out of date since 2026-11-01 — every lane is being re-picked in Phase R (`Orbiplan.md` v55).** Known now: Qwen3.8-27B + CMoE is dead (dense 27B measured 5.48 tok/s); this file is rewritten in step R7.
+
 ---
 
 # ⚡ ANSWER FIRST
@@ -385,6 +387,7 @@ three generations in six months.
 
 ## Change Log
 
+- **2026-11-01** — Marked out of date; Phase R (plan v55) re-picks every lane and rewrites this file in R7.
 - **2026-09-05 (v1)** — Created as the Phase 2 deliverable the plan called for. Replaces the soft
   "~26 models, ~9.5 T, ~4.9 TB" with an explicit 23-model list whose params and disk actually sum:
   **~9.3 T across ~5.0 TB.** Lane A left deliberately undecided as a **ranked shortlist of three**

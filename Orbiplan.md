@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v54 · 2026-10-30.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v55 · 2026-11-01.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -154,13 +154,14 @@ quality, at zero training cost.** *(2026-10-13: training and weight changes are 
 | **2** | Router | no | ✅ **COMPLETE 2026-09-20**, commit `8b815f1`. Routing **19/20**. ⚠️ **15.71 s/decision vs the 0.2 s spec** — open |
 | **3** | Permissions, content policy | no | ✅ **COMPLETE 2026-09-21**, commit `a2415b6`. Hard test passed with `SYSTEM_RULES=''` and all system messages omitted. Nuke dry-run: **14,918 paths, 0 outside `code/`**. ⚠️ Guard-model item deferred to Phase 4 |
 | **4** | **Agent layer** — files, shell, git, skills, hooks, subagents, MCP, web | no | ✅ **4.1–4.4 complete** (files/shell, git/skills, hooks, subagents; `main` **`3b6b890`**, 4.4 reviewed 2026-10-04). ⏳ **4.5a–d next** (cloud, web + guard, MCP, council — spec below). Exit: completes a multi-file change with tests passing |
+| **R** | 🔁 **Refresh everything — lanes, runtime, research, plan** *(v55, runs next)* | R3–R4 need ≥ 20 GB free; R5 the external drive | every lane model re-confirmed or replaced through its gates on the current runtime; Answer first matches measurements; `sample4/` authoritative |
 | **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
 | **5** | Media gen *(voice moved to 9.3)* | no | queues an image job end to end |
 | **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
 | **7** | Improvement loop — eval harness (#13) first, then **hardware auto-fit (#51, v37)** | no | one month unattended finds one upgrade you accept; **auto-fit gate passes** (see #51) |
 | **8** | Tool-set redo | no | each swap measurably better, or reverted |
 | **9** | 🎯 **Agentic OS — Kildall 100%**, built **last**: Laya reflex · Hermes channels · local voice · Obsidian second brain · activity capture · wallpaper dashboard · skill engineering · Google Workspace · skill packs · profiles | no | you speak, hear the answer, see it on the wallpaper; every listed daily/weekly task is a skill or automation; all earlier gates unchanged |
-| **10** | 🔄 **Model refresh — every skill and sub-skill**, the **final step after everything else is complete** | no | every leaf re-picked on current benchmark evidence; every changed model passes its lane gates; no regression |
+| **10** | 🔄 **Model refresh — every skill and sub-skill**, the **final step after everything else is complete** — the second pass of Phase R | no | every leaf re-picked on current benchmark evidence; every changed model passes its lane gates; no regression |
 
 ## Phase 0 — today, one hour
 
@@ -854,7 +855,59 @@ works for — wording, tone per recipient, English/Vietnamese mix, code style, f
 
 ---
 
+# 🔁 PHASE R — REFRESH EVERYTHING: LANES, RUNTIME, RESEARCH, PLAN *(v55 · 2026-11-01 · runs next)*
+
+**User decision (2026-11-01):** *"make the phase of updating lanes updating everything … the plans and researches was
+far too outdated."* Phase R does the first full pass **now**. Phase 10 stays as the second pass at the end.
+**Planning files and `Researchhub/` are editable in this phase** (user OK, same message).
+
+**Why now — what is stale, checked 2026-11-01:**
+- **Runtime.** Pinned llama.cpp **b10809 (2026-09-04)**; current is **b12020 (2026-10-31)**, release v0.8.0. It lacks the
+  Metal few-row MMA kernels for speculative and batched decode (**#29869**, merged 2026-10-05; **#30065**, 2026-10-07).
+  On an M3 Ultra they took Qwen3.8-27B DFlash2 decode **30.2 → 110 tok/s (code)** and **16.8 → 62.6 (prose)** against
+  32.1 serial, and batched B=2 **32.7 → 49.7**. The MoE version (**#30047**, MUL_MAT_ID) is still open. Every
+  "speculative decoding loses on Metal" line in this plan is unproven on current builds.
+- **Lane A.** Gemma 4 26B-A4B IQ3_S, chosen 2026-09. Its MTP drafter is published
+  (`unsloth/gemma-4-26B-A4B-it-GGUF` → `MTP/mtp-gemma-4-26B-A4B-it-Q8_0.gguf`, 0.46 GB) and b10809 supports
+  `--spec-type draft-mtp`, but it was **never measured on this M4**. The candidate list still names
+  **Qwen3.8-27B + CMoE — dead**: CMoE has no Metal/Qwen3.8 path, and the dense 27B measured **5.48 tok/s** here
+  (2026-11-01). Flash-Next now has a Metal engine (Strata, SSD-streamed: **14.1 tok/s Q2_0 / 10.0 IQ3_XXS** on a 32 GB
+  M4 mini, **~8.3** with a small expert arena) — not measured on 24 GB.
+- **Lane B.** 14 specialists picked 2026-08/09; newer versions already flagged (Wan 3.0, Hunyuan3D v3); none gated.
+- **Lane C.** 7 giants picked 2026-09; newer releases already seen (DeepSeek-V4.1-Flash-1017, Kimi-K2.7-Code,
+  V4-Flash-Vision-Exp — the Phase 10 seeds).
+- **Research.** `sample3/` swept 2026-09-02. `dflash2 hwmini.md` says "MLX only, not llama.cpp" — now false
+  (`--spec-type draft-dflash`). Free cloud limits are still "unverified" in `kildall.toml`.
+- **This plan.** Answer-first and build-order rows disagree with measurements: "Speed, Lane A 19.48 tok/s" is the
+  qwen3:8b baseline; the lane table says Lane A is "unmeasured"; build order says "253.65 GB free" (825 MB on
+  2026-11-01); Phase 4 cites `main` `3b6b890` (now `a90d561`).
+
+## Steps — one research file or one PR each
+
+| # | Step | Who | Disk | Done when |
+|---|---|---|---|---|
+| **R1** | **Plan fact sync** — every Answer-first, lane and build-order fact re-read against `BENCHMARKS.md`, git and the machine | Claude | no | each fact cites a measurement or commit ≤ 30 days old, or is marked ⚠ |
+| **R2** | **Research pass → `Researchhub/sample4/`** — new dated files, sample1–3 kept as records: speed techniques (Metal spec kernels, MTP, DFlash2, Strata streaming; Avalon for the server), Lane A/B/C candidates (latest version per family, best per skill by benchmark), free cloud tiers re-checked live | Claude | no | every pick ✓ benchmark-backed or ⚠ marked; sources dated; quota-limited runs discarded |
+| **R3** | **Runtime bump** — pin a current llama.cpp build; full regression | Codex | ≥ 20 GB free | every frozen gate unchanged or better (recall 1-slot + per-slot, tools, routing, CLI, p99, 600 s pressure) — else stay on b10809 and record the failing gate |
+| **R4** | **Lane A re-pick** on the new build — Gemma ± MTP drafter, Qwen3.8-27B + DFlash2, Flash-Next via Strata, plus any R2 candidate | Codex | ≥ 20 GB free | winner ≥ 15 tok/s; greedy output identical with and without the drafter; all Lane A gates |
+| **R5** | **Lane B re-pick** — each specialist: newest version that wins its skill; model-load procedure; its gate | Codex | external drive | each changed model passes; a replaced file is removed only with your OK |
+| **R6** | **Lane C re-pick on paper** — measurement waits for the reward server (Phase 6) | Claude | no | list current, each pick sourced |
+| **R7** | **Write back** — `Orbimodels.md`, `kildall.toml`, `skill_catalog.py`, this plan, the checklist, CLAUDE.md's "which file" table | Codex + Claude | no | all files agree with each other and with the measurements |
+
+**Order:** R1, R2 and R6 start now — no disk needed. R3–R5 wait for **≥ 20 GB free** (move
+`code/models/qwen3.8-flash-next`, 87 GB, to the external drive — move, not delete). Open slices (PR #13 probe fix,
+the slot-isolation one-liner) may finish in parallel; they change no model.
+**Rules:** best per skill by its own benchmark, never popularity (Phase 10 rule). **No model is adopted on research
+alone** — it must pass its lane's gates on this machine.
+
+**Exit test:** every lane model re-confirmed or replaced through its gates on the current runtime; no Answer-first fact
+older than its newest measurement; `sample4/` is the authoritative research.
+
+---
+
 # 🔄 PHASE 10 — MODEL REFRESH FOR EVERY SKILL *(v49 · 2026-10-13 · runs last, after everything else is complete)*
+
+**v55:** Phase R does the first full pass now; Phase 10 repeats it once everything else is complete.
 
 **User decision:** once every phase is done, re-pick the best model for **every skill and sub-skill** — the 302-leaf
 catalog (`skill_catalog.py`, research in `Researchhub/sample3/OrbiOSS.md`, to be renamed **`KildallOSS.md`** in this step).
@@ -1279,6 +1332,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-11-01 (v55)** — **Phase R added: refresh everything — lanes, runtime, research, plan — runs next** (user: "make the phase of updating lanes updating everything … the plans and researches was far too outdated"). Seven steps R1–R7; R1, R2, R6 need no disk, R3–R5 wait for ≥ 20 GB free. Evidence of staleness recorded in the section: runtime b10809 vs b12020 (Metal speculative kernels #29869/#30065), Gemma MTP drafter unmeasured, Qwen3.8-27B + CMoE dead (dense 27B 5.48 tok/s measured), Strata Metal engine for Flash-Next, research swept 2026-09-02, Answer-first rows out of date. Planning files and Researchhub editable in this phase; new research goes to `sample4/`. Phase 10 becomes the second pass. Checklist +6.
 - **2026-10-30 (v54)** — **Reward machine changed to the Kildall server** (user: "update the plan, update everything"; "cost isn't a shit no more"): AMD Instinct MI210 64 GB HBM2e + EPYC 7543P + **512 GB DDR4-3200 on all 8 channels** + 8 TB NVMe (bought), Linux + ROCm, ~208–217M VND, bought only if Kildall succeeds. Replaces the 2026-10-13 GMKtec EVO-X2. RAM went from 4 to 8 sticks after Claude found 4 sticks halve memory bandwidth (4 of 8 channels). Updated: Answer first (new row), cross-platform (ROCm on the server, no NVIDIA machine), Road to 7/10 (machine, model fit by GPU + RAM expert offload, pre-purchase checks A and B), Phase 6 (8 TB NVMe bought, 512 GB RAM), context follow-up item 5, Shadow Twin, #90, #120 (MI210/ROCm defaults), #122, and every "mini PC" cell. Check A corrected with slice 5c's live results (Kimi K3 not on NIM; V4.1-Flash timed out; only Nemotron 3 Ultra qualified). Orbimodels row 7b and the checklist updated to match; checklist +3.
 
 - **2026-10-20 (v53)** — **30 deep-research ideas (#97–#126) and 6 signature features (S1–S6) added** (user: "add them all"). 9 scheduled early: #97, #98, #102, #104, #105, #107, #108, #112 join the coding core (test #3 is scored on #112); #120 joins the Linux port. Keep-on-evidence rule: each stays only if it beats the baseline on #112. Same day: speculative-decoding note corrected (26B-A4B: separate drafter −27%, MTP head +45%). Source: `Researchhub/sample3/kildallideas.md`. Checklist +8.
