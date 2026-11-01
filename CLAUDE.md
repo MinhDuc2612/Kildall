@@ -13,6 +13,11 @@ not later. Add it the moment it happens.**
 2. **Recall gate:** frozen `test_recall.py` on a 1-slot server **plus** the per-slot verifier on the 2-slot
    production server, both 20/20. Never edit the frozen file to make it run on two slots.
 3. **Phase 4.5 design spec lives in `Orbiplan.md` → "Phase 4.5 — design spec".** Build one sub-slice per PR.
+4. **Two GitHub targets (user, 2026-11-01).** Commit and push **the whole workspace** (`~/Kildall` vault: plans,
+   research, CLAUDE.md, assets; `code/` as a submodule link) to **private `MinhDuc2612/Kildall-WORKSTATION`**
+   (vault remote `workstation`). Push **only what Kildall needs to run** (`code/`) to **public
+   `MinhDuc2612/Kildall`**. Never to either: models, DBs, `backups/`, `.session/` evidence, keys. Secret-scan the
+   full history before every push.
 
 **Writable-memory clarification (2026-09-14): `CLAUDE.md` is the writable project
 memory and must be updated as work proceeds. The three planning files —
