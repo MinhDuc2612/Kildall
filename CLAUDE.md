@@ -3580,3 +3580,27 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-05T16:28:47+07:00 Re-root USB: Vault branch reroot-usb created; staging .gitignore, action log, and code gitlink to published0f3c0ab. Public DRAFT creation/verification remains final delivery step.
 
 - 2026-11-05T16:28:49+07:00 Re-root USB: Vault staged secret scan0findings. Starting ordinary vault commit and then full-history scan before normal private branch push; no hooks bypass.
+
+- 2026-11-05T16:28:52+07:00 Re-root USB: Vault ordinary commit exit0.
+
+- 2026-11-05T16:28:52+07:00 Re-root USB: Vault snapshot 061311ee59fe841f73814854888f66b51a9faef1 ready for private branch push; hook passed. Post-commit delivery log entries remain local for immediate audit.
+
+- 2026-11-05T16:28:57+07:00 Re-root USB secret scan history-vault-prepush: {"at": "2026-11-05T16:28:52.912967+07:00", "mode": "history-vault", "history": {"objects": 904, "bytes": 37256552, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T16:29:50+07:00 Re-root USB: Private vault full-history scan0findings; starting normal workstation reroot-usb branch push at 061311ee59fe841f73814854888f66b51a9faef1.
+
+- 2026-11-05T16:29:52+07:00 Re-root USB: Private vault branch push exit0.
+
+- 2026-11-05T16:29:53+07:00 Re-root USB: Private vault branch independently verified at 061311ee59fe841f73814854888f66b51a9faef1. No private PR opened; one public DRAFT PR is the final requested delivery.
+
+- 2026-11-05T16:30:05+07:00 Re-root USB: PR body private-value/pattern scan0; attempting GitHub connector DRAFT creation for reroot-usb -> main with full gate table.
+
+- 2026-11-05T16:30:24+07:00 Re-root USB: GitHub connector creation returned403 Resource not accessible by integration; no PR created. Using authenticated gh fallback within explicit draft-PR authorization, exact scanned body unchanged.
+
+- 2026-11-05T16:30:27+07:00 Re-root USB: gh DRAFT creation exit0.
+
+- 2026-11-05T16:30:27+07:00 Re-root USB: Created DRAFT https://github.com/MinhDuc2612/Kildall/pull/14; verifying OPEN/DRAFT/head/base and remote SHA. No merge.
+
+- 2026-11-05T16:33:57+07:00 Re-root USB: DRAFT PR#14 verified OPEN/DRAFT, unmerged, head0f3c0ab176d71fbc48e860a9b42749474b838c24, base maina90d561; independent ls-remote matches and code tree clean. https://github.com/MinhDuc2612/Kildall/pull/14 . Final source hashes unchanged.27/27 controls, hooks5/5, Phase3 Never, repo-eval without outer HOME override, absent-mount controls, backups, check0, nuke0outside/0rejected, private/staged/history scans PASS. Live routing/recall/quality/CLI/speed/latency/soak remain UNSCORED because separate code_1.24 owns8123/8124; no inference or process termination. Accepted exFAT/privacy/unplug/cold-load risks in PR.
+
+- 2026-11-05T16:33:57+07:00 Re-root USB final delivery batch: recorded USB launcher/exFAT lesson in ~/.Codex/NOTES.md. Publishing these final action-log entries only via an ordinary hooked vault commit, full-history scan, normal workstation/reroot-usb push and independent ls-remote verification; results are retained in code/.session/reroot-usb-20261102/final-vault-delivery.json. No product changes or second PR. STOP after this verification/report: Claude reviews; no merge/HF sync/paid API/sudo/next slice.
