@@ -3604,3 +3604,33 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-05T16:33:57+07:00 Re-root USB: DRAFT PR#14 verified OPEN/DRAFT, unmerged, head0f3c0ab176d71fbc48e860a9b42749474b838c24, base maina90d561; independent ls-remote matches and code tree clean. https://github.com/MinhDuc2612/Kildall/pull/14 . Final source hashes unchanged.27/27 controls, hooks5/5, Phase3 Never, repo-eval without outer HOME override, absent-mount controls, backups, check0, nuke0outside/0rejected, private/staged/history scans PASS. Live routing/recall/quality/CLI/speed/latency/soak remain UNSCORED because separate code_1.24 owns8123/8124; no inference or process termination. Accepted exFAT/privacy/unplug/cold-load risks in PR.
 
 - 2026-11-05T16:33:57+07:00 Re-root USB final delivery batch: recorded USB launcher/exFAT lesson in ~/.Codex/NOTES.md. Publishing these final action-log entries only via an ordinary hooked vault commit, full-history scan, normal workstation/reroot-usb push and independent ls-remote verification; results are retained in code/.session/reroot-usb-20261102/final-vault-delivery.json. No product changes or second PR. STOP after this verification/report: Claude reviews; no merge/HF sync/paid API/sudo/next slice.
+- 2026-11-05 — `code_1.24` real checks in the real folder: `test_cli` exit 0; translation job 228 s, image job 177 s, next Lane A job 59 s, all worked.
+- 2026-11-05 — `code_1.24` copy: last-turn request tested on a real Lane C job (route forced in the test only). First run found a bug: with no tools the model wrote its tool call as text, so the answer was junk. Fixed with `NO_TOOLS` message and `plain()`. Second run: 252 s tool-call request, 334 s last-turn request, clean answer. In the worktree copy only until the user approves copy-back.
+- 2026-11-05 — `code_1.24` copy: OCR real job read `KILDALL 1024 OCR TEST` exactly in 433 s. Speech out 33 s, speech in 26 s. Fixed two speech bugs: relative Kokoro python path failed outside the code folder, and Kokoro spoke the whole request. In the worktree copy only until the user approves copy-back.
+- 2026-11-05 — `code_1.24`: PR #14 live gates stopped UNSCORED because this session's background Lane A reload held ports 8123/8124. Both Kildall folders share those ports. Servers stopped so the gates can run; README now says to run `kildall --stop` first.
+- 2026-11-05 — `code_1.24`: user approved copy-back and `CODE_ROOT` fix. `CODE_ROOT` is now `/Volumes/ES2TB/Kildall/code_1.24`, one root as in PR #14; it also sets the `kildall nuke` root. Not committed.
+- 2026-11-05 — `code_1.24`: copy-back 2 done, 6 tests pass in the real folder (`test_cli` 18/18). `test_permissions` passes the new root check, then stops at `os.mkfifo`: exFAT has no FIFO; rest of that file not run. DeepSeek and the Strata Q2_0 pack are now deleted (`/Volumes/ES2TB/Strata` is 725 MB), so the Q2_0 row in `sample1.24/Orbimodels.md` is out of date.
+
+- 2026-11-05T17:46:46+07:00 PR#14 live re-check: user authorized one re-run at0f3c0ab with identical protocol/limits and stop on any failure. Read standing rules/log/lessons; code clean and all75 source plus saved harness hashes unchanged. Copied exact protocol/runners to .session/reroot-usb-live-20261105T174455. First host admission at17:44:55: wired20480, pressure1 normal, swap4307.25MiB=4516478976.0bytes >3000000000. Ports8123/8124 independently closed. STOP UNSCORED before inference; no wait, retry, process termination or limit/source change. Remaining live gates not run. Recording result in BENCHMARKS and draft PR body.
+
+- 2026-11-05T17:47:44+07:00 PR#14 live re-check: GitHub OPEN/DRAFT/head0f3c0ab independently verified. Added BENCHMARKS table recording failed swap admission4.516478976GB>3GB and every remaining live gate NOT RUN; earlier port-blocked attempt retained. No source edits or inference. Preparing scanned docs-only commit and PR-body update.
+
+- 2026-11-05T17:49:10+07:00 PR#14 live re-check: Private scan of new evidence, PR body, BENCHMARKS and CLAUDE passed0hits; exact diff onlyBENCHMARKS. Preparing ordinary docs-only commit with the installed hook; no source changes.
+
+- 2026-11-05T17:49:11+07:00 PR#14 live re-check: Docs-only commit exit0; normal pre-commit hook ran.
+
+- 2026-11-05T17:49:11+07:00 PR#14 live re-check: Reporting commit a5461cc5a501a0461a4ea99d59dbc8221fe81fea contains BENCHMARKS only. Full Git-history scan required before normal branch push.
+
+- 2026-11-05T17:49:12+07:00 PR#14 live re-check: Full code history scan 569 objects,0findings. Starting normal push origin reroot-usb.
+
+- 2026-11-05T17:49:14+07:00 PR#14 live re-check: Normal docs branch push exit0.
+
+- 2026-11-05T17:49:15+07:00 PR#14 live re-check: Independent ls-remote verified reporting head a5461cc5a501a0461a4ea99d59dbc8221fe81fea. Updating existing draft PR body with first-admission failure and remaining gates NOT RUN.
+
+- 2026-11-05T17:50:34+07:00 PR#14 live re-check: GitHub connector body update returned403 Resource not accessible by integration; using authenticated gh fallback with the identical scanned body. Draft state retained.
+
+- 2026-11-05T17:50:37+07:00 PR#14 live re-check: gh PR-body update exit0.
+
+- 2026-11-05T17:51:48+07:00 PR#14 live re-check completed: stopped at first admission, normal pressure but swap4.516478976GB>3.000GB; ports8123/8124 free,wired20480. Zero inference, no retry or waiting; every live workload NOT RUN. BENCHMARKS-only commit a5461cc5a501a0461a4ea99d59dbc8221fe81fea normally pushed and ls-remote verified; product source remains identical to0f3c0ab. PR#14 body updated and independently verified OPEN/DRAFT/unmerged with exact newhead and result table. https://github.com/MinhDuc2612/Kildall/pull/14 . Prior failures preserved.
+
+- 2026-11-05T17:51:48+07:00 PR#14 final reporting batch: recorded swap-admission lesson in ~/.Codex/NOTES.md. Publishing only this action log and code gitlink to private WORKSTATION/reroot-usb by ordinary hooked commit, full-history scan, normal push and independent remote-SHA verification; results in code/.session/reroot-usb-live-20261105T174455/final-delivery.json. No code_1.24 files or protected worktree touched. STOP after report; no source change, merge, HF sync, paid API, sudo or next slice.
