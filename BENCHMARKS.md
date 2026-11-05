@@ -2670,3 +2670,17 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Soak / interactive latency | NOT RUN per scope: local inference functions/constants and call expressions unchanged | scope-verification.json |
 | Live nuke / health | PASS: dry-run33545entries,0outside,0outward rejections; check.sh exit0, wired20480 | nuke-summary.json; check-exit.json; check.log |
 | Private secret scan | PASS0hits for all3 nonempty keys.env values; 16501files/191SQLite DBs; staged scanner0findings; live DB integrityok; all3 retained venv symlinks resolved to one interpreter binary, separately scanned0hits | leak-audit.json; scanner-harness-sha256.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T174455/` |
+| --- | --- | --- |
+| Source / protocol | Exact PR source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; all75 recorded file hashes and copied protocol/harness hashes unchanged. One user-authorized attempt, same limits and original soak-first order | source.json; harness-sha256.json; measurement-protocol.json; attempt.json |
+| Ports / wired limit | Ports8123/8124 closed; wired20480. No user process stopped | starting-host.json |
+| First idle admission,17:44:55+07:00 | **UNSCORED: stop before inference.** Pressure1(normal), swap4307.25MiB=4,516,478,976bytes >3,000,000,000byte ceiling. Subsequent context snapshot free81%; top10RSS retained. No waiting or recheck for a passing swap value | starting-host.json; soak-result.json |
+| 600s child soak | NOT RUN:0samples,0children,0batches. No warning/critical/GPU-OOM score or memory peaks claimed; unchanged limits121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; measurement-protocol.json |
+| LaneA cold readiness / tok/s | NOT MEASURED: stopped at admission; no runtime startup or128-token speed sample | speed-skipped.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: live sequence stopped | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: live sequence stopped; frozen fixture unchanged | recall-skipped.json; source.json |
+| Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: live sequence stopped | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: live sequence stopped; unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json; measurement-protocol.json |
+| Prior attempt / disposition | Earlier occupied-port UNSCORED evidence retained separately; this attempt failed the swap start rule after the ports became free. No retry, source/config/prompt/fixture/threshold change or inference. Draft PR remains unqualified; docs-only reporting update | ../reroot-usb-20261102/soak-result.json; attempt.json |
