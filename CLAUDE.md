@@ -19,6 +19,8 @@ not later. Add it the moment it happens.**
    `MinhDuc2612/Kildall`**. Never to either: models, DBs, `backups/`, `.session/` evidence, keys. Secret-scan the
    full history before every push.
 
+5. **`code_1.24` is the test version for smaller hardware (user, 2026-11-04).** It runs Kildall on a 24 GB Mac with only models already on the machine: no cloud, no new downloads. Log every `code_1.24` action in this file. No commit or push for it until the user says so. The main Kildall branch continues until Phase 4 is done, with some main-branch work along the way.
+
 **Writable-memory clarification (2026-09-14): `CLAUDE.md` is the writable project
 memory and must be updated as work proceeds. The three planning files —
 `Orbiplan.md`, `Orbimodels.md`, `Orbichecklist.md` — and `Researchhub/` remain
@@ -3247,3 +3249,334 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-01 — **New pace methods found (unmeasured here).** (1) **Gemma 4 MTP drafter now exists** — llama.cpp PR #23398 merged 2026-06-07 and is already in b10809 (`--spec-type draft-mtp`); drafter `unsloth/gemma-4-26B-A4B-it-GGUF` `MTP/mtp-gemma-4-26B-A4B-it-Q8_0.gguf`, 0.46 GB. This meets the plan's written DFlash revisit condition ("a Gemma drafter is published"). (2) **Metal few-row MMA kernels for speculative and batched decode** — PR #29869 (merged 2026-10-05) and #30065 (2026-10-07), not in b10809 (built 2026-09-04). On an M3 Ultra, Qwen3.8-27B DFlash2 went 30.2 → 110 tok/s (code) and 16.8 → 62.6 (prose) vs 32.1 serial; batched B=2 32.7 → 49.7. The MoE version (#30047, MUL_MAT_ID) is still open, so Gemma's experts do not get it yet. Latest build b12020 macOS arm64 tarball is 16.5 MB. (3) Third-party M4 mini 24 GB: Qwen3.8-27B 4-bit + DFlash2 on MLX 6.5 → 11.7–12.2 tok/s, peak 19.4 GB. **Next measurement (needs disk):** b12020 + Gemma MTP Q8 drafter A/B on Lane A (same prompts, temp 0, byte-identical output check), then Qwen3.8-27B DFlash2 on b12020. Planning files not edited (read-only without user OK).
 - 2026-11-01 — **Plan v55: Phase R added — refresh everything (lanes, runtime, research, plan), runs next** (user: "later mate and make the phase of updating lanes updating everything. after all, the plans and researches was far too put dated"; this authorizes edits to the planning files and Researchhub for this phase). The Gemma speed test and the disk move are postponed by the user. `Orbiplan.md`: header v55, build-order row **R** after Phase 4, new section before Phase 10 with the dated staleness evidence and steps R1–R7 (R1 plan fact sync, R2 research → new `Researchhub/sample4/`, R3 runtime bump with full regression, R4 Lane A re-pick, R5 Lane B, R6 Lane C on paper, R7 write back), Phase 10 row and header now say it is the second pass, change log v55. `Orbichecklist.md`: new Group 20 (6 items) → **254 items** (counted). `Orbimodels.md`: out-of-date banner + change log. R1, R2, R6 need no disk; R3–R5 wait for ≥ 20 GB free.
 - 2026-11-01 — **New standing rule 4: two GitHub targets** (user: "commit and push everything instead of only code folder https://github.com/MinhDuc2612/Kildall-WORKSTATION and only what it will need for running to https://github.com/MinhDuc2612/Kildall"). WORKSTATION is private and was empty; Kildall is public. Vault commit adds `Klogo.png`, `Server_build (1).pdf`, `server_build.md`, `.obsidian/graph.json`, and `code/` as a submodule link to `MinhDuc2612/Kildall` at `971d526` (on `origin/repo-eval`). Still excluded by the existing `.gitignore`: `backups/` (memory backups), `.remember/`, `.claude/settings.local.json`, cloned third-party repos, `.DS_Store`; models/DBs/evidence live in `code/` and are ignored there. Pushed as a branch, not `main` (background sessions never push to main/master).
+
+- 2026-11-02T22:12:53+07:00 Re-root USB slice started: read standing rules, Orbiplan/companion headers and Claude brief. User USB decision supersedes older SSD/APFS advice. Mounted ES2TB, old ~/Kildall absent, Python3.12.13 executes through USB venv symlink, wired20480 verified. Code repo-eval971d526/maina90d561, vault78002e4. Snapshot frozen/config/source/planning hashes and original hooks/backup plist saved before edits. Initial exclusive evidence-directory creation correctly refused because Claude brief already existed; brief preserved, new uniquely named evidence files added. No protected Claude worktree access; no HF sync/sudo/hooks bypass. Backups first after venv recreation.
+
+- 2026-11-02T22:12:53+07:00 Re-root USB: set local core.fileMode=false in /Volumes/ES2TB/Kildall/code; no file content or shared worktree index changed.
+
+- 2026-11-02T22:12:53+07:00 Re-root USB: set local core.fileMode=false in /Volumes/ES2TB/Kildall; no file content or shared worktree index changed.
+
+- 2026-11-02T22:12:53+07:00 Re-root USB: created code branch reroot-usb from exact maina90d561; PR#13 remains separate/unmerged. No product edits yet.
+
+- 2026-11-02T22:13:46+07:00 Re-root USB: retained relocated old venv at /Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/venv-before; recreating .venv at its USB path.
+
+- 2026-11-02T22:13:46+07:00 Re-root USB: starting venv-create (offline, no model downloads).
+
+- 2026-11-02T22:13:48+07:00 Re-root USB: venv-create exit0; log retained.
+
+- 2026-11-02T22:13:48+07:00 Re-root USB: starting venv-exec (offline, no model downloads).
+
+- 2026-11-02T22:13:48+07:00 Re-root USB: venv-exec exit0; log retained.
+
+- 2026-11-02T22:13:48+07:00 Re-root USB: starting venv-locked-dependencies (offline, no model downloads).
+
+- 2026-11-02T22:13:48+07:00 Re-root USB: venv-locked-dependencies exit1; log retained.
+
+- 2026-11-02T22:18:13+07:00 Re-root USB: New USB venv executes3.12.13; offline uv resolve failed because anyio4.15.1 is not in its selected cache. Failure retained. Beginning priority APFS backup copy and emergency online SQLite snapshot while checking local dependency caches; no version or lock change.
+
+- 2026-11-02T22:18:16+07:00 Re-root USB: Copied and hash-verified 62 existing backup/mirror files to internal APFS; each SQLite snapshot integrity_check ok, mode0600. All USB originals retained.
+
+- 2026-11-02T22:18:16+07:00 Re-root USB: Fresh emergency online SQLite backup verified on APFS, hash recorded; launchd re-registration and kickstart remain pending, not claimed complete.
+
+- 2026-11-02T22:25:15+07:00 Re-root USB: Read-only gate audit completed; runner paths and path-normalization needs identified without inference. Existing 31 SQLite snapshots copied (62 files total), all verified; APFS internal disk confirmed. diskutil on home directory was unsupported; correct Data mount query succeeded. Delegated bounded hook installer compatibility fix; no hook bypass.
+
+- 2026-11-02T22:25:15+07:00 Re-root USB: Found preserved rename-slice wheelhouse; installing exact lock and pinned build backend offline from it (retaining failed default-cache attempt).
+
+- 2026-11-02T22:25:30+07:00 Re-root USB: Pinned wheelhouse install exit0.
+
+- 2026-11-02T22:25:59+07:00 Re-root USB hook installer: Inspected secret_scanner.install, its complete existing test, CLI caller, executor commit boundary, and unsupported-platform test. No existing hook installation performed; evaluating exact owned-hook relocation and exclusive publication.
+
+- 2026-11-02T22:25:59+07:00 Re-root USB hook installer: Isolated os.link capability probe: {"supported": false, "errno": 45, "error_type": "OSError", "message": "Operation not supported"}; retained .session/reroot-usb-20261102/hook-hardlink-probe.json. Probe files removed; live hooks unchanged.
+
+- 2026-11-04T19:13:24+07:00 Re-root USB: Resumed after interruption: wheelhouse install succeeded fully offline; wired20480 and branch reroot-usb verified. Added fixed USB allow-list, shared mount guard/internal launcher, backup APFS path with tilde expansion, internal launchd entry/working directory, and check.sh early refusal. Priority backup registration next; no inference.
+
+- 2026-11-04T19:13:25+07:00 Re-root USB: Editable install exit0.
+
+- 2026-11-04T19:13:28+07:00 Re-root USB: Fresh USB venv executes Python3.12.13, all locked versions match, numpy/MLX imports pass; no downloads were required.
+
+- 2026-11-04T19:13:53+07:00 Re-root USB: Added absent-mount entrypoint regression test and updated backup payload expectation for internal launcher. Starting focused mount and backup checks before re-registration.
+
+- 2026-11-04T19:13:53+07:00 Re-root USB: test_usb_mount.py initial check exit0; log retained.
+
+- 2026-11-04T19:13:54+07:00 Re-root USB: test_backup_ops.py initial check exit1; log retained.
+
+- 2026-11-04T19:14:25+07:00 Re-root USB: Initial mount regression passed. Backup test exposed its old global ismount=False mock now also simulating an unplugged source; narrowed it to leave ES2TB mounted while the optional mirror stays absent. Failure retained; no production guard weakening.
+
+- 2026-11-04T19:14:25+07:00 Re-root USB: Corrected backup fixture check exit0.
+
+- 2026-11-04T19:14:25+07:00 Re-root USB: Verified old backup job is idle, exact saved owned registration, last exit78. Unloading this obsolete backup service for authorized path migration; no user process stopped.
+
+- 2026-11-04T19:14:25+07:00 Re-root USB: Old backup service bootout exit0.
+
+- 2026-11-04T19:14:26+07:00 Re-root USB: New backup registration via kildall --schedule-backups exit0.
+
+- 2026-11-04T19:14:26+07:00 Re-root USB: Installed canonical kildall/orbi command links on internal APFS to the mount-checked launcher; model runtime and venv remain on USB.
+
+- 2026-11-04T19:14:45+07:00 Re-root USB: Registered RunAtLoad job finished; starting explicit launchctl kickstart and verifying its new snapshot.
+
+- 2026-11-04T19:14:46+07:00 Re-root USB: Explicit backup kickstart passed: last exit0, 1 fresh APFS SQLite snapshot(s), integrity_check ok, mode0600, SHA256 recorded. Priority backup restoration complete.
+
+- 2026-11-04T19:15:29+07:00 Re-root USB: Updated permission/platform root assumptions and README paths only; added ._* exclusions in code/vault. Planning files and protected Claude worktree untouched.
+
+- 2026-11-04T19:15:53+07:00 Re-root USB: Backup priority complete. Starting initial deterministic compatibility checks for changed root/mount/launchd paths; no model inference. Each failed log retained before final-source gates.
+
+- 2026-11-04T19:15:53+07:00 Re-root USB: Initial compatibility test_permissions.py exit1.
+
+- 2026-11-04T19:15:54+07:00 Re-root USB: Initial compatibility test_platform_system.py exit0.
+
+- 2026-11-04T19:15:54+07:00 Re-root USB: Initial compatibility test_platform_jobs.py exit1.
+
+- 2026-11-04T19:15:54+07:00 Re-root USB: Initial compatibility test_check.py exit1.
+
+- 2026-11-04T19:15:54+07:00 Re-root USB: Initial compatibility test_rename.py exit1.
+
+- 2026-11-04T19:15:57+07:00 Re-root USB hook installer: Resumed bounded installer fix. Confirmed both retained old hooks are exact identical v1 generated scripts. Inspected current installer/test/callers; no product edits or real hook installation yet. Local Darwin SDK sys/stdio.h defines RENAME_EXCL=0x00000004; checking native exclusive rename on the USB volume.
+
+- 2026-11-04T19:16:22+07:00 Re-root USB hook installer: Native exclusive rename probe FAILED its first publication assertion, exit1; no product edits. Failure retained at .session/reroot-usb-20261102/hook-rename-probe-failure.json. Running one diagnostic capability probe to capture the errno omitted by the failed assertion.
+
+- 2026-11-04T19:16:22+07:00 Re-root USB hook installer: Native exclusive rename diagnostic: {"result": -1, "errno": 45, "strerror": "Operation not supported", "source_exists": true, "target_exists": false}; result retained. This filesystem also rejects RENAME_EXCL, so installer must use exclusive file creation for new hooks.
+
+- 2026-11-04T19:17:30+07:00 Re-root USB: Initial permissions control hit exFAT mkfifo errno45. Moved only actual FIFO/hardlink guard probes to APFS temporary storage; production path allow-list unchanged, no skipped assertions. Delegated three old backup-payload test adaptations; retained initial failures.
+
+- 2026-11-04T19:17:31+07:00 Re-root USB: permissions compatibility test exit0.
+
+- 2026-11-04T19:17:34+07:00 Re-root USB hook installer: Implementing exact prior default v1-hook migration, revalidation before replacement, and exclusive-create fallback only for unsupported hardlinks. Extending existing deterministic scanner test for migrated/altered hooks, symlinks, hooksPath, and publication races; real hooks remain unchanged.
+
+- 2026-11-04 19:17:37 — USB compatibility-test subagent read standing rules, current test seams and working-tree status; corrected the guide path to the vault root after a missing code/CLAUDE.md read and a shell PATH collision. Scope remains test_platform_jobs.py, test_check.py, test_rename.py; no production or protected worktree changes.
+
+- 2026-11-04 19:17:47 — USB compatibility-test subagent inspected all three owned tests and their Darwin jobs/USB launcher/backup test dependencies before selecting minimal assertion updates; no production changes.
+
+- 2026-11-04 19:18:07 — USB compatibility-test subagent read Python testing guidance and 29ab89b backup/health baselines, and checked current mount-guard call sites plus the read-only plan for USB/reroot references. Existing assert-based tests remain the test harness.
+
+- 2026-11-04T19:18:39+07:00 Re-root USB hook installer: Modified only secret_scanner.py and test_secret_scanner.py: exact legacy-hook bytes may relocate, custom/modified generated hooks still refuse, unsupported hardlinks use O_EXCL via xb, and temporary files are revalidated before replacing known-owned hooks. Existing test now exercises relocation, fallback, custom/marker-tampered hooks, symlinks, hooksPath, and concurrent destination creation. No real hook installation performed.
+
+- 2026-11-04 19:18:46 — USB compatibility-test subagent traced data-volume, scheduling wrapper and existing USB tests; preparing exact launcher payload checks while retaining scheduling and health golden parity.
+
+- 2026-11-04T19:19:09+07:00 Re-root USB hook installer: Starting focused deterministic test_secret_scanner.py once after installer change; temporary fixture Git commits only. Full stdout/stderr and exit retained as hook-installer-test-01; live hooks untouched.
+
+- 2026-11-04T19:19:11+07:00 Re-root USB hook installer: Focused test result: {"command": ["/Volumes/ES2TB/Kildall/code/.venv/bin/python", "test_secret_scanner.py"], "exit": 0, "elapsed_s": 2.801805999944918}; complete log retained under .session/reroot-usb-20261102/hook-installer-test-01.log.
+
+- 2026-11-04T19:19:20 — PR13 USB compatibility subtask: read standing rules (CLAUDE.md top), user lessons log, and relevant memory registry hits. Scope: extract only PR13 evaluator assets from 971d526 under ignored code/.session; unchanged test, live USB imports, no outer HOME override, no inference/network/source edits. No repo-eval run yet.
+
+- 2026-11-04T19:19:55 — PR13 USB compatibility subtask: Confirmed reroot-usb at a90d5619345e0eef64ace17b95a90f48b46b7ccf, PR13 object 971d526 present, .session ignored, live CODE_ROOT literal /Volumes/ES2TB/Kildall/code, USB venv present. Read plan opening, recent task log, memory registry 187–212, and agent-eval skill (pinned deterministic guidance only); no test run or source changes.
+
+- 2026-11-04T19:19:55 — PR13 USB compatibility subtask: Extracting only pinned evaluator assets via ['git', 'archive', '971d5266049ea606439692c94e0718a8ba4047fc', '--', 'repo_eval.py', 'test_repo_eval.py', 'repo_eval'] to /Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/pr13-assets
+
+- 2026-11-04T19:19:55 — PR13 USB compatibility subtask: Extraction succeeded: 103 files, exact pinned hashes frozen in .session/reroot-usb-20261102/pr13-assets-sha256.json. No tracked production/test source touched.
+
+- 2026-11-04 19:19:55 — USB compatibility-test subagent updated only test_platform_jobs.py, test_check.py and test_rename.py: exact internal Python/launcher/HOME expectations, exact authorized scheduler AST additions, unchanged remaining payload/health/platform parity, and negative interpreter/launcher/working-directory health fixtures. Production files unchanged by this subagent; focused execution pending.
+
+- 2026-11-04T19:20:11 — PR13 USB compatibility subtask: read unchanged pinned test_repo_eval.py (135 lines) and evaluator first 230 lines. Test runs one cloud-null-calls boundary/golden/isolation/cheat/regression gate, not 33-candidate validation; evaluator captures ROOT in git default, so wrapper must bind live USB ROOT explicitly. Continuing code inspection before deciding any archive overlay.
+
+- 2026-11-04 19:20:23 — USB compatibility-test subagent created .session/reroot-usb-20261102/compat-updated-2026-11-04T122022968Z for separate focused test stdout/stderr and exit-code evidence; the retained compat-initial failures remain unchanged.
+
+- 2026-11-04T19:20:31+07:00 Re-root USB: Predeclared measurement-protocol.json before inference, one run per final-source gate, unchanged thresholds; soak first with normal/<=3GB admission and stop live sequence UNSCORED if unmet. Copied existing frozen runners, declared historical path-only normalization, archived old summary aliases. No inference yet.
+
+- 2026-11-04 19:20:34 — USB compatibility-test subagent ran .venv/bin/python test_platform_jobs.py: exit 0; stdout/stderr/exit evidence retained in .session/reroot-usb-20261102/compat-updated-2026-11-04T122022968Z; no actual launchd registration or inference.
+
+- 2026-11-04 19:20:34 — USB compatibility-test subagent ran .venv/bin/python test_rename.py: exit 0; stdout/stderr/exit evidence retained in .session/reroot-usb-20261102/compat-updated-2026-11-04T122022968Z; no actual launchd registration or inference.
+
+- 2026-11-04 19:20:34 — USB compatibility-test subagent ran .venv/bin/python test_check.py: exit 0; stdout/stderr/exit evidence retained in .session/reroot-usb-20261102/compat-updated-2026-11-04T122022968Z; no actual launchd registration or inference.
+
+- 2026-11-04T19:20:36 — PR13 USB compatibility subtask: read evaluator remaining code, task manifest, live permissions.py and USB guard, kildall imports. A read of cloud-null-calls/verify.py failed because hidden verifier is named .repo_eval_verify.py; error preserved in tool output and corrected next. No gate attempt yet. Evaluator retains its per-verifier HOME fixture and Seatbelt confinement unchanged.
+
+- 2026-11-04T19:20:48+07:00 Re-root USB hook installer: Final read-only unchanged-hook assertion FAILED: both live hooks differ from .before saves and have identical SHA256 1ce02b1a166d6b1319a63dc2fd34a4b03b2916c26761b25c4c1e04f986ef2ac2. This subtask did not install hooks; parent notified of possible concurrent setup. Failure retained at .session/reroot-usb-20261102/hook-installer-verification-failure.json.
+
+- 2026-11-04T19:20:48+07:00 Re-root USB hook installer: Final diagnostic retained: both live hooks match current USB template=True; git diff --check exit0. Source hashes and hook state saved at .session/reroot-usb-20261102/hook-installer-verification.json. Focused scanner suite remains PASS; no live hook installation by this subtask.
+
+- 2026-11-04T19:20:50 — PR13 USB compatibility subtask: verified hidden cloud-null-calls assertion and pinned base a90d561 permissions CODE_ROOT=Path.home()/Kildall/code. The retained per-verifier HOME fixture maps that root to each verification copy. Host actions import live USB permissions and kildall. No overlay appears needed for this gate; inspecting unrelated test and exact file-action dispatch before one unchanged run.
+
+- 2026-11-04 19:20:56 — USB compatibility-test subagent reviewed the three-file test diff and git diff --check passed. Focused test_platform_jobs.py, test_check.py and test_rename.py all passed with exit 0 and empty stderr; this subagent made no production edits, network calls, inference, commits, pushes or live launchctl registration.
+- 2026-11-04 — **`code_1.24` built by Claude (user: no commit, no push, separate folder).** Lanes A, B, C run on local models only: text via Flash-Next, image and video via SwarmUI, speech via whisper-cli and Kokoro, OCR via Flash-Next vision. DeepSeek model files disappeared around 16:24 (not removed by this session). Not committed.
+- 2026-11-04 — **Standing rule 5 added: `code_1.24` is the small-hardware test version** (user: "record inside claude.md 1.24 is the test version for the smaller hardware device"). Work continues there; main Kildall continues to Phase 4.
+- 2026-11-04 — `code_1.24`: Lane B/C text jobs now receive history and recalled memory via `fit_messages`, built before Lane A stops.
+- 2026-11-04 — `code_1.24`: Lane A health wait raised from 120 s to 300 s; loads from the external drive can exceed 120 s when other jobs are running.
+- 2026-11-04 — `code_1.24`: giants moved into the main tool loop, so they get file, shell, permission and hook handling; `remember` and `recall` stay off for them because the embedding server stops with Lane A.
+- 2026-11-04 — `code_1.24`: Lane C read a file through Kildall tools (real run). Rejected tool calls now return to the giant as errors instead of ending the job; end-of-job memory save skipped for giants.
+- 2026-11-04 — `code_1.24`: blocked commands return to the giant as errors; the block itself is unchanged.
+- 2026-11-04 — `code_1.24`: Lane C multi-step tool job ran without crashing but passed the 28-minute test limit at ~1.2 tok/s from ES2TB. Added `README-1.24.md`. Not committed.
+- 2026-11-04 — `code_1.24`: session resumed. Checked machine: Lane A 8123, embedding 8124, slotstream 11434, SwarmUI 7801 up; Flash-Next 98 GB on ES2TB; DeepSeek gone; another session is downloading Qwen3.6-35B-A3B; swap 7.0/8.2 GB. Read slotstream source: each tool round re-reads 500-1000 tokens because aligned resume keeps only pass boundaries (`SLOTSTREAM_OPT_ALIGNED_RESUME`); each prefill pass costs ~50 s at USB 511 MB/s. Added bench script `.session/bench/lane_c_run.py`. Starting baseline run.
+- 2026-11-04 — `code_1.24`: background-session guard blocked edits in the shared checkout, so work moved to a copy at `.claude/worktrees/code-1.24/code_1.24` (Option B). Original folder unchanged.
+- 2026-11-04 — `code_1.24` copy: Lane C changes: streamed replies, named files read up front through the executor, `tool_rounds = 4` plus one last answer turn, embedding server stays up so big models get `remember`, `recall` and the end-of-job memory save; slotstream start flags `SLOTSTREAM_OPT_ALIGNED_RESUME=0` and `--prefix-cache-dir` on ES2TB. 5 of 6 tests pass; `test_cli` and real job not run yet (Strata holds the memory).
+- 2026-11-04 — Baseline Lane C job: 4 tool rounds in 733 s, then slotstream got SIGTERM at 23:02:33 from outside the job. Round cost: prefill 57-120 s, generation 47-88 s. Tool list is 937 of 1314 prompt tokens.
+- 2026-11-04 — `sample1.24/Orbimodels.md` (worktree `sample-1.24`, uncommitted): DeepSeek-V4.1-Flash-1017 removed; totals now 30 models, ~1.15 T, ~0.78 TB. Note: `/Volumes/ES2TB/Strata` (303 GB) holds a DeepSeek-V4.1-Flash pack, and another session runs it.
+- 2026-11-05 — `code_1.24` copy, measured on a free machine. Old code: 8 tool rounds, `Tool-call limit reached`, no answer, 1014 s. New code: answer in 1201 s and 1111 s; one earlier run (876 s) gave no answer because the model called a tool on its last turn, now fixed by a last request with no tools. Read per round 43-84 s before, 19-47 s after. Biggest costs: tool rounds, then re-reading each round, then the final answer at ~1 tok/s. Tool list size matters only on first read; disk prefix cut that from 120 s to ~60 s.
+- 2026-11-05 — `code_1.24` copy: Lane A cold start measured 51 s on a free machine (30 s load, 20 s warmth, 1 s embedding); the 2-3 minutes came from memory pressure. After a big job, `--warm` stops slotstream and reloads Lane A in the background. Next job: 52 s right after, 9 s once warm.
+- 2026-11-05 — `code_1.24` copy: big models have memory: embedding server stays up. Real run: Flash-Next called `remember`, and the next Lane A job answered O(n^2) from memory.
+- 2026-11-05 — `code_1.24`: user approved copy-back. Five changed files copied from the worktree to `/Volumes/ES2TB/Kildall/code_1.24`; pending log lines added here. Not committed.
+
+- 2026-11-05T16:14:32+07:00 Re-root USB: Resumed; wired20480, mountedUSB and reroot branch intact. Existing hook mtimes16:20/16:22 onNov4 predate our19:xx work; current exact USB hook templates already present from another session. Explicit secret_scanner.install now verified both with new interpreter; no bypass. Backup remains internal. Other code_1.24 work is outside this slice.
+
+- 2026-11-05T16:14:47 — PR13 USB compatibility subtask: resumed after interruption; no gate attempt yet. Completed dispatch/unrelated-test inspection. Existing internal verifier HOME fixture makes pinned source valid without overlays. No AGENTS.md/CLAUDE.md found in session directory (rg exit1=no matches). Preparing untouched test gate with live USB imports, explicit evaluator ROOT/TASKS and git cwd wrapper; no outer HOME override.
+
+- 2026-11-05T16:14:47 — PR13 USB compatibility subtask: created and syntax-checked ignored .session/reroot-usb-20261102/pr13-gate-01.py. Wrapper asserts live kildall/permissions paths, literal USB CODE_ROOT, original HOME=/Users/minhduc, no optimization, all103 pinned asset SHA256 hashes, and USB git root. Test/evaluator source remains untouched; archive_overlays=[].
+
+- 2026-11-05T16:15:22 — PR13 USB compatibility subtask: Starting gate01: {"command": ["/Volumes/ES2TB/Kildall/code/.venv/bin/python", "-B", "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/pr13-gate-01.py"], "cwd": "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102", "outer_environment_overrides": {}, "runner_sha256": "d154532439fa4f5b6c63cae91329d33b7748adcd58013b67c1f2806abf1ef52d", "stdout_stderr": "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/pr13-gate-01.log", "started": "2026-11-05T16:15:22"}
+
+- 2026-11-05T16:15:26 — PR13 USB compatibility subtask: Gate01 completed: {"command": ["/Volumes/ES2TB/Kildall/code/.venv/bin/python", "-B", "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/pr13-gate-01.py"], "cwd": "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102", "outer_environment_overrides": {}, "runner_sha256": "d154532439fa4f5b6c63cae91329d33b7748adcd58013b67c1f2806abf1ef52d", "stdout_stderr": "/Volumes/ES2TB/Kildall/code/.session/reroot-usb-20261102/pr13-gate-01.log", "started": "2026-11-05T16:15:22", "exit": 0, "elapsed_s": 4.075289416941814}
+
+- 2026-11-05T16:16:40 — PR13 USB compatibility subtask: gate01 PASSED unchanged test_repo_eval.py (28 static assertions plus refusal and syscall sandbox checks), exit0 in4.075289416941814s. Verified all session artifacts ignored. Checks cover confinement/hidden source, exact Confirm and Auto/Never,40-call/900s caps, golden repair/scoring, malformed syntax, outside-file/network denial, verifier tampering and unrelated-test regression. Original HOME=/Users/minhduc retained, all103 PR13 asset SHA256 hashes and live kildall/permissions/usb_mount source hashes unchanged. No overlays, inference, successful network calls, candidate-wide revalidation, product/test source modifications or commit/push. Evidence code/.session/repo-eval-controls-nhtgnik2; command/log/provenance/result under code/.session/reroot-usb-20261102/pr13-gate-01*.
+
+- 2026-11-05T16:17:34+07:00 Re-root USB: Final source and harness SHA256 manifests frozen before inference; requirements/frozen fixtures and prompt constants unchanged, config differs only backup_dir. PR13 unchanged compatibility test PASS without outer HOME override, no overlays. Starting 27 standing controls plus mount test; source edits finished.
+
+- 2026-11-05T16:17:34+07:00 Re-root USB: Starting final-source controls gate once; full log retained.
+
+- 2026-11-05T16:17:34+07:00 Re-root USB control: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-05T16:17:34+07:00 Re-root USB control: test_platform_system.py exit0; log retained.
+
+- 2026-11-05T16:17:34+07:00 Re-root USB control: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-05T16:17:34+07:00 Re-root USB control: test_platform_keys.py exit0; log retained.
+
+- 2026-11-05T16:17:34+07:00 Re-root USB control: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-05T16:17:35+07:00 Re-root USB control: test_platform_jobs.py exit0; log retained.
+
+- 2026-11-05T16:17:35+07:00 Re-root USB control: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-05T16:17:35+07:00 Re-root USB control: test_long_context.py exit0; log retained.
+
+- 2026-11-05T16:17:35+07:00 Re-root USB control: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-05T16:17:40+07:00 Re-root USB control: test_router_warmth.py exit0; log retained.
+
+- 2026-11-05T16:17:40+07:00 Re-root USB control: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-05T16:17:42+07:00 Re-root USB control: test_slot_isolation.py exit0; log retained.
+
+- 2026-11-05T16:17:42+07:00 Re-root USB control: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-05T16:17:45+07:00 Re-root USB control: test_phase44.py exit0; log retained.
+
+- 2026-11-05T16:17:45+07:00 Re-root USB control: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: test_tool_runtime.py exit0; log retained.
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: test_benchmark.py exit0; log retained.
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: test_routing.py exit0; log retained.
+
+- 2026-11-05T16:17:46+07:00 Re-root USB control: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-05T16:17:47+07:00 Re-root USB control: test_permissions.py exit0; log retained.
+
+- 2026-11-05T16:17:47+07:00 Re-root USB control: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-05T16:17:51+07:00 Re-root USB control: test_phase41.py exit0; log retained.
+
+- 2026-11-05T16:17:51+07:00 Re-root USB control: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-05T16:17:55+07:00 Re-root USB control: test_phase42.py exit0; log retained.
+
+- 2026-11-05T16:17:55+07:00 Re-root USB control: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-05T16:18:01+07:00 Re-root USB control: test_phase43.py exit0; log retained.
+
+- 2026-11-05T16:18:01+07:00 Re-root USB control: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-05T16:18:01+07:00 Re-root USB control: test_tool_grammar.py exit0; log retained.
+
+- 2026-11-05T16:18:01+07:00 Re-root USB control: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: test_shell_lifecycle.py exit0; log retained.
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: test_image_reader.py exit0; log retained.
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: test_nuke.py exit0; log retained.
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: test_rename.py exit0; log retained.
+
+- 2026-11-05T16:18:03+07:00 Re-root USB control: starting test_check.py (deterministic, no inference)
+
+- 2026-11-05T16:18:04+07:00 Re-root USB control: test_check.py exit0; log retained.
+
+- 2026-11-05T16:18:04+07:00 Re-root USB control: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-05T16:18:04+07:00 Re-root USB control: test_tool_validation.py exit0; log retained.
+
+- 2026-11-05T16:18:04+07:00 Re-root USB control: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: test_memory.py exit0; log retained.
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: test_cloud_keys.py exit0; log retained.
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: test_backup_ops.py exit0; log retained.
+
+- 2026-11-05T16:18:05+07:00 Re-root USB control: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-05T16:18:08+07:00 Re-root USB control: test_secret_scanner.py exit0; log retained.
+
+- 2026-11-05T16:18:08+07:00 Re-root USB control: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-05T16:18:08+07:00 Re-root USB control: test_prompt_reuse.py exit0; log retained.
+
+- 2026-11-05T16:18:08+07:00 Re-root USB control: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-05T16:18:09+07:00 Re-root USB control: test_cloud.py exit0; log retained.
+
+- 2026-11-05T16:18:09+07:00 Re-root USB control: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-05T16:18:09+07:00 Re-root USB control: test_usb_mount.py exit0; log retained.
+
+- 2026-11-05T16:18:09+07:00 Re-root USB: controls completed: {"exit": 0, "seconds": 35.0788331249496, "passed": true}. Evidence retained.
+
+- 2026-11-05T16:19:30+07:00 Re-root USB: Starting final-source soak gate once; full log retained.
+
+- 2026-11-05T16:19:30+07:00 Re-root USB: soak completed: {"exit": 1, "seconds": 0.20161808305419981, "passed": false}. Evidence retained.
+
+- 2026-11-05T16:20:33+07:00 Re-root USB: Final deterministic controls27/27, hooks5/5, Phase3 empty-system Never and mount test PASS. Soak admission pressure1/swap2.493GB met, but port8123 occupied before inference. Preflight UNSCORED; no inference or process termination; owner evidence retained. Remaining live sequence stopped per protocol. Continuing nuke dry-run/check/scans and draft delivery.
+
+- 2026-11-05T16:21:16+07:00 Re-root USB: Starting final-source nuke gate once; full log retained.
+
+- 2026-11-05T16:21:38+07:00 Re-root USB: nuke completed: {"exit": 0, "seconds": 22.023512416053563, "passed": true}. Evidence retained.
+
+- 2026-11-05T16:21:43+07:00 Re-root USB secret scan history-code-precommit: {"at": "2026-11-05T16:21:39.537210+07:00", "mode": "history-code", "history": {"objects": 545, "bytes": 8750418, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T16:21:44+07:00 Re-root USB secret scan history-vault-precommit: {"at": "2026-11-05T16:21:39.536295+07:00", "mode": "history-vault", "history": {"objects": 900, "bytes": 36675351, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T16:21:54+07:00 Re-root USB: Live nuke dry-run verified {"entries": 107392, "outside": 0, "rejected": 0, "dry_run": true, "root": "/Volumes/ES2TB/Kildall/code"}; no deletion.
+
+- 2026-11-05T16:21:54+07:00 Re-root USB: Starting final-source check gate once; full log retained.
+
+- 2026-11-05T16:21:55+07:00 Re-root USB: check completed: {"exit": 0, "seconds": 0.6195378749398515, "passed": true}. Evidence retained.
+
+- 2026-11-05T16:23:07+07:00 Re-root USB secret scan private-precommit: {"at": "2026-11-05T16:21:54.938830+07:00", "mode": "private", "artifacts": {"files": 88190, "bytes": 16033566754, "hits_by_name": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "sqlite_databases": 618, "logical_db_hits": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "unreadable_logical_databases": 0, "live_integrity": "ok", "symlinks_skipped": 28, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T16:25:17+07:00 Re-root USB: check.sh exit0 (wired20480, mount and backup registration); nuke107392 entries/0outside/0rejected. Full code/vault history precommit scans0 findings. Private artifact/DB scan in progress. Draft will retain UNSCORED live gates due separate code_1.24 listeners; no runtime takeover, one admission attempt.
+
+- 2026-11-05T16:26:13+07:00 Re-root USB: Private artifact scan PASS:88190files/618SQLiteDBs,0exact-value/logical hits; full code/vault history0findings. Staging only18 reroot source/test/README/ignore files; no evidence/private data or PR13 assets.
+
+- 2026-11-05T16:26:13+07:00 Re-root USB: Staged scan0findings and diff check0. Starting ordinary commit with installed pre-commit hook enabled; no bypass.
+
+- 2026-11-05T16:26:15+07:00 Re-root USB: Code ordinary commit exit0. Hook output retained.
+
+- 2026-11-05T16:26:15+07:00 Re-root USB: Code commit 0f3c0ab176d71fbc48e860a9b42749474b838c24 created after private/staged scanners passed; final source hashes still match all tested files.
+
+- 2026-11-05T16:26:18+07:00 Re-root USB secret scan history-code-prepush: {"at": "2026-11-05T16:26:15.159673+07:00", "mode": "history-code", "history": {"objects": 566, "bytes": 8964900, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T16:27:36+07:00 Re-root USB: Public main remains exacta90d561; code tree clean at 0f3c0ab176d71fbc48e860a9b42749474b838c24. Full post-commit history scan566objects/0findings. Starting normal push origin reroot-usb; DRAFT only, no merge.
+
+- 2026-11-05T16:27:38+07:00 Re-root USB: Normal code branch push exit0.
+
+- 2026-11-05T16:27:39+07:00 Re-root USB: Independent ls-remote verified code branch 0f3c0ab176d71fbc48e860a9b42749474b838c24 and unchanged maina90d561. Starting DRAFT PR creation with full gate table and accepted risks.
+
+- 2026-11-05T16:28:47+07:00 Re-root USB: WORKSTATION verified private via GitHub. Creating vault reroot-usb branch for authorized .gitignore/CLAUDE/submodule-pointer snapshot only; unrelated untracked code_1.24 and Claude worktrees remain untouched. No master/main push.
+
+- 2026-11-05T16:28:47+07:00 Re-root USB: Vault branch reroot-usb created; staging .gitignore, action log, and code gitlink to published0f3c0ab. Public DRAFT creation/verification remains final delivery step.
+
+- 2026-11-05T16:28:49+07:00 Re-root USB: Vault staged secret scan0findings. Starting ordinary vault commit and then full-history scan before normal private branch push; no hooks bypass.

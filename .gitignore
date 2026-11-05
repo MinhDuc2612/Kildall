@@ -10,6 +10,7 @@ backups/
 
 # macOS
 .DS_Store
+._*
 **/.DS_Store
 
 # Cloned third-party repos — own upstream history, not ours to version
