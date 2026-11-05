@@ -3634,3 +3634,35 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-05T17:51:48+07:00 PR#14 live re-check completed: stopped at first admission, normal pressure but swap4.516478976GB>3.000GB; ports8123/8124 free,wired20480. Zero inference, no retry or waiting; every live workload NOT RUN. BENCHMARKS-only commit a5461cc5a501a0461a4ea99d59dbc8221fe81fea normally pushed and ls-remote verified; product source remains identical to0f3c0ab. PR#14 body updated and independently verified OPEN/DRAFT/unmerged with exact newhead and result table. https://github.com/MinhDuc2612/Kildall/pull/14 . Prior failures preserved.
 
 - 2026-11-05T17:51:48+07:00 PR#14 final reporting batch: recorded swap-admission lesson in ~/.Codex/NOTES.md. Publishing only this action log and code gitlink to private WORKSTATION/reroot-usb by ordinary hooked commit, full-history scan, normal push and independent remote-SHA verification; results in code/.session/reroot-usb-live-20261105T174455/final-delivery.json. No code_1.24 files or protected worktree touched. STOP after report; no source change, merge, HF sync, paid API, sudo or next slice.
+
+- 2026-11-05T22:14:57+07:00 PR#14 live re-check3: user authorized one new attempt after host became free. Read standing rules and latest logs/lessons; PR OPEN/DRAFT atdocs-onlya5461cc; product source/config/frozen files match0f3c0ab and code clean. Exact saved protocol and workload harnesses copied to .session/reroot-usb-live-20261105T221143, with source manifest adjusted only for prior BENCHMARKS reporting. Predeclared original order soak→speed→routing→recall→regressions→latency; stop on first admission/gate failure, no retry. Old evidence and summary aliases preserved. No inference yet; starting single guarded sequence next.
+
+- 2026-11-05T22:14:57+07:00 PR#14 live sequence3: Starting soak once at unchanged product source0f3c0ab.
+
+- 2026-11-05T22:14:57+07:00 Re-root USB: Starting final-source soak gate once; full log retained.
+
+- 2026-11-05 USB reroot local regression: Soak UNSCORED: pressure=1, swap=3372021186.56 bytes. No inference; remaining live sequence stopped.
+
+- 2026-11-05T22:14:57+07:00 Re-root USB: soak completed: {"exit": 2, "seconds": 0.332757749943994, "passed": false}. Evidence retained.
+
+- 2026-11-05T22:14:57+07:00 PR#14 live sequence3: STOP after soak exit2; no retry or later gate. Reporting only remains.
+
+- 2026-11-05T22:17:29+07:00 PR#14 live re-check3: Only admission at22:14:57+07:00 failed: normal pressure/free77%,swap3215.81MiB≈3.372021187GB>3.000GB. Ports independently closed,wired20480. No runtime startup/inference; remaining gates stopped automatically, no retry. Appending factual BENCHMARKS result and updating draft body only.
+
+- 2026-11-05T22:17:29+07:00 PR#14 live re-check3: New evidence/BENCHMARKS/CLAUDE/PR body private scan0hits; onlyBENCHMARKS changed. Starting ordinary docs-only commit after staged scanner, with hook enabled.
+
+- 2026-11-05T22:17:31+07:00 PR#14 live re-check3: Ordinary docs commit exit0; pre-commit hook ran.
+
+- 2026-11-05T22:17:31+07:00 PR#14 live re-check3: Full code Git-history scan0findings; normal push origin reroot-usb at docs headf6faa641ebf5530a6e72f645015c97574f03f085 next.
+
+- 2026-11-05T22:17:33+07:00 PR#14 live re-check3: Normal branch push exit0.
+
+- 2026-11-05T22:17:34+07:00 PR#14 live re-check3: Independent ls-remote verified f6faa641ebf5530a6e72f645015c97574f03f085; existing draft PR body update follows, no source changes.
+
+- 2026-11-05T22:19:00+07:00 PR#14 live re-check3: GitHub connector writes previously returned403 in this session; using the authenticated gh fallback for this authorized PR-body update, with the exact scanned body and draft state retained.
+
+- 2026-11-05T22:19:03+07:00 PR#14 live re-check3: gh body update exit0.
+
+- 2026-11-05T22:19:48+07:00 PR#14 live re-check3 completed: latest sole admission22:14:57+07:00 pressure1/free77%,swap3215.81MiB≈3.372GB>3GB,ports8123/8124closed,wired20480. STOP UNSCORED before any startup/inference, no retry. All other live stages NOT RUN. BENCHMARKS-only headf6faa641ebf5530a6e72f645015c97574f03f085 pushed and independently verified; product files still byte-identical to0f3c0ab. PR#14 body verified exact,OPEN/DRAFT/unmerged. https://github.com/MinhDuc2612/Kildall/pull/14 . Earlier failed admissions retained.
+
+- 2026-11-05T22:19:48+07:00 PR#14 final reporting batch3: ordinary hooked private commit of this action log and public code gitlink only, then full-history secret scan, normal WORKSTATION/reroot-usb push and independent remote verification. Results retained in code/.session/reroot-usb-live-20261105T221143/final-delivery.json. No code_1.24 or protected worktree changes. Stop after report; no source/config/prompt/fixture/limit edits, inference retry, merge, HF sync, paid API, sudo or next slice.
