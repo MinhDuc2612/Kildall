@@ -2684,3 +2684,17 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: live sequence stopped | regressions-skipped.json |
 | Interactive p99<=6.726s | NOT RUN: live sequence stopped; unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json; measurement-protocol.json |
 | Prior attempt / disposition | Earlier occupied-port UNSCORED evidence retained separately; this attempt failed the swap start rule after the ports became free. No retry, source/config/prompt/fixture/threshold change or inference. Draft PR remains unqualified; docs-only reporting update | ../reroot-usb-20261102/soak-result.json; attempt.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 22:14:57+07:00 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T221143/` |
+| --- | --- | --- |
+| Product source / protocol | Exact product source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; checkout a5461cc differs only by prior BENCHMARKS reporting. Saved protocol/workload harnesses byte-identical; original soak→speed→routing→recall→regressions→latency order | attempt.json; source.json; harness-sha256.json; measurement-protocol.json |
+| First idle admission | **UNSCORED before inference**: pressure1(normal),free77%,swap3215.81MiB≈3,372,021,187bytes >3,000,000,000byte ceiling. One admission check; no waiting or retry | soak-starting-host.json; soak-result.json; soak-exit.json |
+| Ports / wired | Ports8123/8124 closed; wired20480. No user process stopped | ports-after-admission.json; run_gate.py; probe_common.py |
+| 600s child soak | NOT RUN: no startup,samples,children,batches or warning/critical/GPU-OOM scores/peaks. Unchanged121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; measurement-protocol.json |
+| LaneA cold readiness / tok/s | NOT MEASURED: stopped at admission | speed-skipped.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: stopped at admission | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: frozen fixture unchanged | recall-skipped.json; source.json |
+| Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: stopped at admission | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json |
+| Prior attempts / disposition | Earlier occupied-port and4.516GB-swap UNSCORED attempts retained. Product/config/prompt/fixtures/thresholds unchanged; no inference or retry. Draft remains unqualified; reporting changes only | ../reroot-usb-20261102/soak-result.json; ../reroot-usb-live-20261105T174455/soak-result.json; sequence-results.json |
