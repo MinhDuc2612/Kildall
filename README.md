@@ -105,7 +105,7 @@ This check recognizes explicit source delimiters, not arbitrary natural-language
 Ctrl-C saves partial state and exits 130. Orbs appear only on a terminal.
 
 `kildall --backup` writes a verified SQLite snapshot and markdown mirror to
-`../backups`, with 14-day retention. `kildall --restore PATH` restores a snapshot
+`~/Library/Application Support/Kildall/backups`, with 14-day retention. `kildall --restore PATH` restores a snapshot
 after all active turns finish; it refuses to overwrite an active turn.
 `kildall --schedule-backups` installs a permanent 03:00 LaunchAgent at
 `~/Library/LaunchAgents/local.kildall.backup.plist`. It also backs up at login,
@@ -117,7 +117,7 @@ the old job if registration fails.
 Register backups once with this command:
 
 ```sh
-/Users/minhduc/Kildall/code/.venv/bin/kildall --schedule-backups
+/Volumes/ES2TB/Kildall/code/.venv/bin/kildall --schedule-backups
 ```
 
 Each backup also copies its freshly verified SQLite snapshot and Markdown mirror
@@ -284,7 +284,7 @@ kildall tool run_command '{"command":"sleep 5","timeout":10,"background":true}'
 kildall tool shell_job '{"id":"JOB_ID"}'
 ```
 
-Writes and Git operations are scoped to the hardcoded `~/Kildall/code/` root.
+Writes and Git operations are scoped to the hardcoded `/Volumes/ES2TB/Kildall/code/` root.
 Realpath containment and descriptor-based file operations reject escapes; parent
 directories must already exist. The permission check has no content/topic filter.
 Existing memory tools retain their behavior and now receive permission audit rows.
@@ -461,7 +461,7 @@ latency, pressure, frozen quality gates and failed probes are in `BENCHMARKS.md`
 The package and primary command are `kildall`. The `orbi` command and Python
 module remain aliases for one release. Both commands share the same configuration
 and database; `KILDALL_CONFIG` takes precedence over the legacy `ORBI_CONFIG`.
-The vault lives at `~/Kildall`; SQLite table names and stored history retain their
+The vault lives at `/Volumes/ES2TB/Kildall`; SQLite table names and stored history retain their
 existing names. Existing data and backups were copied and verified before cutover;
 the originals remain available for recovery. Frozen benchmark text and model
 prompts are unchanged except for the authorized vault path in project labels
@@ -493,7 +493,7 @@ No dependency, tool schema, permission tier, production context, or nuke root ch
 | `system()` ownership/paths | ps identity/command, POSIX locks, fixed Homebrew binaries and Mac runtime archive/volume paths; canonical containment |
 | `refuse_computer()` | Existing Phase4C placeholder refusal; no input or screen API is reachable |
 
-The exact nuke allow-list remains `~/Kildall/code`. `.git` and protected-branch
+The exact nuke allow-list remains `/Volumes/ES2TB/Kildall/code`. `.git` and protected-branch
 case folding remain conservative security checks; paths are never normalized by
 lowercasing. POSIX file-descriptor mutations, signals and Unix sockets remain
 in the guarded runtime; this slice does not implement another OS.

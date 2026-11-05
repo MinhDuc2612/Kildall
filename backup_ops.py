@@ -14,6 +14,7 @@ import tempfile
 
 from memory import Memory
 from kildall_platform import jobs, system, UnsupportedPlatform
+from kildall_platform.usb_mount import require_drive
 
 
 _SNAPSHOT = re.compile(r"(kildall-memory-[0-9a-f]{16}-)(\d{8}T\d{6})-[0-9a-f]{32}\.sqlite3")
@@ -113,6 +114,7 @@ def mirror_backup(snapshot, mount=None):
 
 
 def nightly_backup(memory, backup_dir):
+    require_drive()
     snapshot = memory.backup(backup_dir)
     try:
         mirror_backup(snapshot)

@@ -3,7 +3,7 @@
 code_dir = "."
 model_dir = "models"
 db_path = "kildall.db"
-backup_dir = "../backups" # Phase 1 backups and markdown mirrors live outside code/.
+backup_dir = "~/Library/Application Support/Kildall/backups" # Internal APFS; separate from the USB database.
 
 # Phase 1 runtime retained; Lane A is provisional after the DWQ exact-argument retest.
 # Four original gates passed, but exact arguments remain 18/20; see BENCHMARKS.md.

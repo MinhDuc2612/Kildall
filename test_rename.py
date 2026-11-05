@@ -1,4 +1,4 @@
-"""Rename compatibility: one module state and a consistent backup interpreter."""
+"""Rename compatibility: one module state and an internal backup launcher."""
 
 from contextlib import redirect_stdout
 import io
@@ -55,11 +55,13 @@ runpy.run_path(str(script),run_name='__main__')
             register.assert_called_once_with({'paths': {'code_dir': root}}, kildall.ROOT, str(binary))
             from backup_ops import backup_payload
             schedule = backup_payload({'paths': {'code_dir': root}}, kildall.ROOT, binary)
-        assert schedule['ProgramArguments'] == [str(root / 'python'), str(kildall.ROOT / 'kildall.py'), '--backup']
+        assert schedule['ProgramArguments'] == ['/usr/bin/python3', str(
+            Path.home() / 'Library/Application Support/Kildall/launcher.py'), '--backup']
+        assert schedule['WorkingDirectory'] == str(Path.home())
         assert schedule['EnvironmentVariables'] == {'KILDALL_CONFIG': str(modern)}
         assert schedule['Label'] == 'local.kildall.backup'
         assert schedule['RunAtLoad'] is True
-    print('PASS: shared alias/script state, legacy config fallback, new config precedence, canonical backup interpreter')
+    print('PASS: shared alias/script state, legacy config fallback, new config precedence, internal backup launcher')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 """Closed typed action boundary; all tools share one permission path."""
 
 from kildall_platform import system, require, COMPUTER_REASON, refuse_computer
+from kildall_platform.usb_mount import require_drive
 
 from contextlib import contextmanager
 import base64
@@ -18,13 +19,14 @@ import time
 import uuid
 
 # Production scope is never supplied by a model, configuration, or command-line flag.
-CODE_ROOT = Path.home() / "Kildall" / "code"
+CODE_ROOT = Path("/Volumes/ES2TB/Kildall/code")
 AUTO = {"read", "ls", "git_status", "remember", "recall", "web_data"}
 CONFIRM = {"write", "edit", "commit", "install"}
 
 
 def guard_path(candidate, root=CODE_ROOT):
     """Expand ~, resolve every candidate, and compare path components, never prefixes."""
+    require_drive()
     return system().guard_path(candidate, root)
 
 

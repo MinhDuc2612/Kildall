@@ -122,7 +122,7 @@ def main():
         root = Path(directory)
         (root / 'out').symlink_to(root.parent)
         for path in (root, str(root) + '/', root / '../escape', root / 'out/escape',
-                     str(root).replace('Kildall', 'kildall'), '~/Kildall/code'):
+                     str(root).replace('Kildall', 'kildall'), '/Volumes/ES2TB/Kildall/code', '~/Kildall/code'):
             assert outcome(old_guard.guard_path, path, root) == outcome(native.guard_path, path, root)
         from test_image_reader import text_image
         image = root / 'text.png'

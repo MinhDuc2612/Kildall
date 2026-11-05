@@ -1,5 +1,6 @@
 """Fail-closed pre-commit checks of the proposed tree; credentials never leave memory."""
 import argparse
+import errno
 import os
 from pathlib import Path
 import re
@@ -109,9 +110,12 @@ def run(repo=None, **kwargs):
 
 def install(repositories=(ROOT, ROOT.parent), *, scanner=Path(__file__).resolve(), interpreter=ROOT / '.venv/bin/python'):
     system()
-    content = ('#!/bin/sh\n# kildall-secret-scanner v1\nexec ' + shlex.quote(str(interpreter))
-               + ' ' + shlex.quote(str(scanner)) + '\n').encode()
-    paths = []
+    template = '#!/bin/sh\n# kildall-secret-scanner v1\nexec {} {}\n'
+    content = template.format(shlex.quote(str(interpreter)), shlex.quote(str(scanner))).encode()
+    legacy = Path.home() / 'Kildall/code'
+    previous = template.format(shlex.quote(str(legacy / '.venv/bin/python')),
+                               shlex.quote(str(legacy / 'secret_scanner.py'))).encode()
+    paths = {}
     for repo in repositories:
         configured = subprocess.run([system().executable('git'), '-C', str(repo), 'config', '--get', 'core.hooksPath'],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
@@ -123,25 +127,40 @@ def install(repositories=(ROOT, ROOT.parent), *, scanner=Path(__file__).resolve(
         path = directory / 'hooks/pre-commit'
         if path.is_symlink() or path.parent.is_symlink():
             raise ScanError('custom-hook')
-        if path.exists() and path.read_bytes() != content:
+        before = path.read_bytes() if path.exists() else None
+        if before not in (None, content, previous):
             raise ScanError('custom-hook')
-        paths.append(path)
-    for path in paths:
+        paths[path] = before
+    for path, before in paths.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        if not path.exists():
+        if before != content:
             descriptor, temporary = tempfile.mkstemp(prefix='.kildall-hook-', dir=path.parent)
             try:
                 with os.fdopen(descriptor, 'wb') as stream:
                     stream.write(content)
                     stream.flush()
                     os.fchmod(stream.fileno(), 0o755)
-                os.link(temporary, path)  # Exclusive publish never overwrites a custom hook.
+                if (path.is_symlink() or path.parent.is_symlink()
+                        or (path.read_bytes() if path.exists() else None) != before):
+                    raise ScanError('custom-hook')
+                if before is not None:
+                    os.replace(temporary, path)
+                else:
+                    try:
+                        os.link(temporary, path)  # Exclusive publish never overwrites a custom hook.
+                    except OSError as error:
+                        if error.errno not in (errno.ENOTSUP, errno.EOPNOTSUPP):
+                            raise
+                        with path.open('xb') as stream:  # exFAT has no hardlinks or exclusive rename.
+                            stream.write(content)
+                            stream.flush()
+                            os.fchmod(stream.fileno(), 0o755)
             finally:
-                Path(temporary).unlink()
+                Path(temporary).unlink(missing_ok=True)
         path.chmod(0o755)
         if path.read_bytes() != content or not os.access(path, os.X_OK):
             raise ScanError('hook-install')
-    return paths
+    return list(paths)
 
 
 def main():
