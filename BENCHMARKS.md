@@ -2698,3 +2698,17 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: stopped at admission | regressions-skipped.json |
 | Interactive p99<=6.726s | NOT RUN: unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json |
 | Prior attempts / disposition | Earlier occupied-port and4.516GB-swap UNSCORED attempts retained. Product/config/prompt/fixtures/thresholds unchanged; no inference or retry. Draft remains unqualified; reporting changes only | ../reroot-usb-20261102/soak-result.json; ../reroot-usb-live-20261105T174455/soak-result.json; sequence-results.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 22:59:19+07:00 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T225912/` |
+| --- | --- | --- |
+| Product source / protocol | Exact product source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; checkout f6faa64 differs only by prior BENCHMARKS reporting. All75 source entries verified; saved protocol/workload harnesses byte-identical. One attempt, original soak→speed→routing→recall→regressions→latency order | attempt.json; original-source.json; source.json; harness-sha256.json; measurement-protocol.json |
+| First idle admission | PASS: pressure1(normal),free75%,swap2799.69MiB≈2,935,687,741bytes<=3,000,000,000byte ceiling; ports8123/8124 closed,wired20480. No admission wait or retry | soak-starting-host.json; run_soak.py; probe_common.py |
+| First live gate: soak startup | **FAIL**, exit1 after54.864326791s: `Router maintenance failed to start`. Worker traceback: `router_warmth.py:298`, `sock.bind(str(address))`, `OSError: [Errno 45] Operation not supported`. Product socket path `/Volumes/ES2TB/Kildall/code/.session/warmth-8123.sock` is on ExFAT | soak-exit.json; soak-exception.json; candidate/soak/.session/router-prefix/worker.log; post-failure-verification.json |
+| LaneA cold readiness / tok/s | Readiness FAILED after54.512266250s; elapsed failure time is not successful cold readiness. LaneA startup prefix prefill occurred; embedding startup was not reached. No128-token speed sample or generation tok/s result | cold-load.json; candidate/soak/.session/router-prefix/startup.json; speed-skipped.json |
+| 600s child soak | NOT COMPLETED: no sample0,pressure samples,children or batches. No full-soak warning/critical/OOM score or memory peaks; retained startup logs have0GPU-OOM matches. Limits unchanged:600s,121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; candidate/soak/failure.json; measurement-protocol.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: stopped at first gate failure | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: frozen fixture unchanged | recall-skipped.json; post-failure-verification.json |
+| Abstention20/20 / callable20/20 / tools>=17first→20retry / CLI18/18 | NOT RUN: stopped at first gate failure | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json |
+| Cleanup / disposition | Owned runtime stopped,services{},ports8123/8124closed,wired20480; all75 source and saved harness hashes unchanged after failure. Every earlier attempt retained. No retry,source/config/prompt/fixture/limit change,merge,HFsync,sudo or paidAPI; draft remains unqualified | candidate/soak/stopped.json; post-failure-verification.json; sequence-results.json |
