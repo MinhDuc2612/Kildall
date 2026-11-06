@@ -65,7 +65,10 @@ def swarm(server, category, prompt):
         if image:
             settings.update(initimage=data_uri(image), initimagecreativity=0)
     session = post(f"{base}/API/GetNewSession", {}, 30)["session_id"]
-    result = post(f"{base}/API/GenerateText2Image", dict(settings, session_id=session), 3600)
+    try:
+        result = post(f"{base}/API/GenerateText2Image", dict(settings, session_id=session), 3600)
+    finally:  # ComfyUI otherwise keeps up to 19 GB after the job, which pushes everything else into swap.
+        post(f"{base}/API/FreeBackendMemory", dict(session_id=session, system_ram=True), 60)
     if result.get("error") or not result.get("images"):
         raise LaneDown(f"SwarmUI made nothing: {result.get('error', 'no file returned')}")
     name = result["images"][-1].removeprefix("View/local/")

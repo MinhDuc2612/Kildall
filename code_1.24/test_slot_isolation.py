@@ -1,5 +1,6 @@
 """Actual local HTTP verifies router/work admission; no model or private data."""
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import copy
 import http.client
@@ -15,7 +16,24 @@ import subagents
 import tool_runtime
 
 
+def cancelled_mid_read():
+    """cancel() shuts the socket, so a read in flight returns no bytes instead of an error."""
+    class Cut(subagents.Cancellation):
+        @contextmanager
+        def open(self, request, timeout):
+            stopped = self.stopped
+            class Response:
+                def read(self, size):
+                    stopped.set()
+                    return b''
+            yield Response()
+    try: kildall.json_request('http://127.0.0.1:9/slots', timeout=1, cancel=Cut())
+    except InterruptedError: return
+    raise AssertionError('Cancelled read was not reported as cancelled')
+
+
 def main():
+    cancelled_mid_read()
     sent, active, peaks = [], {0: 0, 1: 0, 2: 0}, {0: 0, 1: 0, 2: 0}
     lock = threading.Lock()
     fail_stream, busy_poll = threading.Event(), threading.Event()
@@ -79,7 +97,7 @@ def main():
     server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     config = kildall.settings()
-    config['runtime'] = dict(config['runtime'], port=server.server_port, parallel=2)
+    config['runtime'] = dict(config['runtime'], port=server.server_port, parallel=2, context_size=4096)  # Matches the fake server's slots.
     endpoint = kildall.url(config)
     body = dict(messages=[dict(role='user', content='hello')], tools=kildall.BASE_TOOLS,
                 max_tokens=8, stream=False, temperature=0, tool_choice='auto')

@@ -11,12 +11,14 @@ import local_media
 
 
 class Stub(BaseHTTPRequestHandler):
-    seen, reply = None, {"images": ["View/local/raw/a.png"]}
+    seen, reply, freed = None, {"images": ["View/local/raw/a.png"]}, []
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         session = self.path.endswith("GetNewSession")
-        if not session:
+        if self.path.endswith("FreeBackendMemory"):
+            Stub.freed.append(body)
+        elif not session:
             Stub.seen = body
         data = json.dumps({"session_id": "s"} if session else Stub.reply).encode()
         self.send_response(200)
@@ -57,6 +59,7 @@ def main():
                       image=dict(model="i"), video=dict(videomodel="v"))
         assert local_media.run(server, "image_generation", "a cat") == "Saved: /out/raw/a.png"
         assert Stub.seen["model"] == "i" and "videomodel" not in Stub.seen
+        assert Stub.freed == [{"session_id": "s", "system_ram": True}]  # ComfyUI must not keep the model.
         local_media.run(server, "video_generation", f"animate {picture}")
         assert Stub.seen["videomodel"] == "v" and Stub.seen["initimagecreativity"] == 0
         Stub.reply = {"error": "broken"}

@@ -3948,3 +3948,137 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 
 - 2026-11-06T19:33:14+07:00 Separate slot cancellation fix: traced all _json_request callers and Cancellation.open/cancel; body read can return empty after socket shutdown and then reach strict_json. Began retained pre-fix local HTTP controls in isolated main-based fix-slot-cancel-read worktree; no model servers.
 - 2026-11-06 — User: "go do the 3". (1) `cancel.check()` fix: `ec3b17e` on `fix-cancel-empty-read`, draft PR #15, base main `f98b4a2`, not merged; 28 no-model controls pass, no live gates; worktree at `.claude/worktrees/cancel-empty-read` remains. Same bug still in `code_1.24/kildall.py` line 165, not ported (needs retest). (2) PR #13 independent review: fresh agent stopped at the usage limit, no result; rerun needed; selection stays unfrozen. (3) `code_1.24` commit to private `workstation` branch `reroot-usb`; `models` and `.tools` links added to its `.gitignore`.
+
+- 2026-11-06T19:33:47+07:00 Re-root USB secret scan code-1.24-commit: {"at": "2026-11-06T19:33:41.497626+07:00", "mode": "history-vault", "history": {"objects": 999, "bytes": 40721212, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-06T19:34:38+07:00 Slot-isolation pre-fix reproduction on unchanged f98b4a2: 1/25 local HTTP control runs failed (run 21 JSONDecodeError); 24 passed. All logs and summary retained under code/.session/repo-eval-review-20261106T193139/slot-evidence/before-original-*. Added deterministic regression next, before product guard.
+
+- 2026-11-06T19:34:56+07:00 Separate cancellation regression now fails deterministically before the fix: real loopback HTTP advertises body, Cancellation shuts socket after read begins, strict_json raises JSONDecodeError. Added the requested single post-read cancel.check() guard in isolated kildall.py; running 25 amended slot-control repetitions, retaining all results.
+
+- 2026-11-06T19:36:05+07:00 Separate slot cancellation fix verified: original control 24/25 PASS, run 21 JSONDecodeError; deterministic delayed-body case FAIL before guard; after single post-read guard, amended control PASS 25/25 including every original assertion. Diff only kildall.py (+1) and test_slot_isolation.py (+21), diff-check clean. Logs, failures, patch and hashes retained in slot-evidence; preparing normal local commit, no push yet.
+
+- 2026-11-06T19:36:15+07:00 Separate cancellation fix committed locally as 53916e1 on fix-slot-cancel-read through the installed secret-scan hook (clean worktree). Not pushed; parent agent will run required delivery controls/history scan and open draft PR.
+
+- 2026-11-06T19:36:23+07:00 PR #13 check-initial: {"command": ["bash", "check.sh"], "exit": 0, "seconds": 0.21230341598857194}; raw log retained.
+
+- 2026-11-06T19:36:26+07:00 PR #13 harness-01: {"command": ["/Volumes/ES2TB/Kildall/code/.venv/bin/python", "-B", "test_repo_eval.py"], "exit": 0, "seconds": 3.3072291660355404}; raw log retained.
+
+- 2026-11-06T19:37:02+07:00 PR #13 added positive paths and lazy mutants for all33 candidates; no product edits. Tightened lazy pass condition to executable valid wrong behavior with no cheat or unrelated regression. check.sh and harness01 PASS; starting all33 validation01. November2 retained brief read, previous17/18 lazy passes remain historical evidence.
+
+- 2026-11-06T19:38:02+07:00 pr13-controls: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: test_platform_system.py exit=0; raw log retained
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: test_platform_keys.py exit=0; raw log retained
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: test_platform_jobs.py exit=0; raw log retained
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: test_long_context.py exit=0; raw log retained
+
+- 2026-11-06T19:38:03+07:00 pr13-controls: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-06T19:38:12+07:00 pr13-controls: test_router_warmth.py exit=0; raw log retained
+
+- 2026-11-06T19:38:12+07:00 pr13-controls: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-06T19:38:14+07:00 pr13-controls: test_slot_isolation.py exit=0; raw log retained
+
+- 2026-11-06T19:38:14+07:00 pr13-controls: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: test_phase44.py exit=0; raw log retained
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: test_tool_runtime.py exit=0; raw log retained
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: test_benchmark.py exit=0; raw log retained
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: test_routing.py exit=0; raw log retained
+
+- 2026-11-06T19:38:18+07:00 pr13-controls: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-06T19:38:20+07:00 pr13-controls: test_permissions.py exit=0; raw log retained
+
+- 2026-11-06T19:38:20+07:00 pr13-controls: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-06T19:38:23+07:00 pr13-controls: test_phase41.py exit=0; raw log retained
+
+- 2026-11-06T19:38:23+07:00 pr13-controls: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-06T19:38:27+07:00 pr13-controls: test_phase42.py exit=0; raw log retained
+
+- 2026-11-06T19:38:27+07:00 pr13-controls: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-06T19:38:33+07:00 pr13-controls: test_phase43.py exit=0; raw log retained
+
+- 2026-11-06T19:38:33+07:00 pr13-controls: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-06T19:38:33+07:00 pr13-controls: test_tool_grammar.py exit=0; raw log retained
+
+- 2026-11-06T19:38:33+07:00 pr13-controls: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-06T19:38:34+07:00 pr13-controls: test_shell_lifecycle.py exit=0; raw log retained
+
+- 2026-11-06T19:38:34+07:00 pr13-controls: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: test_image_reader.py exit=0; raw log retained
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: test_nuke.py exit=0; raw log retained
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: test_rename.py exit=0; raw log retained
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: starting test_check.py (deterministic, no inference)
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: test_check.py exit=0; raw log retained
+
+- 2026-11-06T19:38:35+07:00 pr13-controls: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-06T19:38:36+07:00 pr13-controls: test_tool_validation.py exit=0; raw log retained
+
+- 2026-11-06T19:38:36+07:00 pr13-controls: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-06T19:38:36+07:00 pr13-controls: test_memory.py exit=0; raw log retained
+
+- 2026-11-06T19:38:36+07:00 pr13-controls: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-06T19:38:37+07:00 pr13-controls: test_cloud_keys.py exit=0; raw log retained
+
+- 2026-11-06T19:38:37+07:00 pr13-controls: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-06T19:38:37+07:00 pr13-controls: test_backup_ops.py exit=0; raw log retained
+
+- 2026-11-06T19:38:37+07:00 pr13-controls: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-06T19:38:39+07:00 pr13-controls: test_secret_scanner.py exit=0; raw log retained
+
+- 2026-11-06T19:38:39+07:00 pr13-controls: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-06T19:38:39+07:00 pr13-controls: test_prompt_reuse.py exit=0; raw log retained
+
+- 2026-11-06T19:38:39+07:00 pr13-controls: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-06T19:38:40+07:00 pr13-controls: test_cloud.py exit=0; raw log retained
+
+- 2026-11-06T19:38:40+07:00 pr13-controls: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-06T19:38:40+07:00 pr13-controls: test_usb_mount.py exit=0; raw log retained
+
+- 2026-11-06T19:39:26+07:00 PR #13 validation01 completed: {"command": ["/Volumes/ES2TB/Kildall/code/.venv/bin/python", "-B", "repo_eval.py", "validate", "--output", "/Volumes/ES2TB/Kildall/code/.session/repo-eval-review-20261106T193139/validation-01"], "exit": 0, "seconds": 143.76854504202493}; all evidence retained.
+- 2026-11-06 — `code_1.24` commit landed as vault `dbb6f32` on `reroot-usb`, pushed to private `workstation`. Stopped PR #13 review agent restarted on user's word. Found: Codex started on PR #13 and the same cancel fix at 19:31 (last log 19:39), left uncommitted edits in `code` on `repo-eval` and local fix `53916e1`, so that checkout stays untouched and PR #15 duplicates its fix. Cancel fix ported to `code_1.24`: new check red with `JSONDecodeError`, then green; `test_slot_isolation` fixture pinned to 4096 (it failed since the 32K change, was not in the 6-test list), 5 of 5; 6 tests, `test_permissions`, `test_phase44`, `test_cli` 18/18 all exit 0.
+- 2026-11-06 — `code_1.24` defect found by live routing: ComfyUI under SwarmUI keeps up to 19 GB after an image or video job, idle, so swap reached 15.9 GB of 16.4 GB. Fixed: `local_media.swarm` calls `/API/FreeBackendMemory` with `system_ram` after each job, even on error (test added, `test_local_media` passes). Same API freed it by hand: 19 GB → 4.3 GB in about 20 s, memory free 15% → 82%. First live routing run hit my 560 s limit at 12 of 20 (12 of 12 right on category and lane). Rerun of all 20 in `.session/routing-20261106c`.
+- 2026-11-06 — **Independent review of PR #13 at pushed head `0b948bd` (fresh Claude agent, not the author): DO NOT FREEZE.** Re-ran: validation 2 passes 20/20, author's lazy mutants 19/19 fail, `test_repo_eval.py` pass, cluster limits and 8/8/4 mix hold, sandbox denials hold (real syscalls), no keys or private paths in the PR, merges clean with `f98b4a2`. 🔴 **All 20 tasks still pass at least one new lazy fix: 28 of 28 tried passed**, and 6 of 6 in a second round against stronger probes, so one more hardening round is not enough. Patches: `code/.session/pr13-review-2/scripts/mutants.py`, stronger probes: `scripts/extras.py` (scratch copy at `~/.claude/jobs/dc59a1e8/tmp/pr13-review-2`). Worst: `action-background-outcome` records failed commands as done; `post-hook-status` swallows the hook error; `shell-poll-completion` drops the `interrupted` update; `scanner-word-boundary` deletes 4 of 5 patterns. HIGH: `repo_eval.py:299` runs only the probe and `test_tool_validation.py`, so declared module suites never run and the regression check caught 0 of 28. HIGH: correct fixes rejected 5 of 5 tried (`partial-router-warm`, `terminal-nonseekable`, `switch-hidden-index`, `missing-session-admission`): probes match exact exception type and argv order, so a baseline would undercount. MEDIUM: `repo_eval.py:280-284` loads product code before the probe, so 4 added lines pass on unfixed code. MEDIUM: answers leak in base files (`test_phase42.py:198-201`, `README.md:311,455`, `test_secret_scanner.py:45`). LOW: all 20 are 1-5 line reverts in one file, so "hard" is nominal; `candidates.json` stale. Not checked: no agent or model run. Review covers `0b948bd` only, not Codex's uncommitted edits in `code` (merge `ed045ec`, positive paths and lazy mutants for all 33), which are unreviewed. Selection stays unfrozen, no baseline.
+- 2026-11-06 — `code_1.24` live routing, all 20 on final code: lane 20/20, category 20/20, r15 right, 0 misses (`.session/routing-8db92f265ca64ec18b78ea4921c8fbd1`). Test prints 12/20 only because it expects exit 3 on specialist lanes, which run for real here. Memory fix on real jobs: ComfyUI back to about 1 GB after media jobs, memory free 78% and swap 7.6 GB at the end; it still peaked at 19.4 GB and swap at 15.9 GB during a job. README updated. Committing fix port and memory fix to vault `reroot-usb`.

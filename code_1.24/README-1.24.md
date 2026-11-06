@@ -17,7 +17,7 @@ These picks come from 31 fixed jobs on up to 9 models. Gemma had the best score 
 
 Qwen3.8-Flash-Next stays configured but is not routed. It took 1111-1201 s on the code analysis job that Gemma does in 19 s. On the two hard code jobs it matched Gemma: JSON parser pass (1698 s against 49 s), cron fail (1028 s against 26 s).
 
-Gates at 2 × 32K, 2026-11-06: frozen recall 20/20 on one slot and 20/20 on the work slot; abstention 20/20; callable JSON 20/20; tools 17/20 first pass, 20/20 after retry; CLI 18/18. Routing lane and category 19/20; the one miss (r15) was a crash on a vision job with no image, now fixed. Soak 767 s at about 32,500 tokens per prompt: 140 normal, 13 warning, 0 critical, no GPU out-of-memory, peak 12.2 GB.
+Gates at 2 × 32K, 2026-11-06: frozen recall 20/20 on one slot and 20/20 on the work slot; abstention 20/20; callable JSON 20/20; tools 17/20 first pass, 20/20 after retry; CLI 18/18. Routing lane and category 20/20 (`test_routing --live` prints 12 of 20 because it expects exit 3 on specialist lanes, which run for real here). Soak 767 s at about 32,500 tokens per prompt: 140 normal, 13 warning, 0 critical, no GPU out-of-memory, peak 12.2 GB.
 
 Lane A uses ports 8223 and 8224, so it does not block the main `code` folder. It stops after 5 idle minutes (`idle_stop_seconds`), and the next job loads it again in about 45 s. It has 2 slots of 32768 tokens each and uses about 13.5 GB. Only Bolt, image, video and speech jobs stop Lane A; it reloads in the background after them.
 
@@ -28,6 +28,7 @@ Known limits:
 - Edits need a yes typed in a real terminal. With no terminal, the edit is refused and the file does not change.
 - Gemma failed the cron coding job and scored 16 of 18 on the hard jobs. Check its code.
 - Bolt gave no pixel coordinates in testing. Qwen3.6-35B-A3B ran out of Metal memory beside Harrier, so it is not used.
+- Image and video jobs use up to 19 GB, and swap reached 15.9 GB during the routing run. Kildall frees that memory after each job, about 20 s later.
 - No rerank or 3D model on disk. Speech recognition is English only, and it misheard "Kildall" as "Killdoll".
 
 Tests: run each `test_local_lanes.py`, `test_local_media.py`, `test_routing.py`, `test_cloud.py`, `test_router_warmth.py`, `test_cli.py` with `.venv/bin/python`. `test_permissions.py` and `test_phase44.py` also pass.
