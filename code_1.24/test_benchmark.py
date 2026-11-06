@@ -1,0 +1,158 @@
+"""Synthetic evaluator regression checks only; these are not model measurements."""
+
+from copy import deepcopy
+from contextlib import redirect_stdout
+import io
+import json
+from pathlib import Path
+from unittest.mock import patch
+
+import benchmark as b
+
+
+def rejects(action):
+    try:
+        action()
+    except (ValueError, RuntimeError):
+        return
+    raise AssertionError("Invalid input was accepted")
+
+
+def completion(content="ok", calls=None, finish="stop", rate=20):
+    message = {"content": content}
+    if calls is not None:
+        message["tool_calls"] = calls
+    return {"choices": [{"message": message, "finish_reason": finish}],
+            "timings": {"predicted_n": 128, "predicted_ms": 128000 / rate,
+                        "predicted_per_second": rate}}
+
+
+def run_http(payloads, action):
+    from subagents import bind_slot
+    replies = iter(payloads)
+    with patch.object(b.urllib.request, "urlopen", side_effect=lambda *a, **k:
+                      io.BytesIO(json.dumps(next(replies)).encode())), \
+            patch("tool_runtime.chat", side_effect=lambda *a, **k: next(replies)), \
+            redirect_stdout(io.StringIO()), bind_slot('http://unused', 1, 2):
+        return action()
+
+
+def main():
+    cases = json.loads(Path(__file__).with_name("bench_cases.json").read_text())
+    assert len(cases["routing"]) == len(cases["tool_calls"]) == 20
+    schemas = {t["function"]["name"]: t["function"]["parameters"] for t in cases["tools"]}
+    for case in cases["tool_calls"]:
+        expected = case["expected"]
+        schema, args = schemas[expected["name"]], expected["arguments"]
+        assert b.matches(args, schema)
+        assert not b.matches(dict(args, unexpected=True), schema)
+        assert not b.matches(dict(list(args.items())[1:]), schema)
+    for value in (True, float("inf"), -float("inf"), float("nan")):
+        assert not b.matches({"operation": "sum", "values": [value]}, schemas["calculate"])
+    assert not b.matches({"path": "a", "start_line": True, "max_lines": 1}, schemas["read_file"])
+    assert not b.matches({"path": "a", "start_line": 0, "max_lines": 201}, schemas["read_file"])
+    for text in ("NaN", "Infinity", "-Infinity", "{bad"):
+        rejects(lambda text=text: b.strict_json(text))
+    assert not b.matches(b.strict_json("1e400"), {"type": "number"})
+    assert run_http([completion()], lambda: b.speed("http://unused"))["passed"]
+    boundary = run_http([completion(rate=15)], lambda: b.speed("http://unused"))
+    assert not boundary["passed"] and not boundary["beats_baseline"]
+    for finish in ("error", None, ""):
+        rejects(lambda finish=finish: run_http([completion(finish=finish)], lambda: b.chat("http://unused", [])))
+    for key in ("predicted_n", "predicted_ms", "predicted_per_second"):
+        for value in (0, -1, True, "20", float("inf"), None):
+            bad = completion()
+            bad["timings"][key] = value
+            rejects(lambda bad=bad: run_http([bad], lambda: b.chat("http://unused", [])))
+    bad = completion()
+    bad["timings"]["predicted_n"] = 31
+    rejects(lambda: run_http([bad], lambda: b.speed("http://unused")))
+    routing = [completion(json.dumps(c["expected"])) for c in cases["routing"]]
+    calls = [completion(calls=[{"type": "function", "id": c["id"], "function": {
+        "name": c["expected"]["name"], "arguments": json.dumps(c["expected"]["arguments"])}}],
+        finish="tool_calls") for c in cases["tool_calls"]]
+    result = run_http(routing + calls, lambda: b.quality("http://unused"))
+    assert result["passed"] and result["routing_score"] == result["tool_validity"] == result["tool_exact"] == 20
+    # Schema-valid punctuation mistakes must still fail exact-argument scoring.
+    wrong = deepcopy(calls)
+    for case_id, field, suffix in (("t07", "query", "."), ("t12", "text", "")):
+        index = next(i for i, case in enumerate(cases["tool_calls"]) if case["id"] == case_id)
+        function = wrong[index]["choices"][0]["message"]["tool_calls"][0]["function"]
+        args = json.loads(function["arguments"])
+        args[field] = args[field] + suffix if suffix else args[field].removesuffix(".")
+        assert b.matches(args, schemas[function["name"]])
+        function["arguments"] = json.dumps(args)
+    result = run_http(routing + wrong, lambda: b.quality("http://unused"))
+    assert result["tool_validity"] == 20 and result["tool_exact"] == 18
+    for repair in (True, False):
+        responses = list(routing)
+        for index, response in enumerate(wrong):
+            responses.append(response)
+            if index in (6, 11):
+                responses.append(calls[index] if repair else response)
+        result = run_http(responses, lambda: b.quality("http://unused", retry_tools=True, validate_regex=True))
+        assert result["tool_exact"] == 18 and result["tool_retries"] == 2
+        assert result["tool_post_retry_exact"] == result["tool_accepted"] == (20 if repair else 18)
+        assert result["passed"] == repair
+    responses = [*routing, *wrong[:7], RuntimeError("retry transport failed"),
+                 *wrong[7:12], calls[11], *wrong[12:]]
+    with patch.object(b, "chat", side_effect=responses):
+        with redirect_stdout(io.StringIO()):
+            result = b.quality("http://unused", retry_tools=True)
+    assert not result["tool_calls"][6]["post_retry_correct"]
+    assert not result["tool_calls"][6]["accepted"]
+    assert result["tool_exact"] == 18 and result["tool_post_retry_exact"] == result["tool_accepted"] == 19
+    bad = deepcopy(calls)
+    emitted = [r["choices"][0]["message"]["tool_calls"][0] for r in bad]
+    emitted[0]["function"]["arguments"] = "{"
+    bad[1]["choices"][0]["finish_reason"] = "length"
+    del emitted[2]["id"]
+    emitted[3]["id"] = ""
+    emitted[4]["function"]["name"] = "unknown_function"
+    emitted[5]["function"]["arguments"] = "[]"
+    bad[6]["choices"][0]["message"]["tool_calls"].append(deepcopy(emitted[6]))
+    bad[7]["choices"][0]["finish_reason"] = None
+    args = json.loads(emitted[8]["function"]["arguments"])
+    args["project"] = "/wrong-global-scope"
+    emitted[8]["function"]["arguments"] = json.dumps(args)
+    emitted[16]["function"]["arguments"] = '{"operation":"sum","values":[Infinity]}'
+    result = run_http(routing + bad, lambda: b.quality("http://unused"))
+    assert not result["passed"] and result["routing_score"] == 20
+    assert result["tool_validity"] == result["tool_exact"] == 10
+    rejects(lambda: b.soak("http://unused", 1, 599))
+    healthy = [dict(elapsed_s=elapsed, pressure=1, free_percent=25,
+                    rss_bytes=1024, gpu_in_use_bytes=2048, gpu_allocated_bytes=4096)
+               for elapsed in (0, 300, 600)]
+    warning = deepcopy(healthy)
+    warning[1]["pressure"] = 2  # A recovered warning must still fail the gate.
+    for samples, completes, passed, errors in (
+            (healthy, True, True, []),
+            (warning, True, False, []),
+            (healthy, False, False, []),
+            ([healthy[0], RuntimeError("sampler failed")], True, False,
+             ["RuntimeError('sampler failed')"])):
+        with patch.object(b.threading, "Thread") as thread, \
+                patch.object(b.threading.Event, "wait", return_value=False), \
+                patch.object(b.time, "monotonic", side_effect=[0, 600, 600]), \
+                patch.object(b, "sample_memory", side_effect=samples), \
+                patch.object(b, "chat") as chat, redirect_stdout(io.StringIO()):
+            def complete(*args, **kwargs):
+                # Drive monitoring during a mocked request, without waiting or inference.
+                thread.call_args.kwargs["target"]()
+                return completion()
+            if completes:
+                chat.side_effect = complete
+            else:
+                thread.return_value.start.side_effect = lambda: thread.call_args.kwargs["target"]()
+            result = b.soak("http://unused", 1, 600)
+            assert chat.call_count == int(completes)
+        assert result["passed"] is passed and result["errors"] == errors
+        assert result["rates"] == ([20] if completes else [])
+        assert result["samples"] == (samples[:1] if errors else samples)
+        assert result["peak_sampled_rss_bytes"] == 1024
+        assert result["peak_sampled_gpu_in_use_bytes"] == 2048
+    print("PASS: synthetic benchmark evaluator checks; no real model score measured.")
+
+
+if __name__ == "__main__":
+    main()

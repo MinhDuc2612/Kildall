@@ -1,0 +1,315 @@
+"""Real CLI/stream/signal checks; uses isolated data and the installed local models."""
+
+from contextlib import redirect_stderr, redirect_stdout
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import pty
+import select
+import signal
+import sqlite3
+import subprocess
+import sys
+import time
+import tomllib
+import uuid
+from unittest.mock import Mock, patch
+
+import kildall
+from setup_kildall import verify
+
+
+def control_checks():
+    """Deterministic control-flow checks; no model inference or model scores."""
+    root = Path(__file__).resolve().parent
+    work = root / ".session" / ("cli-controls-" + uuid.uuid4().hex)
+    work.mkdir(parents=True)
+    path = work / "kildall.db"
+    kildall.initialize(path)
+    checks = []
+
+    def rejects(action):
+        try:
+            action()
+        except RuntimeError as error:
+            return str(error)
+        raise AssertionError("Expected an explicit RuntimeError")
+
+    def passed(name):
+        checks.append(name)
+        print("PASS:", name, flush=True)
+
+    child = """from pathlib import Path
+import sys
+import kildall
+try:
+    with kildall.activity(Path(sys.argv[1]), restoring=sys.argv[2] == '1'):
+        pass
+except RuntimeError:
+    raise SystemExit(23)
+"""
+
+    def attempt(restoring):
+        return subprocess.run([sys.executable, "-B", "-c", child, str(path), str(int(restoring))],
+            cwd=root, text=True, capture_output=True, timeout=10)
+
+    with kildall.activity(path):
+        result = attempt(False)
+        assert result.returncode == 0, result
+        result = attempt(True)
+        assert result.returncode == 23, result
+    with kildall.activity(path, restoring=True):
+        for restoring in (False, True):
+            result = attempt(restoring)
+            assert result.returncode == 23, result
+    result = attempt(True)
+    assert result.returncode == 0, result
+    passed("cross-process turns share admission; restore excludes both turns and restores")
+
+    order, task = [], Mock()
+
+    def admit(*args):
+        order.append("admitted")
+        return task
+
+    def history(*args):
+        order.append("history")
+        return []
+
+    with patch.object(kildall, "Task", side_effect=admit), \
+            patch.object(kildall, "history", side_effect=history), \
+            patch.object(kildall, "ensure_runtime", side_effect=RuntimeError("control stop")), \
+            patch.object(kildall, "json_request") as http:
+        error = rejects(lambda: kildall.run_turn({"paths": {"db_path": path}},
+                        None, "control-session", str(work), "control prompt"))
+        assert error == "control stop" and order == ["admitted", "history"], (error, order)
+        task.finish.assert_called_once_with("error")
+        http.assert_not_called()
+    passed("continuation reads history after admission and finalizes a failed turn")
+
+    state_dir = work / ".session"
+    state_dir.mkdir()
+    model = work / "model.gguf"
+    config = {"paths": {"code_dir": work}, "lanes": {"a": {"model": model}},
+              "memory": {"embedding_model": work / "embedding.gguf"},
+              "runtime": {"port": 8125, "embedding_port": 8124, "server": work / "llama-server"}}
+    record = dict(pid=12345, started="control-start", model=str(model), port=8123)
+    process = subprocess.CompletedProcess([], 0,
+        stdout=f"/control/llama-server -m {model} --port 8123", stderr="")
+    with patch.object(kildall, "process_start", return_value="control-start"), \
+            patch.object(kildall.subprocess, "run", return_value=process), \
+            patch.object(kildall.subprocess, "Popen") as launch, \
+            patch.object(kildall, "json_request") as http:
+        assert kildall.owns_server(record)
+        assert not kildall.owns_server(dict(record, port=8125))
+        for stored in (record, {k: v for k, v in record.items() if k != "port"}):
+            kildall.atomic_json(state_dir / "services.json", {"lane_a": stored})
+            assert "--stop" in rejects(lambda: kildall.ensure_runtime(config))
+        http.assert_not_called()
+        launch.assert_not_called()
+    passed("changed or legacy ports are rejected before HTTP; live port must match ownership")
+
+    config["paths"]["db_path"] = path
+    config["memory"].update(max_items=12, max_chars=4000, max_ms=300)
+    with kildall.activity(path), patch.object(kildall, "settings", return_value=config), \
+            patch.object(sys, "argv", ["kildall", "--restore", str(work / "unused.sqlite3")]), \
+            patch.object(kildall.Memory, "restore") as restore, redirect_stderr(io.StringIO()) as errors:
+        assert kildall.main() == 1
+        assert "Database is active" in errors.getvalue()
+        restore.assert_not_called()
+
+    assert "Session no longer exists" in rejects(lambda: kildall.Task(path, "removed-session"))
+    with kildall.database(path) as db:
+        db.execute("INSERT INTO orbi_sessions VALUES(?,?,?)", ("missing-rows", str(work), time.time()))
+    task = kildall.Task(path, "missing-rows")
+    try:
+        payload = {"role": "assistant", "content": "buffered"}
+        message_id = task.message(payload)
+        with kildall.database(path) as db:
+            db.execute("DELETE FROM orbi_messages WHERE id=?", (message_id,))
+        rejects(lambda: task.message(payload, message_id))
+        task.finished.set()
+        task.watcher.join(timeout=2)
+        with kildall.database(path) as db:
+            db.execute("DELETE FROM orbi_tasks WHERE id=?", (task.id,))
+        rejects(lambda: task.set("thinking"))
+        task.state = "done"  # Exercise the outcome UPDATE independently of the state UPDATE.
+        rejects(lambda: task.finish("done"))
+    finally:
+        task.finished.set()
+        task.watcher.join(timeout=2)
+    passed("missing session, message, task-state and task-outcome rows fail visibly")
+    return checks
+
+
+def main():
+    root = Path(__file__).resolve().parent
+    work = root / ".session" / ("cli-validation-" + uuid.uuid4().hex)
+    work.mkdir(parents=True)
+    project = work / "project"
+    project.mkdir()
+    other = work / "other"
+    other.mkdir()
+    database = work / "kildall.db"
+    config = tomllib.loads((root / "kildall.toml").read_text())
+    source = (root / "kildall.toml").read_text()
+    # Keep the existing local-context failure gate; cloud overflow is tested separately.
+    source = source.replace('[cloud]\nenabled = true', '[cloud]\nenabled = false')
+    assert not tomllib.loads(source).get('cloud', {}).get('enabled', False)
+    paths = [(value, str((root / value).resolve())) for value in config["paths"].values()]
+    paths += [(config["lanes"]["a"]["model"], str(root / config["lanes"]["a"]["model"])),
+              (config["memory"]["embedding_model"], str(root / config["memory"]["embedding_model"])),
+              (config["runtime"]["server"], str(root / config["runtime"]["server"]))]
+    for old, new in paths:
+        if old == config["paths"]["db_path"]:
+            new = str(database)
+        elif old == config["paths"]["backup_dir"]:
+            new = str(work / "backups")
+        source = source.replace(json.dumps(old), json.dumps(new))
+    test_config = work / "kildall.toml"
+    test_config.write_text(source)
+    assert test_config.read_text() == source
+    tomllib.loads(source)
+    environment = dict(os.environ, KILDALL_CONFIG=str(test_config),
+        http_proxy="http://127.0.0.1:9", HTTP_PROXY="http://127.0.0.1:9", no_proxy="", NO_PROXY="")
+    executable = str(root / ".venv/bin/kildall")
+    checks = []
+
+    def run(*args, text="", cwd=project):
+        return subprocess.run([executable, *args], input=text, text=True, capture_output=True,
+                              cwd=cwd, env=environment, timeout=120)
+
+    def passed(name, condition, evidence=""):
+        assert condition, f"{name}: {evidence}"
+        checks.append(name)
+        print("PASS:", name, flush=True)
+
+    result = run("Reply with exactly: AMBER_FOX")
+    passed("prompt streams a real reply", result.returncode == 0 and "AMBER_FOX" in result.stdout, result)
+    passed("piped output contains no orbs or ANSI", not result.stderr and
+           not any(x in result.stdout for x in [*kildall.ORBS.values(), "\x1b"]), result)
+    result = run("--continue", "Repeat exactly your previous answer.")
+    passed("continue resumes stored conversation", result.returncode == 0 and "AMBER_FOX" in result.stdout, result)
+    result = run(text="Reply with exactly: PIPED_OK")
+    passed("piped input works", result.returncode == 0 and "PIPED_OK" in result.stdout, result)
+    result = run("Remember this personal fact globally: My favorite tea is rooibos.")
+    with sqlite3.connect(database) as db:
+        saved = db.execute("SELECT scope,project FROM memories WHERE text LIKE '%rooibos%' AND tier<>'L0'").fetchall()
+    passed("real remember tool stores a global fact", result.returncode == 0 and saved == [("global", None)], result)
+    result = run("Use the recall tool with scope global to find my favorite tea, then name it.", cwd=other)
+    with sqlite3.connect(database) as db:
+        recalled = db.execute("SELECT m.payload FROM orbi_messages m JOIN orbi_sessions s ON m.session=s.id WHERE s.project=?",
+                              (str(other),)).fetchall()
+    passed("real recall tool reads global memory from another project", result.returncode == 0 and "rooibos" in result.stdout.lower()
+           and any(c["function"]["name"] == "recall" for row in recalled
+                   for c in json.loads(row[0]).get("tool_calls", [])), result)
+    master, slave = pty.openpty()
+    process = subprocess.Popen([executable], stdin=slave, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               cwd=project, env=environment)
+    os.close(slave)
+    try:
+        os.write(master, b"Reply with exactly: INTERACTIVE_OK\n\x04")
+        output, errors = process.communicate(timeout=90)
+        passed("interactive prompts stay out of piped stdout", process.returncode == 0
+               and b"INTERACTIVE_OK" in output and b"kildall>" not in output and b"kildall>" in errors,
+               (process.returncode, output, errors))
+    finally:
+        os.close(master)
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+    empty_project = work / "empty-project"
+    empty_project.mkdir()
+    result = run("--continue", "hello", cwd=empty_project)
+    passed("continue cannot cross project scope", result.returncode != 0 and "No previous session" in result.stderr, result)
+    result = run("word " * (config["runtime"]["context_size"] + 2000))
+    passed("oversized context fails nonzero", result.returncode != 0 and "exceeds" in result.stderr, result)
+
+    def interrupted(sig):
+        process = subprocess.Popen([executable, "Count from 1 to 1000, one integer per line. Do not skip numbers."],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=project, env=environment)
+        try:
+            ready, _, _ = select.select([process.stdout], [], [], 90)
+            assert ready and process.poll() is None, "Generation did not start"
+            first = process.stdout.read(1)
+            assert first
+            # Let periodic persistence run before testing an uncatchable crash.
+            if sig == signal.SIGKILL:
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    with sqlite3.connect(database) as db:
+                        rows = db.execute("SELECT m.payload FROM orbi_messages m JOIN orbi_tasks t ON m.task=t.id WHERE t.pid=?",
+                                          (process.pid,)).fetchall()
+                    if any(json.loads(r[0]).get("role") == "assistant" and json.loads(r[0]).get("content") for r in rows):
+                        break
+                    time.sleep(.05)
+                else:
+                    raise AssertionError("Stream was not persisted before crash")
+            process.send_signal(sig)
+            output, errors = process.communicate(timeout=20)
+            return process.pid, process.returncode, first + output, errors
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+
+    pid, code, output, errors = interrupted(signal.SIGINT)
+    with sqlite3.connect(database) as db:
+        outcome = db.execute("SELECT outcome FROM orbi_tasks WHERE pid=?", (pid,)).fetchone()[0]
+        integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+    passed("Ctrl-C preserves state and exits130", code == 130 and outcome == "cancelled" and integrity == "ok",
+           (code, outcome, errors))
+    pid, code, output, errors = interrupted(signal.SIGKILL)
+    passed("crash test killed only its CLI process", code == -signal.SIGKILL and bool(output), (code, errors))
+    result = run("--continue", "Reply with exactly: RECOVERED")
+    with sqlite3.connect(database) as db:
+        row = db.execute("SELECT state,outcome FROM orbi_tasks WHERE pid=?", (pid,)).fetchone()
+        integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+    passed("crash state survives and resumes", result.returncode == 0 and "RECOVERED" in result.stdout and
+           row == ("stalled", "crashed") and integrity == "ok", (row, result))
+
+    class TTY(io.StringIO):
+        def isatty(self):
+            return True
+
+    stdout, stderr = TTY(), TTY()
+    with kildall.database(database) as db:
+        db.execute("INSERT INTO orbi_sessions VALUES(?,?,?)", ("orb-self-check", str(project), time.time()))
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        task = kildall.Task(database, "orb-self-check")
+        try:
+            for state in kildall.ORBS:
+                task.set(state)
+                with sqlite3.connect(database) as db:
+                    assert db.execute("SELECT state FROM orbi_tasks WHERE id=?", (task.id,)).fetchone()[0] == state
+            task.set("thinking")
+            task.last_activity -= 31
+            deadline = time.monotonic() + 3
+            while task.state != "stalled" and time.monotonic() < deadline:
+                time.sleep(.05)
+            assert task.state == "stalled"
+        finally:
+            task.finish("done")
+    passed("all orb states persist and stall monitoring works", all(x in stderr.getvalue() for x in kildall.ORBS.values()))
+
+    artifact = work / "artifact"
+    artifact.write_bytes(b"verified")
+    verify(artifact, 8, hashlib.sha256(b"verified").hexdigest())
+    try:
+        verify(artifact, 8, "0" * 64)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Corrupt artifact accepted")
+    passed("artifact corruption is rejected", True)
+    checks.extend(control_checks())
+    result = dict(passed=True, checks=checks, database=str(database))
+    target = root / ".session/cli-results.json"
+    target.write_text(json.dumps(result, indent=2) + "\n")
+    assert json.loads(target.read_text()) == result
+
+
+if __name__ == "__main__":
+    control_checks() if sys.argv[1:] == ["--control-checks"] else main()

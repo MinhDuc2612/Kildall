@@ -1,3 +1,6 @@
 {
-  "outputStyle": "ELIS"
+  "outputStyle": "ELIS",
+  "worktree": {
+    "bgIsolation": "none"
+  }
 }

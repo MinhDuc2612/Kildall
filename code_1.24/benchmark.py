@@ -1,0 +1,266 @@
+"""Run real Lane A gates against a local llama.cpp server; never execute tools."""
+
+from kildall_platform import system
+
+import argparse
+import json
+import math
+from pathlib import Path
+import re
+import subprocess
+import threading
+import time
+import urllib.request
+
+from kildall import system_messages
+
+PROMPT = (
+    "Explain how a local command-line assistant can keep useful project memory "
+    "while limiting retrieved context. Give a clear practical answer."
+)
+
+
+def strict_json(text):
+    def invalid(value):
+        raise ValueError(f"Non-JSON numeric constant: {value}")
+    return json.loads(text, parse_constant=invalid)
+
+
+def chat(url, messages, **options):
+    body = dict(messages=system_messages(messages), temperature=0, top_p=1, samplers=["temperature"], seed=42, max_tokens=256,
+                cache_prompt=False, stream=False)
+    body.update(options)
+    if body.get("tools"):
+        from tool_runtime import chat as constrained_chat
+        return constrained_chat(url, body)
+    from subagents import inference_body, request_slot
+    endpoint = url + "/v1/chat/completions"
+    with request_slot(url):
+        request = urllib.request.Request(endpoint,
+            json.dumps(inference_body(endpoint, body)).encode(), {"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=180) as response:
+            result = strict_json(response.read())
+    if "error" in result or not result.get("choices"):
+        raise RuntimeError(f"Invalid server completion: {result}")
+    if result["choices"][0].get("finish_reason") not in ("stop", "length", "tool_calls"):
+        raise RuntimeError(f"Failed or unfinished completion: {result}")
+    timing = result.get("timings", {})
+    for key in ("predicted_n", "predicted_ms", "predicted_per_second"):
+        value = timing.get(key, 0)
+        if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
+            raise ValueError(f"Invalid generation timing: {timing}")
+    result["request"] = body
+    return result
+
+
+def speed(url, *, chat_fn=None):
+    response = (chat_fn or chat)(url, [{"role": "user", "content": PROMPT}], max_tokens=128)
+    timing = response["timings"]
+    if timing["predicted_n"] < 32:
+        raise ValueError("Fewer than 32 generated tokens; insufficient speed sample")
+    rate = timing["predicted_per_second"]
+    return dict(passed=rate > 15, beats_baseline=rate > 19.48,
+                tok_s=rate, response=response)
+
+
+def matches(value, schema):
+    """Validate only the JSON Schema keywords used by the frozen fixtures."""
+    types = {"object": dict, "array": list, "string": str, "integer": int,
+             "number": (int, float), "boolean": bool, "null": type(None)}
+    allowed = schema["type"]
+    allowed = allowed if isinstance(allowed, list) else [allowed]
+    if not any(type(value) in (types[t] if isinstance(types[t], tuple) else (types[t],))
+               for t in allowed):
+        return False
+    if "enum" in schema and value not in schema["enum"]:
+        return False
+    if isinstance(value, dict):
+        properties = schema["properties"]
+        return (all(k in value for k in schema.get("required", []))
+                and (schema.get("additionalProperties", True) or value.keys() <= properties.keys())
+                and all(k in properties and matches(v, properties[k]) for k, v in value.items()))
+    if isinstance(value, list):
+        return (len(value) >= schema.get("minItems", 0)
+                and all(matches(v, schema["items"]) for v in value))
+    if type(value) in (int, float):
+        return (math.isfinite(value)
+                and schema.get("minimum", -float("inf")) <= value <= schema.get("maximum", float("inf")))
+    return True
+
+
+def score_tool(response, schemas, expected):
+    emitted = response["choices"][0]["message"].get("tool_calls", [])
+    if (response["choices"][0]["finish_reason"] != "tool_calls"
+            or len(emitted) != 1 or emitted[0]["type"] != "function"
+            or not isinstance(emitted[0].get("id"), str) or not emitted[0]["id"]):
+        raise ValueError("Expected exactly one function call")
+    call = emitted[0]["function"]
+    args = strict_json(call["arguments"])
+    valid = call["name"] in schemas and matches(args, schemas[call["name"]])
+    if valid and "scope" in args:
+        valid = (args["project"] is None if args["scope"] == "global"
+                 else isinstance(args["project"], str) and bool(args["project"]))
+    return valid, valid and dict(name=call["name"], arguments=args) == expected
+
+
+def quality(url, *, chat_fn=None, retry_tools=False, validate_regex=False):
+    from tool_validation import retry_feedback, tool_issues
+
+    complete = chat_fn or chat
+    cases = json.loads(Path(__file__).with_name("bench_cases.json").read_text())
+    system = "\n".join(cases["routing_policy"]) + "\n" + json.dumps(cases["skill_taxonomy"])
+    route_format = {"type": "json_schema", "json_schema": {"name": "route", "strict": True,
+        "schema": {"type": "object", "properties": {
+            "skill": {"type": "string", "enum": list(cases["skill_taxonomy"])},
+            "lane": {"type": "string", "enum": ["A", "B", "C"]}},
+            "required": ["skill", "lane"], "additionalProperties": False}}}
+    routing, calls = [], []
+    for case in cases["routing"]:
+        row = dict(id=case["id"], correct=False)
+        try:
+            row["response"] = complete(url, [{"role": "system", "content": system},
+                                         {"role": "user", "content": case["prompt"]}],
+                                   response_format=route_format)
+            message = row["response"]["choices"][0]["message"]
+            row["actual"] = strict_json(message["content"])
+            row["correct"] = row["actual"] == case["expected"]
+        except Exception as error:
+            row["error"] = repr(error)
+        routing.append(row)
+        print(f"{row['id']}: routing {'PASS' if row['correct'] else 'FAIL'}", flush=True)
+    schemas = {t["function"]["name"]: t["function"]["parameters"] for t in cases["tools"]}
+    for case in cases["tool_calls"]:
+        row = dict(id=case["id"], valid=False, correct=False)
+        try:
+            messages = [
+                {"role": "system", "content": cases["tool_policy"]},
+                {"role": "user", "content": case["prompt"]}]
+            options = dict(tools=cases["tools"], tool_choice="auto", parallel_tool_calls=False)
+            row["response"] = complete(url, messages, **options)
+            row["valid"], row["correct"] = score_tool(row["response"], schemas, case["expected"])
+            if retry_tools:
+                # Match examples annotate the regex task; no answer key enters retry feedback.
+                examples = ([('def hello(', True), ('def _name(', True), ('class Hello(', False),
+                             ('def 9bad(', False), ('DEF hello(', False)]
+                            if validate_regex and case["id"] == "t07" else None)
+                row.update(retry_count=0, post_retry_valid=row["valid"],
+                           post_retry_correct=row["correct"], accepted=False, regex_examples=examples)
+                final = row["response"]
+                if row["valid"]:
+                    emitted = final["choices"][0]["message"]["tool_calls"]
+                    function = emitted[0]["function"]
+                    issues = tool_issues(case["prompt"], function["name"],
+                                         strict_json(function["arguments"]), examples)
+                    row["first_pass_issues"] = issues
+                    if issues:
+                        feedback = {"role": "tool", "name": function["name"],
+                                    "tool_call_id": emitted[0]["id"], "content": retry_feedback(issues)}
+                        row["retry_count"], row["retry_feedback"] = 1, feedback
+                        row.update(post_retry_valid=False, post_retry_correct=False)
+                        retry_messages = messages + [dict(role="assistant", content="", tool_calls=emitted), feedback]
+                        row["retry_response"] = final = complete(url, retry_messages, **options)
+                        row["post_retry_valid"], row["post_retry_correct"] = score_tool(final, schemas, case["expected"])
+                        function = final["choices"][0]["message"]["tool_calls"][0]["function"]
+                        issues = tool_issues(case["prompt"], function["name"],
+                                             strict_json(function["arguments"]), examples)
+                    row["remaining_issues"] = issues
+                    row["accepted"] = row["post_retry_valid"] and not issues
+        except Exception as error:
+            row["error"] = repr(error)
+        calls.append(row)
+        print(f"{row['id']}: callable={row['valid']}, exact={row['correct']}"
+              + (f", retries={row.get('retry_count', 0)}, post_retry={row.get('post_retry_correct', False)}, accepted={row.get('accepted', False)}"
+                 if retry_tools else ""), flush=True)
+    score = sum(r["correct"] for r in routing)
+    valid = sum(r["valid"] for r in calls)
+    result = dict(passed=score >= 18 and valid == 20, routing_score=score,
+                tool_validity=valid, tool_exact=sum(r["correct"] for r in calls),
+                routing=routing, tool_calls=calls)
+    if retry_tools:
+        result.update(tool_post_retry_exact=sum(r.get("post_retry_correct", False) for r in calls),
+                      tool_retries=sum(r.get("retry_count", 0) for r in calls),
+                      tool_accepted=sum(r.get("accepted", False) for r in calls))
+        result["passed"] &= result["tool_post_retry_exact"] == result["tool_accepted"] == 20
+    return result
+
+
+def command(*args):
+    return system().command(*args)
+
+
+def sample_memory(pid, started):
+    return system().sample_memory(pid, started)
+
+
+def soak(url, pid, duration, *, chat_fn=None):
+    if duration < 600:
+        raise ValueError("RAM gate requires at least 600 seconds")
+    started = time.monotonic()
+    samples, errors, rates = [], [], []
+    done = threading.Event()
+
+    def monitor():
+        try:
+            while not done.is_set():
+                sample = sample_memory(pid, started)
+                samples.append(sample)
+                if sample["elapsed_s"] >= duration:
+                    break
+                done.wait(5)
+        except Exception as error:
+            errors.append(repr(error))
+        finally:
+            done.set()
+
+    worker = threading.Thread(target=monitor, daemon=True)
+    worker.start()
+    try:
+        while not done.is_set():
+            response = (chat_fn or chat)(url, [{"role": "user", "content": PROMPT +
+                                   f" Include practical example {len(rates) + 1}."}],
+                            max_tokens=128)
+            rates.append(response["timings"]["predicted_per_second"])
+            print(f"load {time.monotonic() - started:.0f}s: "
+                  f"{rates[-1]:.2f} tok/s", flush=True)
+    except Exception as error:
+        errors.append(repr(error))
+        done.set()
+    finally:
+        worker.join(timeout=15)
+    passed = (not errors and rates and samples and samples[-1]["elapsed_s"] >= duration
+              and all(s["pressure"] == 1 and s["free_percent"] >= 10 for s in samples))
+    return dict(passed=bool(passed), duration_s=time.monotonic() - started,
+                peak_sampled_rss_bytes=max((s["rss_bytes"] for s in samples), default=0),
+                peak_sampled_gpu_in_use_bytes=max((s["gpu_in_use_bytes"] for s in samples), default=0),
+                peak_sampled_gpu_allocated_bytes=max((s["gpu_allocated_bytes"] for s in samples), default=0),
+                sampling_interval_s=5,
+                minimum_free_percent=min((s["free_percent"] for s in samples), default=0),
+                samples=samples, rates=rates, errors=errors)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=["speed", "quality", "soak"])
+    parser.add_argument("--url", default="http://127.0.0.1:8123")
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--pid", type=int)
+    parser.add_argument("--duration", type=int, default=600)
+    args = parser.parse_args()
+    if args.mode == "soak" and not args.pid:
+        parser.error("soak requires --pid of the llama-server process")
+    try:
+        if args.mode == "soak":
+            result = soak(args.url, args.pid, args.duration)
+        else:
+            result = {"speed": speed, "quality": quality}[args.mode](args.url)
+    except Exception as error:
+        result = dict(passed=False, error=repr(error))
+    args.output.write_text(json.dumps(result, indent=2) + "\n")
+    assert json.loads(args.output.read_text()) == result
+    print(json.dumps({k: v for k, v in result.items()
+                      if k not in ("response", "samples", "rates", "routing", "tool_calls")}, indent=2))
+    return 0 if result["passed"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

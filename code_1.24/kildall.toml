@@ -1,0 +1,173 @@
+# Kildall Phase 1. Relative paths are relative to this code directory.
+[paths]
+code_dir = "."
+model_dir = "models"
+db_path = "kildall.db"
+backup_dir = "../backups_1.24" # Phase 1 backups and markdown mirrors live outside code/.
+
+# Phase 1 runtime retained; Lane A is provisional after the DWQ exact-argument retest.
+# Four original gates passed, but exact arguments remain 18/20; see BENCHMARKS.md.
+[lanes.a]
+# Ranked: Qwen3.8-Flash-Next, Qwen3.8-27B + CMoE, Gemma 4 26B-A4B, Granite 4.1 8B.
+model = "models/gemma-4-26b-a4b/gemma-4-26B-A4B-it-UD-IQ3_S.gguf"
+
+[lanes.b]
+# Specialists: canary-qwen-2.5b, Qwen3-ASR-1.7B, Qwen3-TTS-12Hz-1.7B,
+# Qwen3-Omni-30B-A3B, PaddleOCR-VL-1.6, Harrier-oss-v1-27B,
+# Qwen3-Reranker-4B, Harrier-oss-v1-0.6B, granite-guardian-4.1-8b,
+# MiLMMT-46-12B, Qwen-Image-2512, Wan 2.7, Hunyuan3D-2.1, Molmo2-8B.
+# Phase 5 revisits Wan 3.0 and Hunyuan3D v3; Omni cannot co-load with Lane A.
+model = ""
+
+[lanes.c]
+# Kimi-K3, Qwen3.8-2.4T-A95B, DeepSeek-V4-Pro-0813, GLM-5.2,
+# GLM-5.3, GLM-5.3-Flash, DeepSeek-V4-Flash-0731. Parked until the external drive exists.
+model = ""
+
+# Sample 1.24: only models already on this machine. Text jobs go to local servers.
+# Media jobs (image, video, voice, OCR) have no local path here yet.
+[lanes.local.skills]
+# Measured 2026-11-06, 31 jobs: Gemma had the best score and time on the hard jobs.
+general_assistance = "gemma"
+formal_reasoning = "gemma"
+algorithmic_coding = "gemma"
+architecture_debugging = "gemma"
+deep_research = "gemma"
+translation = "gemma"
+document_ocr = "ocr"
+visual_grounding = "bolt"
+image_generation = "swarm"
+video_generation = "swarm"
+speech_recognition = "whisper"
+speech_synthesis = "kokoro"
+
+# Lane A itself, with a longer reply. No model swap.
+[lanes.local.servers.gemma]
+kind = "lane_a"
+model = "gemma-4-26B-A4B-it-UD-IQ3_S.gguf"
+context_tokens = 32768
+max_tokens = 4096
+tool_rounds = 7
+
+# Vision. Stops Lane A while it runs. Bike and invoice jobs 5-10 s; Qwen3.6 was 15-18 s at 16 GB and hit Metal OOM beside Harrier.
+[lanes.local.servers.bolt]
+url = "http://127.0.0.1:8225/v1"
+model = "nemotron-3.5-bolt-e4b"
+start = "/opt/homebrew/bin/llama-server -m /Volumes/ES2TB/AI-Models/Nemotron-3.5-Bolt-E4B/NVIDIA-Nemotron-3.5-Bolt-E4B-UD-Q4_K_XL.gguf --mmproj /Volumes/ES2TB/AI-Models/Nemotron-3.5-Bolt-E4B/mmproj-F16.gguf --host 127.0.0.1 --port 8225 -ngl 99 -fa on -c 8192 -b 512 -ub 512 -np 1 -ctk q8_0 -ctv q8_0 --jinja --no-webui --offline"
+stop = "pkill -INT -f 'llama-server .*--port 8225'"
+context_tokens = 8192
+max_tokens = 1024
+tool_rounds = 2
+
+# macOS Vision reads the image through read_image; Lane A writes the answer. No big model.
+[lanes.local.servers.ocr]
+kind = "ocr"
+model = "macOS Vision + Lane A"
+
+[lanes.local.servers.swarm]
+kind = "swarm"
+url = "http://localhost:7801"
+start = "cd $HOME/SwarmUI && ./launch-macos.sh"
+output = "~/SwarmUI/Output/local"
+image = { model = "moss_image_sft_int8_convrot.safetensors", width = 768, height = 768, steps = 8, cfgscale = 1 }
+video = { width = 384, height = 384, videoresolution = "Image", videomodel = "wan2.2-i2v-rapid-aio-v10-nsfw-Q4_K_S.gguf", videosteps = 4, videocfg = 1, videoframes = 17, videofps = 16 }
+
+[lanes.local.servers.whisper]
+kind = "whisper"
+binary = "/opt/homebrew/bin/whisper-cli"
+model = "/Volumes/ES2TB/AI-Models/tool-caches/whisper-cpp/ggml-base.en.bin"
+
+[lanes.local.servers.kokoro]
+kind = "kokoro"
+command = ["/Volumes/ES2TB/Kildall/code_1.24/.venv/bin/python", "-m", "mlx_audio.tts.generate"]
+model = "/Volumes/ES2TB/AI-Models/Kokoro-82M-MLX-BF16"
+voice = "af_heart"
+output = "/Volumes/ES2TB/Kildall/code_1.24/.session/speech"
+
+# Not routed: on the two code jobs that split the models it matched Gemma (json pass, cron fail) at 20-40x the time.
+[lanes.local.servers.flash_next]
+url = "http://127.0.0.1:11434/v1"
+model = "qwen3.8-flash-next:4bit"
+# Resume whole conversations, not only pass boundaries; keep them on the model drive.
+start = "SLOTSTREAM_OPT_ALIGNED_RESUME=0 $HOME/.slotstream/bin/slotstream serve --prefix-cache-dir /Volumes/ES2TB/AI-Models/slotstream/prefix-cache"
+tool_rounds = 4
+context_tokens = 32768 # slotstream's limit, not Lane A's 4096.
+stop = "$HOME/.slotstream/bin/slotstream stop"
+
+[budget]
+monthly = 0 # Local and free tiers only.
+
+[memory]
+max_items = 12
+max_chars = 4000
+max_ms = 300
+
+# Small semantic retrieval model; the 27B reranker path is not resident.
+embedding_model = "models/harrier/harrier-oss-v1-0.6B-Q4_K_M.gguf"
+
+[runtime]
+server = ".tools/llama-b10809/llama-b10809/llama-server"
+port = 8223 # Not 8123/8124: the main code folder and its gates use those.
+embedding_port = 8224
+idle_stop_seconds = 300 # Free the ports and RAM after 5 idle minutes. 0 keeps Lane A loaded.
+context_size = 32768 # Per slot. Router 0, one work slot 1; 65536 in total.
+parallel = 2
+
+[cloud]
+enabled = false # Sample 1.24: local models only.
+
+# Ordered exact free-access IDs. Quotas and data policies remain unverified.
+# Anonymous LLM7 chat returned200 on2026-10-07; current docs say token required.
+[cloud.providers.llm7]
+base_url = "https://api.llm7.io/v1"
+key_name = "LLM7_API_KEY"
+keyless = true
+allowed_models = ["codestral-latest"]
+context_tokens = 32000
+daily_tokens = 100000
+quota_window = "rolling_24h"
+requests_per_minute = 60
+requests_per_hour = 250
+min_interval_seconds = 1
+limits_status = "unverified"
+limits_source = "https://docs.llm7.io/limits (Cloudcall daily limit unspecified)"
+trains_on_data = "unknown"
+
+# Anonymous only: never attach an authenticated, billed OVH account.
+[cloud.providers.ovh]
+base_url = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+key_name = ""
+keyless = true
+allowed_models = ["gpt-oss-20b"]
+context_tokens = 131072
+daily_requests = 0 # undocumented, not an unlimited-service claim
+requests_per_minute = 2
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/ovhcloudccapi.md; official anonymous access 2 RPM"
+trains_on_data = false
+
+[cloud.providers.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+key_name = "OPENROUTER_API_KEY"
+allowed_models = ["nvidia/nemotron-3-super-120b-a12b:free", "nvidia/nemotron-3-ultra-550b-a55b:free", "poolside/laguna-s-2.1:free", "cohere/north-mini-code:free"]
+context_tokens = 32000 # conservative client ceiling
+daily_requests = 50
+quota_window = "utc_day"
+requests_per_minute = 20
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/freellmapiccapi.md"
+trains_on_data = true
+
+# Only IDs listed live and answering READY on2026-10-24; failed candidates excluded.
+[cloud.providers.nvidia]
+base_url = "https://integrate.api.nvidia.com/v1"
+key_name = "NVIDIA_API_KEY"
+keyless = false
+allowed_models = ["nvidia/nemotron-3-ultra-550b-a55b"]
+context_tokens = 32000 # conservative client ceiling, not a published model limit
+daily_requests = 0 # undocumented; not an unlimited-service claim
+requests_per_minute = 0 # per-model, unpublished; forum report ~40 RPM is unverified
+limits_status = "unverified"
+limits_source = "Researchhub/sample3/Cloudcall/nvidianimccapi.md; https://forums.developer.nvidia.com/t/382830"
+# NVIDIA terms: trial use only; logs and trains on prompts, no opt-out.
+trains_on_data = true

@@ -3666,3 +3666,285 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-05T22:19:48+07:00 PR#14 live re-check3 completed: latest sole admission22:14:57+07:00 pressure1/free77%,swap3215.81MiB≈3.372GB>3GB,ports8123/8124closed,wired20480. STOP UNSCORED before any startup/inference, no retry. All other live stages NOT RUN. BENCHMARKS-only headf6faa641ebf5530a6e72f645015c97574f03f085 pushed and independently verified; product files still byte-identical to0f3c0ab. PR#14 body verified exact,OPEN/DRAFT/unmerged. https://github.com/MinhDuc2612/Kildall/pull/14 . Earlier failed admissions retained.
 
 - 2026-11-05T22:19:48+07:00 PR#14 final reporting batch3: ordinary hooked private commit of this action log and public code gitlink only, then full-history secret scan, normal WORKSTATION/reroot-usb push and independent remote verification. Results retained in code/.session/reroot-usb-live-20261105T221143/final-delivery.json. No code_1.24 or protected worktree changes. Stop after report; no source/config/prompt/fixture/limit edits, inference retry, merge, HF sync, paid API, sudo or next slice.
+
+- 2026-11-05T22:59:12+07:00 PR#14 live re-check4: continued user-authorized single attempt. No interrupted gate process or new attempt found; clean reroot-usb at docs-only f6faa64, product source0f3c0ab verified. Read standing rules, PR body, protocol and lessons. All75 saved source hashes match product commit; current source identical except prior BENCHMARKS reporting. Copied byte-identical saved harnesses/protocol to .session/reroot-usb-live-20261105T225912. Order soak→speed→routing→recall→regressions→latency, same limits, stop at first admission/gate failure, no retries. No inference yet; starting the single soak admission next.
+
+- 2026-11-05T22:59:19+07:00 Re-root USB: Starting final-source soak gate once; full log retained.
+
+- 2026-11-05 USB reroot local regression: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-11-05T23:00:02+07:00 PR#14 live re-check4: single admission at22:59:19+07:00 PASSED pressure1(normal),free75%,swap2799.69MiB=2935687741.44bytes<=3000000000. Ports8123/8124 checked closed by unchanged runner before startup; wired20480/source/harness guards held. Soak process launched once, retained log; no waiting for admission or retry.
+
+- 2026-11-05 USB reroot local regression: Prompt reuse child soak stopped; {"failed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-11-05T23:00:14+07:00 Re-root USB: soak completed: {"exit": 1, "seconds": 54.86432679090649, "passed": false}. Evidence retained.
+
+- 2026-11-05T23:02:02+07:00 PR#14 live re-check4: STOP at first gate, soak exit1 after54.864326791s. Product cold readiness failed after54.512266250s: Router maintenance failed to start. Retained worker.log shows router_warmth.py:298 sock.bind raised OSError [Errno45] Operation not supported; socket path is USB ROOT/.session/warmth-8123.sock on ExFAT. LaneA startup prefix prefill occurred; embedding/readiness and600s sampling never began (no sample0,children,batches or full-soak scores). No retry/source fix/later gate. Owned runtime cleanup completed; services{},ports8123/8124closed,wired20480,all75 source and all copied harness hashes unchanged. Recording failure and all later gates NOT RUN in docs/PR only.
+
+- 2026-11-05T23:03:08+07:00 PR#14 live re-check4: appended BENCHMARKS result table for passed admission and first-gate startup failure, with unmeasured later gates and startup-only inference distinguished. Logged exFAT Unix-socket lesson in ~/.Codex/NOTES.md. Preparing the single public BENCHMARKS-only commit and existing draft PR body update; no product fix.
+
+- 2026-11-05T23:05:10+07:00 PR#14 live re-check4: delivery validation PASS, git diff --check clean and BENCHMARKS is the only changed code-repo file; all product/harness hashes unchanged. New evidence, PR bodies, BENCHMARKS, CLAUDE and lesson note private scan {"files": 52, "bytes": 154879727, "sqlite_databases": 1, "exact_value_hits": 0, "logical_db_hits": 0, "passed": true}. Preparing ordinary hooked one-file docs commit; no further live gates.
+
+- 2026-11-05T23:05:49+07:00 PR#14 live re-check4: ordinary BENCHMARKS-only docs commit exit0 with normal pre-commit hook enabled; commit log retained.
+
+- 2026-11-05T23:05:59+07:00 Re-root USB secret scan history-code-prepush: {"at": "2026-11-05T23:05:55.204669+07:00", "mode": "history-code", "history": {"objects": 575, "bytes": 9684134, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-05T23:06:30+07:00 PR#14 live re-check4: full code history scan PASS575objects/0findings, code/vault staged scans0findings. Single docs commit 236ec166f44fdf5346080ff874cddbc305278e7a changes only BENCHMARKS; remote still f6faa64. Starting normal origin reroot-usb push.
+
+- 2026-11-05T23:06:33+07:00 PR#14 live re-check4: normal docs-only push exit0; independent ls-remote verified 236ec166f44fdf5346080ff874cddbc305278e7a. Updating the existing draft PR body with failed startup and all later gates NOT RUN.
+- 2026-11-05 — `code_1.24`, new session. Added `"worktree": {"bgIsolation": "none"}` to `.claude/settings.json` (user's first line named it; the guard blocked edits to `code_1.24` without it).
+- 2026-11-05 — `code_1.24`: own ports 8223/8224 and `idle_stop_seconds = 300` in `kildall.toml`. Router monitor starts `kildall.py --idle-stop` after the idle time; it stops Lane A and Harrier only if no turn holds the activity lock. `--warm` now skips when a newer job runs, so it cannot kill that job's slotstream. 5 no-model tests pass; live run still pending.
+- 2026-11-05 — `code_1.24`: `test_permissions` FIFO and hard-link checks moved to temporary APFS, same as PR #14; test exits 0, all 14 groups pass.
+- 2026-11-05 — Found: PR #14 soak failure (`Router maintenance failed to start`, Errno 45) is the Unix socket on exFAT in `code/router_warmth.py` `files()`. `code_1.24` already keeps that socket in `$TMPDIR`. Main folder not changed.
+
+- 2026-11-05T23:07:21+07:00 PR#14 live re-check4: GitHub connector body update returned403 Resource not accessible by integration; using authenticated gh with the exact scanned body. Current remote head236ec16, OPEN/DRAFT/unmerged, previous body unchanged.
+
+- 2026-11-05T23:07:25+07:00 PR#14 live re-check4: gh PR body update exit0; independent body/head/draft verification follows.
+
+- 2026-11-05T23:08:34.372894+07:00 PR#14 live re-check4 completed: admission PASS pressure1/swap2.935687741GB<=3GB, then first soak gate FAIL during router maintenance socket bind on exFAT (Errno45). Startup prefix prefill occurred; no completed readiness,embedding,soak samples,children,batches,tok/s or later live gates. No retry or source/limits change. One public BENCHMARKS-only commit 236ec166f44fdf5346080ff874cddbc305278e7a pushed and independently verified; full-history/staged/private scans PASS. PR#14 body independently verified exact,OPEN/DRAFT/unmerged at this head; code tree clean,product source unchanged from0f3c0ab. Local action log/lesson updated; no additional public commit. STOP at https://github.com/MinhDuc2612/Kildall/pull/14 for Claude review and user merge decision; no merge,HFsync,sudo,paidAPI or next slice. Evidence .session/reroot-usb-live-20261105T225912/final-delivery.json.
+- 2026-11-05 — `code_1.24`: big models get their own context: `fit_messages` takes `limit`/`room`, `context_tokens = 32768` for slotstream, named files read in pieces up to half the window, and a tool result that does not fit returns an error instead of breaking the request. Tests pass; real over-4K job still pending.
+
+- 2026-11-05T23:14:14+07:00 PR#14 socket fix: user authorized only router_warmth.files/import fix plus one control, fresh deterministic and one live sequence, same limits/stop on failure. Read reviewed code_1.24 implementation only; idle_stop excluded. Code clean at236ec16, PR OPEN/DRAFT/unmerged. Audited every files() caller and TMPDIR launch path; exact gettempdir copy depends on process TMPDIR, requested clarification for stable per-user path versus current-launcher-only check. Saved current/archived AF_UNIX/FIFO search under .session/reroot-usb-socket-20261105T231410. Other code_1.24 servers on8223/8224 observed and untouched.
+- 2026-11-05 — `code_1.24` idle stop checked live: Lane A job on 8223/8224 took 41 s cold; ports free after 302 s idle, `services.json` empty; 8123/8124 free throughout. `test_cli` exit 0 on the new ports.
+- 2026-11-05 — `code_1.24` lane bench started (`$CLAUDE_JOB_DIR/tmp/lanes/bench.py`): 9 on-disk text models, 10 fixed jobs through `local_lanes.reply`. Codex's log says PR #14 re-check completed at 23:08 with no retry. Colibri session paused its MiniMax-H3 tests.
+
+- 2026-11-05T23:19:40.935035+07:00 PR#14 socket fix prepared: only production files() changed to Darwin per-user internal temp/kildall mkdir0700/warmth-port. Used os.confstr(65537), the SDK _CS_DARWIN_USER_TEMP_DIR, instead of environment-sensitive gettempdir to satisfy same-path requirement without changing worker launch or other source; no idle_stop copied. One USB-root control added to existing warmth suite, real worker lifecycle plus fresh CLI path check under different TMPDIR; router-prefix stays under code_dir/.session. Read-only independent review used. All product AST outside files() unchanged. Frozen75-file manifest and saved live workloads/protocol before controls; controls stop at first failed suite, PR13 only evidence path adapted. Syntax/diff checks passed. No qualification test or inference started yet. Initial exploratory confstr comparison appended a duplicate slash and asserted; actual confstr/getconf paths match, recorded as metadata diagnostic only.
+- 2026-11-06 — `code_1.24` first lane bench, 9 models, easy jobs, `-c 32768`. `algo` job: Gemma 21 s, Flint 23 s, gpt-oss-20b 17 s, North Mini 33 s, Lightning 43 s, Qwen3.6 51 s (Flash-Next was 1111-1201 s). All tool calls valid for these 6. Gemma and Flint and Lightning passed all 6 checked jobs. gpt-oss-20b failed `logic` (said n=37; answer n=40). North Mini failed `code_calc`. Qwen3.6 ran out of tokens on both code jobs. Bolt, LFM3 and Bonsai failed several jobs. Peak RSS: gpt-oss 11.6 GB, Gemma 12.7, North Mini 12.5, Qwen3.6 15.6, Flint 16.2, Lightning 16.5. Qwen3.6 pushed swap to 9.1 GB.
+- 2026-11-06 — macOS Vision via `read_image` read `note.png` and a full invoice exactly in 0.4 s with no model (Flash-Next OCR job was 433 s). Hard round started in `$CLAUDE_JOB_DIR/tmp/lanes/hard.py`: 21 jobs on Gemma with and without thinking, Flint, Lightning, gpt-oss-20b, North Mini.
+- 2026-11-06 — `code_1.24`: `document_ocr` now reads the image with macOS Vision through `read_image`, then Lane A writes the answer. Pages over 1500 characters print as read. Other big servers stop before a big job starts (`stop_servers(keep=...)`). No-model tests pass; real job pending.
+- 2026-11-06 — `code_1.24` hard round, 21 jobs (18 graded by script; translations graded by reading). Gemma plain 16/18, 346 s total: best score and fastest. It failed `c_cron`, and `big` hit the bench's 6-call limit. Gemma with thinking 14/18, 1896 s. gpt-oss-20b 15/18, 604 s. Lightning 15/18, 1448 s. Flint 13/18, 1094 s, and it invented `shell_job` calls in a loop, so it is out for tool jobs. North Mini lower still (see `.session/lane-bench-20261106/`). Gemma also gave the best Vietnamese, Japanese and English translations.
+- 2026-11-06 — `code_1.24` re-pick: reasoning, coding, debugging, research and translation now run on Lane A itself (`kind = "lane_a"`, 4096-token replies, 7 tool rounds), so no model swap. Lane A set to 2 slots at 32768 tokens each. `visual_grounding` goes to Qwen3.6 on port 8225; OCR to macOS Vision plus Lane A. Flash-Next stays configured but not routed. Hidden-test bench files saved in `code_1.24/.session/lane-bench-20261106/`. Real `kildall ask` run in progress.
+- 2026-11-06 — `code_1.24` real `kildall ask` run after the re-pick, cold start 47 s, Lane A 13.2-13.5 GB at 2 × 32768: `algo` 19 s (was 1111-1201 s), `debug` 11 s, translation 5 s (was 228 s), OCR 7 s (was 433 s), invoice total question 9 s, proof job 20 s with the right n = 40, 60 KB file job 138 s right answer. General jobs now get the long-job handling; before that the file job exited 1 (reason not captured, likely the tool limit).
+- 2026-11-06 — `code_1.24` vision: `vision()` took an image path from recalled memory; now only from the request. Paths with spaces work. `--stop` now stops big servers too. Qwen3.6 + Harrier hit Metal OOM (20.4 GB of files against the 20.48 GB limit). Bench on real pictures: Bolt 6.1 GB, 5-10 s, bike and invoice right; Qwen3.6 16.3 GB; Glimmer 16 GB and slow; Klein no valid reply. `visual_grounding` now on Bolt, port 8225, no tools; real job 64 s with Lane A reload after it.
+- 2026-11-06 — `code_1.24` `test_cli` 18/18 after its overflow check was scaled to the configured context.
+- 2026-11-06 — `code_1.24` edit job on real terminal and with stdin closed. No terminal: edit refused, file unchanged; was raw `Errno 6`, now a clean PermissionError ("needs a yes typed in a terminal"). Answer `no`: diff shown, file unchanged. Answer `yes`: file changed, job done. Permission status stays `failed`, as `test_permissions` requires.
+- 2026-11-06 — `code_1.24` defect found by real jobs: a job started during the background Lane A reload failed at once with `HTTP Error 503`, because `wait_idle` asked `/slots` before `ensure_runtime`. 503 now counts as still loading. Real jobs one after another all exit 0: vision 29 s, chat right after 45 s, image 136 s, speech out 62 s, speech in 26 s ("Killdoll" misheard), next chat 36 s. Video job on new code: real `.mp4`, 384x384, 17 frames, 314 s.
+- 2026-11-06 — `sample1.24/Orbimodels.md` (worktree `sample-1.24`, uncommitted) updated: Strata Q2_0, Qwen3-14B MLX and qwen3:8b rows removed, lanes match the re-pick, measured states added, totals recomputed by script. `test_phase44` fixture pinned to 4096 to match its fake server; it passes.
+- 2026-11-06 — `README-1.24.md` rewritten to match the measured lanes. All 6 tests plus `test_permissions` run on the final code (result in the session report).
+- 2026-11-06 — `code_1.24` final tests on final code: all 6 pass (`test_cli` 18/18), plus `test_permissions` and `test_phase44`. Not done: Flash-Next never ran the hard jobs; recall, routing and soak gates not rerun at 2 × 32K; session stopped at the usage limit, before 800k. Open questions to user: writes outside `code_1.24`, and main-branch Phase 4. Swap about 8 GB after these runs: Codex's 3 GB start rule needs a reboot first.
+
+- 2026-11-06T06:39:25+07:00 Re-root USB: Starting final-source controls gate once; full log retained.
+
+- 2026-11-06T06:39:25+07:00 Re-root USB control: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-06T06:39:25+07:00 Re-root USB control: test_platform_system.py exit0; log retained.
+
+- 2026-11-06T06:39:25+07:00 Re-root USB control: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-06T06:39:25+07:00 Re-root USB control: test_platform_keys.py exit0; log retained.
+
+- 2026-11-06T06:39:25+07:00 Re-root USB control: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-06T06:39:26+07:00 Re-root USB control: test_platform_jobs.py exit0; log retained.
+
+- 2026-11-06T06:39:26+07:00 Re-root USB control: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-06T06:39:26+07:00 Re-root USB control: test_long_context.py exit0; log retained.
+
+- 2026-11-06T06:39:26+07:00 Re-root USB control: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-06T06:39:35+07:00 Re-root USB control: test_router_warmth.py exit0; log retained.
+
+- 2026-11-06T06:39:35+07:00 Re-root USB control: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-06T06:39:37+07:00 Re-root USB control: test_slot_isolation.py exit0; log retained.
+
+- 2026-11-06T06:39:37+07:00 Re-root USB control: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: test_phase44.py exit0; log retained.
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: test_tool_runtime.py exit0; log retained.
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: test_benchmark.py exit0; log retained.
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: test_routing.py exit0; log retained.
+
+- 2026-11-06T06:39:41+07:00 Re-root USB control: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-06T06:39:43+07:00 Re-root USB control: test_permissions.py exit0; log retained.
+
+- 2026-11-06T06:39:43+07:00 Re-root USB control: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-06T06:39:46+07:00 Re-root USB control: test_phase41.py exit0; log retained.
+
+- 2026-11-06T06:39:46+07:00 Re-root USB control: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-06T06:39:51+07:00 Re-root USB control: test_phase42.py exit0; log retained.
+
+- 2026-11-06T06:39:51+07:00 Re-root USB control: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-06T06:39:56+07:00 Re-root USB control: test_phase43.py exit0; log retained.
+
+- 2026-11-06T06:39:56+07:00 Re-root USB control: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-06T06:39:57+07:00 Re-root USB control: test_tool_grammar.py exit0; log retained.
+
+- 2026-11-06T06:39:57+07:00 Re-root USB control: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-06T06:39:58+07:00 Re-root USB control: test_shell_lifecycle.py exit0; log retained.
+
+- 2026-11-06T06:39:58+07:00 Re-root USB control: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-06T06:39:58+07:00 Re-root USB control: test_image_reader.py exit0; log retained.
+
+- 2026-11-06T06:39:58+07:00 Re-root USB control: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: test_nuke.py exit0; log retained.
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: test_rename.py exit0; log retained.
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: starting test_check.py (deterministic, no inference)
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: test_check.py exit0; log retained.
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: test_tool_validation.py exit0; log retained.
+
+- 2026-11-06T06:39:59+07:00 Re-root USB control: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: test_memory.py exit0; log retained.
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: test_cloud_keys.py exit0; log retained.
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: test_backup_ops.py exit0; log retained.
+
+- 2026-11-06T06:40:00+07:00 Re-root USB control: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-06T06:40:03+07:00 Re-root USB control: test_secret_scanner.py exit0; log retained.
+
+- 2026-11-06T06:40:03+07:00 Re-root USB control: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-06T06:40:03+07:00 Re-root USB control: test_prompt_reuse.py exit0; log retained.
+
+- 2026-11-06T06:40:03+07:00 Re-root USB control: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-06T06:40:04+07:00 Re-root USB control: test_cloud.py exit0; log retained.
+
+- 2026-11-06T06:40:04+07:00 Re-root USB control: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-06T06:40:04+07:00 Re-root USB control: test_usb_mount.py exit0; log retained.
+
+- 2026-11-06T06:40:04+07:00 Re-root USB: controls completed: {"exit": 0, "seconds": 39.4233961669961, "passed": true}. Evidence retained.
+
+- 2026-11-06T06:40:33+07:00 PR#14 socket fix: fresh deterministic controls PASS27/27 plus USB mount guard; hooks5/5, Phase3 empty-system Never, and new real USB-root/TMPDIR worker control passed. Source/harness hashes held. Starting pinned PR13 boundary compatibility once on new source, outer HOME unchanged.
+
+- 2026-11-06T06:40:36+07:00 PR#14 socket fix: pinned PR13 boundary gate completed {"exit": 0, "seconds": 3.203696999931708, "passed": true}. Raw log/provenance retained; no retries.
+
+- 2026-11-06T06:41:12+07:00 Re-root USB: Starting final-source soak gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: Soak UNSCORED: pressure=1, swap=3227779072.0 bytes. No inference; remaining live sequence stopped.
+
+- 2026-11-06T06:41:12+07:00 Re-root USB: soak completed: {"exit": 2, "seconds": 0.12956200004555285, "passed": false}. Evidence retained.
+
+- 2026-11-06T06:41:46+07:00 PR#14 socket fix: STOP UNSCORED at sole live admission06:41:12+07:00 pressure1(normal),free83%,swap3078.25MiB=3227779072bytes>3000000000. No startup/inference,retry or later live gate. Fresh27/27 controls, mount guard, hooks5/5, Phase3 Never, new USB/TMPDIR worker control and pinned PR13 gate PASS. All75 source/copied harness hashes unchanged; ports {"8123": true, "8124": true} closed,wired20480. Current production IPC creator only router_warmth; FIFO checks are internal temp fixtures; archived .session source copies retained. Preparing fix+one-control+BENCHMARKS commit and draft body update; old results remain historical only.
+- 2026-11-06 — `code_1.24` step 5, user chose B: `write` and `edit` now work inside the folder where Kildall started, each with a typed yes (`permissions.write_root`). Refused: `/`, home and its parents, volume roots, the vault and everything in it except `code_1.24`, including the main `code` folder, case aliases included. `install` and `nuke` stay on `code_1.24`. 15 `test_permissions` groups pass; real job waits until Codex's PR #14 gates end.
+
+- 2026-11-06T06:42:34+07:00 PR#14 socket fix: BENCHMARKS appended with fresh27/27+mount/hooks/Never/socket/PR13 passes, IPC search findings and sole3.227779072GB swap admission stop. All subsequent live gates NOT RUN; no old qualification reused. Logged TMPDIR-cache lesson. Preparing one commit of files() fix,one control and reporting; current draft body will distinguish new results from retained old failures.
+
+- 2026-11-06T06:44:09+07:00 PR#14 socket fix delivery: exact3-file scope verified, production AST outside files() unchanged; measured source/harness hashes held except appended reporting. New evidence/docs/source/lesson private scan {"files": 83, "bytes": 1955977, "sqlite_databases": 0, "exact_value_hits": 0, "logical_db_hits": 0, "passed": true}. Preparing ordinary hooked fix+control+BENCHMARKS commit; no further gates.
+
+- 2026-11-06T06:44:29+07:00 PR#14 socket fix: ordinary3-file commit exit0 with normal pre-commit hook enabled; log retained.
+
+- 2026-11-06T06:44:37+07:00 Re-root USB secret scan history-code-prepush: {"at": "2026-11-06T06:44:33.735874+07:00", "mode": "history-code", "history": {"objects": 580, "bytes": 9963642, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-06T06:45:05+07:00 PR#14 socket fix: full history scan PASS580objects/0findings; code/vault staged scans0findings. Commit 386de3e13d1406afa8d73d898568bbf3b017ba37 contains exactly router_warmth.py,test_router_warmth.py,BENCHMARKS.md. Remote still236ec16; normal push origin reroot-usb follows.
+
+- 2026-11-06T06:45:08+07:00 PR#14 socket fix: normal push exit0; independent ls-remote verifies 386de3e13d1406afa8d73d898568bbf3b017ba37. Updating current draft description with fresh controls,IPC audit and UNSCORED admission; old results explicitly historical.
+
+- 2026-11-06T06:45:50+07:00 PR#14 socket fix: connector writes previously returned403; using authenticated gh body-file fallback. Existing body and new head386de3e independently checked; OPEN/DRAFT/unmerged. Publishing prepared current-source results and historical distinction, no extra comment or review request.
+
+- 2026-11-06T06:45:53+07:00 PR#14 socket fix: gh PR body update exit0; final independent verification follows.
+
+- 2026-11-06T06:46:35.894373+07:00 PR#14 socket fix COMPLETE at draft boundary: 386de3e13d1406afa8d73d898568bbf3b017ba37 normally pushed and independently verified; exactly files() fix,new control,BENCHMARKS. Fresh27/27 controls plus mount/hooks5/5/Phase3 Never/USB-TMPDIR worker/PR13 PASS. Sole live admission UNSCORED06:41:12,normalpressure/free83%,swap3.227779072GB>3.000GB; portsfree,wired20480; no runtime startup/inference,retry or later gate. All measured product/test and harness hashes held; code tree clean; private/staged/full-history scans0findings. PR body verified exact,OPEN/DRAFT/unmerged at current head; old results marked historical,IPC audit included. Local action log/lesson updated; code_1.24/plans/protected worktrees untouched. STOP for Claude review and user merge decision; no merge,HFsync,sudo,paidAPI or next slice. Evidence .session/reroot-usb-socket-20261105T231410/final-delivery.json.
+
+- 2026-11-06T10:02:26+07:00 PR#14 live re-check after socket fix: user authorized one new live attempt on386de3e, no repeated controls/source changes. Clean reroot-usb and product/test hashes verified against passed controls; copied exact saved workload harnesses/protocol to .session/reroot-usb-live-20261106T100226. Starting single admission immediately, original soak→speed→routing→recall→regressions→latency order and unchanged limits; stop on any failure,no retries.
+
+- 2026-11-06T10:02:26+07:00 Re-root USB: Starting final-source soak gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse600s real-child soak starting: unchanged64-token workload, two concurrent children per batch on workslots1-2, pressure every5s; separate cap0.
+
+- 2026-11-06T10:03:14+07:00 PR#14 live attempt on386de3e: sole admission10:02:26+07:00 PASS pressure1(normal),free83%,swap2758.12MiB=2892098437.12bytes<=3000000000; unchanged runner checks ports8123/8124closed and wired20480 before startup. Soak started once; prior controls not rerun. GitHub independently verified current head386de3e OPEN/DRAFT/unmerged.
+
+- 2026-11-06T10:05:28+07:00 PR#14 live386de3e: process-cold readiness PASS 50.27899487502873s including router/embedding, filesystem cache unflushed. Soak sampling underway; sample0 warning after normal idle admission, recorded separately. No control reruns or source/harness change.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse child soak stopped; {"passed": true, "observation_s": 600.0200177080696, "load_wall_s": 603.7685068750288, "counts": {"normal": 91, "warning": 30, "critical": 0}, "peak_process_rss_bytes": 7698579456, "peak_device_gpu_in_use_bytes": 14458454016, "peak_device_gpu_allocated_bytes": 15231188992, "batches": 41, "children": 82, "inference_p50_s": 14.542159542092122, "inference_p99_s": 15.553026249981485, "total_generated_tokens": 4450, "total_tok_s": 7.370373309944382, "max_tokens_per_reply": 64, "actual_memory_and_executor": true, "warning_limit": 103}; source/frozen hashes and wired20480 held.
+
+- 2026-11-06T10:13:22+07:00 Re-root USB: soak completed: {"exit": 0, "seconds": 656.4674572090153, "passed": true}. Evidence retained.
+
+- 2026-11-06T10:13:44+07:00 Re-root USB: Starting final-source speed gate once; full log retained.
+
+- 2026-11-06T10:14:13+07:00 Re-root USB: speed completed: {"exit": 0, "seconds": 29.666310083004646, "passed": true}. Evidence retained.
+
+- 2026-11-06T12:44:23+07:00 Re-root USB: Starting final-source routing gate once; full log retained.
+
+- USB reroot routing measurement candidate finished; owned runtimes stopped, source/frozen hashes and wired20480 verified. Summary: {"exit": 0, "category": 20, "lane": 20, "mean_s": 0.8907075499999999, "p50_s": 0.902384, "p99_s": 1.0396880000000002, "counts": {"cold": 0, "warm": 20}, "group_mean_s": {"cold": null, "warm": 0.8907075499999999}, "cases": [{"id": "r01", "seconds": 0.9160510000000001, "cache_tokens": 3863, "cold": false, "category": true, "lane": true}, {"id": "r02", "seconds": 0.983348, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r03", "seconds": 0.980139, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r04", "seconds": 0.902384, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r05", "seconds": 1.000678, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r06", "seconds": 0.9074, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r07", "seconds": 0.920431, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r08", "seconds": 0.782143, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r09", "seconds": 0.815977, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r10", "seconds": 0.864694, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r11", "seconds": 0.875572, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r12", "seconds": 0.747833, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r13", "seconds": 0.7443630000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r14", "seconds": 0.831208, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r15", "seconds": 1.0396880000000002, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r16", "seconds": 0.759257, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r17", "seconds": 0.7867569999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r18", "seconds": 0.959731, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r19", "seconds": 0.9982430000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r20", "seconds": 0.998254, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}], "r17_X_to_C": true, "quality_passed": true, "first_route_s": 0.9160510000000001, "zero_cold": true, "speed_passed": true, "limit_s": 0.906}
+
+- 2026-11-06T12:46:18+07:00 Re-root USB: routing completed: {"exit": 0, "seconds": 114.94792887510266, "passed": true}. Evidence retained.
+
+- 2026-11-06T12:47:07+07:00 Re-root USB: Starting final-source recall gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: USB reroot v38 recall starting: untouched frozen harness on one slot; same exact request bodies then replayed on production answer slots1-2. Only historical vault-path normalization permitted.
+
+- 2026-11-06 USB reroot local regression: USB reroot recall stopped; {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-11-06T12:52:12+07:00 Re-root USB: recall completed: {"exit": 0, "seconds": 304.78905629192013, "passed": true}. Evidence retained.
+
+- 2026-11-06T12:52:24+07:00 Re-root USB: Starting final-source regressions gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: USB reroot abstention20/callable20/tools20 plus unchanged18 CLI checks starting. Recall uses completed v38 verification; routing uses completed paired20-case gate. No prompt or scoring edits.
+
+- 2026-11-06 USB reroot local regression: USB reroot quality/CLI runner stopped; {"recall": {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}, "abstention": 20, "quality": {"passed": true, "routing_score": 20, "tool_validity": 20, "tool_exact": 17, "tool_post_retry_exact": 20, "tool_retries": 3, "tool_accepted": 20}, "routing": {"quality_passed": true, "category": 20, "lane": 20, "r17_X_to_C": true}, "cli": {"passed": true, "checks": 18}, "cli_recall": {"real remember tool stores a global fact": true, "real recall tool reads global memory from another project": true, "continue resumes stored conversation": true}, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-11-06T13:00:22+07:00 Re-root USB: regressions completed: {"exit": 0, "seconds": 477.96556683292147, "passed": true}. Evidence retained.
+
+- 2026-11-06T13:01:01+07:00 Re-root USB: Starting final-source latency gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse single predefined interactive run starting:100 measured requests,4 warmups, unchanged Phase4.4 prompts/body, limit6.726s; no repeat on failure.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse interactive run stopped; {"n": 100, "p50_s": 7.041879417025484, "p99_s": 7.236994917038828, "total_tokens": 3200, "wall_s": 705.5848632080015, "total_tok_s": 4.5352446840354945, "passed": false, "limit_s": 6.726, "children": 0, "work_slot": 1}; source/fixture hashes and wired20480 held.
+
+- 2026-11-06T13:13:40+07:00 Re-root USB: latency completed: {"exit": 1, "seconds": 758.7461817080621, "passed": false}. Evidence retained.
+- 2026-11-06 — `code_1.24` option B real jobs, after Codex's live stages stopped running: `test_cli` 18/18. In an outside folder: no terminal refused, file unchanged; `no` unchanged; `yes` changed it. In the main `code` folder, the model got the refusal and told the user; no file made, `git status` empty. Step 5 done. Step 10 (main-branch Phase 4) still needs the user's answer. Codex's PR #14 latency stage failed at p99 7.24 s against 6.73 s; I did not touch it.
+- 2026-11-06 — **Claude review of PR #14 live run (`386de3e`, draft, OPEN), read-only: not ready to merge; latency is the only failed gate.** Soak (91/30/0), speed 26.67 tok/s, routing, recall and regressions all exit 0. Latency FAIL: p50 7.04 s, p99 7.24 s against 6.726 s, at 13:01. Same 1,097-token request, median from server logs: read 5,513 ms at 199 tok/s, write 1,524 ms at 21.0 tok/s; on internal SSD (`router-warmth`, `routing-slot-fix` candidate B) read 4,771-4,790 ms at 229-230 tok/s, write 1,131-1,209 ms at 26.5-28.3 tok/s. Both parts slowed, and the same run's speed gate at 10:14 gave 26.67 tok/s from the same USB file, so the USB drive alone does not explain it. Swap was 3.69 GB at the start of the latency stage. Cause not proven; evicted model pages reading back from USB is one possibility. Recommended: one predefined latency-only repeat, limit unchanged, swap ≤ 3 GB, nothing else running; keep this failure on record. No code changed, no merge. The final Codex summary line for this run was not found.
+- 2026-11-06 — User said "go rn". Claude runs the one PR #14 latency-only repeat on `386de3e`: Codex's harness copied unchanged to `code/.session/reroot-usb-latency-repeat-20261106`, limit 6.726 s, no source change, failed run kept. Start rule at 17:28: pressure normal, swap 2.2 GB, wired 20480, no model or gate running.
+
+- 2026-11-06T17:28:57+07:00 Re-root USB: Starting final-source latency gate once; full log retained.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse single predefined interactive run starting:100 measured requests,4 warmups, unchanged Phase4.4 prompts/body, limit6.726s; no repeat on failure.
+
+- 2026-11-06 USB reroot local regression: Prompt reuse interactive run stopped; {"n": 100, "p50_s": 5.948656541062519, "p99_s": 6.489833209081553, "total_tokens": 3200, "wall_s": 598.4486652079504, "total_tok_s": 5.347158722274125, "passed": true, "limit_s": 6.726, "children": 0, "work_slot": 1}; source/fixture hashes and wired20480 held.
+
+- 2026-11-06T17:40:00+07:00 Re-root USB: latency completed: {"exit": 0, "seconds": 663.4467742919223, "passed": true}. Evidence retained.
+- 2026-11-06 — PR #14 latency repeat PASS on unchanged `386de3e`: 100 requests, p50 5.95 s, p99 6.49 s against 6.726 s, 5.35 tok/s total; read 231 tok/s, write 26.8 tok/s, which matches internal SSD. Swap 2.17 GB at start against 3.69 GB in the failed 13:01 run. So the USB drive is not the cause; the failure tracks host state, not proven as the single cause. Evidence `code/.session/reroot-usb-latency-repeat-20261106`; failed run kept. Code tree clean, ports closed. Not merged; BENCHMARKS and the PR text do not hold this result yet.
+
+- 2026-11-06T17:45:59+07:00 Re-root USB secret scan history-code-pr14-merge: {"at": "2026-11-06T17:45:55.541976+07:00", "mode": "history-code", "history": {"objects": 583, "bytes": 10212327, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+- 2026-11-06 — **PR #14 merged on the user's word ("a")** by ordinary fast-forward and normal push: main `a90d561` → `f98b4a2`, 0 merge commits. `f98b4a2` is a docs-only BENCHMARKS commit on top of tested `386de3e`. History scan 583 objects, 0 findings, before the push. `git ls-remote` shows main = `f98b4a2`; GitHub reports MERGED; `check.sh` on main exit 0; both frozen file hashes unchanged; wired 20480; tree clean. No force, no HF sync. Vault gitlink for `code` not committed. `code_1.24` still uncommitted. Next on the main path: PR #13 probes, Codex builds, Claude reviews.
+
+- 2026-11-06T17:53:20.691088+07:00 Codex resumed original PR#14 live attempt .session/reroot-usb-live-20261106T100226 after external continuation: original six-stage sequence completed once on386de3e; soak/speed/routing/recall/regressions PASS, latency FAIL p997.236994917038828s>6.726 (100requests,nearest-rank independently recomputed,99overlimit). No control reruns or gate repeats by this session; later nuke/check not run by this original sequence. Exec handle expired; completed artifacts retained. Reporting verification initially stopped on BENCHMARKS hash mismatch; investigation found external docs-onlyf98b4a2 and main checkout, GitHub PR#14 already MERGED17:46:33+07:00. Existing log records Claude separate user-authorized latency repeat and user-approved merge; existing BENCHMARKS/PR body already record original failure and separate repeat. All measured product/test/harness hashes still match; only reporting differs. Verified existing delivery, no duplicate commit/push/PR mutation, no merge/HFsync/sudo by Codex. Original-run final-delivery.json records this attribution; STOP.
+
+- 2026-11-06T18:07:51+07:00 Re-root USB secret scan history-code-pr13: {"at": "2026-11-06T18:07:46.573707+07:00", "mode": "history-code", "history": {"objects": 647, "bytes": 10275180, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+- 2026-11-06 — PR #13 probe fix on user's "do all still open stuff": `0b948bd` pushed to `repo-eval`, draft, not merged. Final 20 tasks get good-input checks; 19 lazy mutants added. Validation 20/20, lazy 19/19, `test_repo_eval.py` PASS, history scan clean. Built by Claude, so it still needs an independent review. Selection unfrozen, no baseline run.
+- 2026-11-06 — `code_1.24` vault commit (`.claude/settings.json`, `CLAUDE.md`, `code` link, `code_1.24`) was BLOCKED by the permission classifier; nothing ran. Not retried. Needs the user's clear word. Gates for `code_1.24` at 2 × 32K and Flash-Next hard jobs running in `code_1.24/.session/gates-20261106/`.
+- 2026-11-06 — `code_1.24` gates at 2 × 32K: frozen recall 20/20 and slot 1 20/20; abstention 20/20; callable 20/20; tools 17/20 first, 20/20 after retry; CLI 18/18; near-window soak 140 normal/13 warning/0 critical, no GPU OOM, peak 12.2 GB. Routing 19/20; the miss r15 crashed on a vision job with no image. Fixed: the job now prints `Name an image file in your request.` and exits 3, Lane A stays up. Real r15 job exit 3 in 41 s; all 6 tests plus `test_permissions` exit 0 (`test_cli` 18/18). Flash-Next hard jobs: JSON pass 1698 s (Gemma 49 s), cron fail 1028 s (Gemma 26 s, also fail), so it stays not routed. README updated. Not committed.
+
+- 2026-11-06T19:31:39+07:00 Codex resumed PR #13 on user request: verified clean main f98b4a2, fetched origin, read standing rules and Claude reviews. Existing repo-eval 0b948bd hardens only proposed 20/32 bug tasks and omits scanner lazy mutant; extending all candidates and keeping explanation unscored. Evidence .session/repo-eval-review-20261106T193139. Separate cancellation fix will stay outside PR #13; no inference/baseline/freeze/merge-to-main/HF/sudo.
+
+- 2026-11-06T19:31:54+07:00 PR #13 branch repo-eval updated onto origin/main f98b4a2 by ordinary merge (no force); merge succeeded cleanly. Created isolated main-based fix-slot-cancel-read worktree for the separately requested cancellation PR.
+
+- 2026-11-06T19:32:55+07:00 Re-root USB secret scan fix-cancel: {"at": "2026-11-06T19:32:50.828218+07:00", "mode": "history-code", "history": {"objects": 653, "bytes": 10350417, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-06T19:33:14+07:00 Separate slot cancellation fix: traced all _json_request callers and Cancellation.open/cancel; body read can return empty after socket shutdown and then reach strict_json. Began retained pre-fix local HTTP controls in isolated main-based fix-slot-cancel-read worktree; no model servers.
+- 2026-11-06 — User: "go do the 3". (1) `cancel.check()` fix: `ec3b17e` on `fix-cancel-empty-read`, draft PR #15, base main `f98b4a2`, not merged; 28 no-model controls pass, no live gates; worktree at `.claude/worktrees/cancel-empty-read` remains. Same bug still in `code_1.24/kildall.py` line 165, not ported (needs retest). (2) PR #13 independent review: fresh agent stopped at the usage limit, no result; rerun needed; selection stays unfrozen. (3) `code_1.24` commit to private `workstation` branch `reroot-usb`; `models` and `.tools` links added to its `.gitignore`.
