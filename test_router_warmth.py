@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import copy
 import fcntl
 import json
+import os
 from pathlib import Path
 import socket
 import struct
@@ -324,6 +325,23 @@ def lifecycle(root):
     print('PASS: real monitor process singleton, cancellable HTTP warm-up, foreground priority, idle recovery, clean stop and server-death exit')
 
 
+def usb_socket():
+    # Keep prefix files on the real code filesystem; give the worker a different TMPDIR.
+    with tempfile.TemporaryDirectory(prefix='warmth-usb-', dir=kildall.ROOT / '.session') as directory:
+        root = Path(directory)
+        (root / '.session' / 'router-prefix').mkdir(parents=True)
+        (root / '.tmp').mkdir()
+        base = warmth.files(19239)
+        assert base.parent.stat().st_dev != root.stat().st_dev, 'IPC still lives on the USB volume'
+        assert base.parent.stat().st_mode & 0o777 == 0o700
+        with patch.object(kildall, 'ROOT', root), patch.dict(os.environ, TMPDIR=str(root / '.tmp')):
+            child = subprocess.check_output([sys.executable, '-c',
+                'import router_warmth; print(router_warmth.files(19239))'], text=True, cwd=Path(__file__).resolve().parent)
+            assert Path(child.strip()) == base, 'Fresh CLI and cached harness use different IPC paths'
+            lifecycle(root)
+    print('PASS: USB prefix files; internal socket/locks; real worker lifecycle across different TMPDIR values')
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix='kw-', dir='/tmp') as directory:
         root = Path(directory)
@@ -333,6 +351,7 @@ def main():
             initialization(root)
             foreground(root)
             lifecycle(root)
+    usb_socket()
     print('PASS: router warmth controls (no model loaded)')
 
 

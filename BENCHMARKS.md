@@ -2670,3 +2670,85 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Soak / interactive latency | NOT RUN per scope: local inference functions/constants and call expressions unchanged | scope-verification.json |
 | Live nuke / health | PASS: dry-run33545entries,0outside,0outward rejections; check.sh exit0, wired20480 | nuke-summary.json; check-exit.json; check.log |
 | Private secret scan | PASS0hits for all3 nonempty keys.env values; 16501files/191SQLite DBs; staged scanner0findings; live DB integrityok; all3 retained venv symlinks resolved to one interpreter binary, separately scanned0hits | leak-audit.json; scanner-harness-sha256.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T174455/` |
+| --- | --- | --- |
+| Source / protocol | Exact PR source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; all75 recorded file hashes and copied protocol/harness hashes unchanged. One user-authorized attempt, same limits and original soak-first order | source.json; harness-sha256.json; measurement-protocol.json; attempt.json |
+| Ports / wired limit | Ports8123/8124 closed; wired20480. No user process stopped | starting-host.json |
+| First idle admission,17:44:55+07:00 | **UNSCORED: stop before inference.** Pressure1(normal), swap4307.25MiB=4,516,478,976bytes >3,000,000,000byte ceiling. Subsequent context snapshot free81%; top10RSS retained. No waiting or recheck for a passing swap value | starting-host.json; soak-result.json |
+| 600s child soak | NOT RUN:0samples,0children,0batches. No warning/critical/GPU-OOM score or memory peaks claimed; unchanged limits121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; measurement-protocol.json |
+| LaneA cold readiness / tok/s | NOT MEASURED: stopped at admission; no runtime startup or128-token speed sample | speed-skipped.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: live sequence stopped | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: live sequence stopped; frozen fixture unchanged | recall-skipped.json; source.json |
+| Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: live sequence stopped | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: live sequence stopped; unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json; measurement-protocol.json |
+| Prior attempt / disposition | Earlier occupied-port UNSCORED evidence retained separately; this attempt failed the swap start rule after the ports became free. No retry, source/config/prompt/fixture/threshold change or inference. Draft PR remains unqualified; docs-only reporting update | ../reroot-usb-20261102/soak-result.json; attempt.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 22:14:57+07:00 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T221143/` |
+| --- | --- | --- |
+| Product source / protocol | Exact product source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; checkout a5461cc differs only by prior BENCHMARKS reporting. Saved protocol/workload harnesses byte-identical; original soak→speed→routing→recall→regressions→latency order | attempt.json; source.json; harness-sha256.json; measurement-protocol.json |
+| First idle admission | **UNSCORED before inference**: pressure1(normal),free77%,swap3215.81MiB≈3,372,021,187bytes >3,000,000,000byte ceiling. One admission check; no waiting or retry | soak-starting-host.json; soak-result.json; soak-exit.json |
+| Ports / wired | Ports8123/8124 closed; wired20480. No user process stopped | ports-after-admission.json; run_gate.py; probe_common.py |
+| 600s child soak | NOT RUN: no startup,samples,children,batches or warning/critical/GPU-OOM scores/peaks. Unchanged121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; measurement-protocol.json |
+| LaneA cold readiness / tok/s | NOT MEASURED: stopped at admission | speed-skipped.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: stopped at admission | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: frozen fixture unchanged | recall-skipped.json; source.json |
+| Abstention20/20 / callable20/20 / tools17first→20retry / CLI18/18 | NOT RUN: stopped at admission | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json |
+| Prior attempts / disposition | Earlier occupied-port and4.516GB-swap UNSCORED attempts retained. Product/config/prompt/fixtures/thresholds unchanged; no inference or retry. Draft remains unqualified; reporting changes only | ../reroot-usb-20261102/soak-result.json; ../reroot-usb-live-20261105T174455/soak-result.json; sequence-results.json |
+
+
+| PR#14 USB live re-check, 2026-11-05 22:59:19+07:00 — gate or limitation | Result | Evidence under `.session/reroot-usb-live-20261105T225912/` |
+| --- | --- | --- |
+| Product source / protocol | Exact product source `0f3c0ab176d71fbc48e860a9b42749474b838c24`; checkout f6faa64 differs only by prior BENCHMARKS reporting. All75 source entries verified; saved protocol/workload harnesses byte-identical. One attempt, original soak→speed→routing→recall→regressions→latency order | attempt.json; original-source.json; source.json; harness-sha256.json; measurement-protocol.json |
+| First idle admission | PASS: pressure1(normal),free75%,swap2799.69MiB≈2,935,687,741bytes<=3,000,000,000byte ceiling; ports8123/8124 closed,wired20480. No admission wait or retry | soak-starting-host.json; run_soak.py; probe_common.py |
+| First live gate: soak startup | **FAIL**, exit1 after54.864326791s: `Router maintenance failed to start`. Worker traceback: `router_warmth.py:298`, `sock.bind(str(address))`, `OSError: [Errno 45] Operation not supported`. Product socket path `/Volumes/ES2TB/Kildall/code/.session/warmth-8123.sock` is on ExFAT | soak-exit.json; soak-exception.json; candidate/soak/.session/router-prefix/worker.log; post-failure-verification.json |
+| LaneA cold readiness / tok/s | Readiness FAILED after54.512266250s; elapsed failure time is not successful cold readiness. LaneA startup prefix prefill occurred; embedding startup was not reached. No128-token speed sample or generation tok/s result | cold-load.json; candidate/soak/.session/router-prefix/startup.json; speed-skipped.json |
+| 600s child soak | NOT COMPLETED: no sample0,pressure samples,children or batches. No full-soak warning/critical/OOM score or memory peaks; retained startup logs have0GPU-OOM matches. Limits unchanged:600s,121samples/5s,64tokens,2children on slots1–2,warnings<=103,critical0,GPUOOM0 | soak-result.json; candidate/soak/failure.json; measurement-protocol.json |
+| Routing20/20category/lane,mean<=0.906s,0cold,r17X→C | NOT RUN: stopped at first gate failure | routing-skipped.json |
+| Frozen recall1-slot + workslots1–2,each20/20 | NOT RUN: frozen fixture unchanged | recall-skipped.json; post-failure-verification.json |
+| Abstention20/20 / callable20/20 / tools>=17first→20retry / CLI18/18 | NOT RUN: stopped at first gate failure | regressions-skipped.json |
+| Interactive p99<=6.726s | NOT RUN: unchanged100requests+4warmups,32-token cap,slot1 | latency-skipped.json |
+| Cleanup / disposition | Owned runtime stopped,services{},ports8123/8124closed,wired20480; all75 source and saved harness hashes unchanged after failure. Every earlier attempt retained. No retry,source/config/prompt/fixture/limit change,merge,HFsync,sudo or paidAPI; draft remains unqualified | candidate/soak/stopped.json; post-failure-verification.json; sequence-results.json |
+
+
+| PR#14 router socket fix, 2026-11-06 — gate or limitation | Result | Evidence under `.session/reroot-usb-socket-20261105T231410/` |
+| --- | --- | --- |
+| New measured source / scope | Only production `router_warmth.files()` changed; all other production AST unchanged. IPC socket,state,activity lock and worker lock use Darwin's internal per-user temp directory plus `kildall/warmth-{port}`, directory mode0700. `os.confstr(65537)` (`_CS_DARWIN_USER_TEMP_DIR`) avoids process TMPDIR and Python tempfile-cache differences. Router-prefix files unchanged on USB; no idle_stop copied | attempt.json; source.json; post-admission-verification.json |
+| Fresh deterministic controls | PASS27/27 plus mount guard; hooks5/5 and Phase3 empty-system Never PASS on new source. Prior-source results are historical and do not qualify this revision | controls/results.json; controls/summary.json; controls-exit.json |
+| One added USB/TMPDIR control | PASS within test_router_warmth: prefix state on real ExFAT code root; socket directory on a different internal device,mode0700; fresh subprocess resolves same path as parent with USB TMPDIR; actual worker binds,starts,handles foreground cancellation and shuts down. Existing lifecycle assertions reused; no model loaded | controls/test_router_warmth.py.log; source.json; post-admission-verification.json |
+| Fresh PR13 boundary compatibility | PASS: unchanged pinned test/assets,103 asset hashes held; live USB host imports,outer HOME unchanged; no candidate integration or33-candidate rerun | pr13.log; pr13-exit.json; pr13-gate-01-provenance.json |
+| AF_UNIX / FIFO search | No other production IPC creator. Router notify/monitor and foreground test use shared files(); FIFO guards in test_permissions/test_image_reader use internal TemporaryDirectory.3660 archived matches are retained source/test copies under repo-eval,router-warmth,phase4.4 and routing-slot-fix evidence; active saved gate harnesses add no AF_UNIX/FIFO creators | source-ipc-search.txt; session-ipc-search.txt; ipc-search-summary.json |
+| Frozen live protocol | Saved workload/protocol hashes unchanged; original soak→speed→routing→recall→regressions→latency order,one attempt,no retries. Source manifest refreshed only for the fix,test and preceding BENCHMARKS reporting | attempt.json; source.json; harness-sha256.json; measurement-protocol.json |
+| First live admission,06:41:12+07:00 | **UNSCORED before inference**: pressure1(normal),free83%,swap3078.25MiB=3,227,779,072bytes>3,000,000,000byte ceiling. Ports8123/8124 independently confirmed free,wired20480. No waiting or retry | soak-starting-host.json; soak-result.json; soak-exit.json; post-admission-verification.json |
+| 600s child soak / cold readiness / tok/s | NOT RUN: no runtime startup,sample0,pressure samples,children,batches,cold-readiness time or speed sample. No full-soak warning/critical/OOM scores or peaks. Original600s/121samples/5s/64tokens/2children/warnings<=103/critical0/OOM0 limits retained | soak-result.json; speed-skipped.json; measurement-protocol.json |
+| Routing / frozen recall1-slot plus workslots1–2 | NOT RUN after failed admission. Same routing20/20category/lane,mean<=0.906s,0cold,r17X→C; recall each20/20 | routing-skipped.json; recall-skipped.json |
+| Abstention / callable JSON / tools / CLI / interactive p99 | NOT RUN. Same20/20abstention,20/20callable,tools>=17/20first→20/20retry,CLI18/18,p99<=6.726s with100requests+4warmups/32tokens/slot1 | regressions-skipped.json; latency-skipped.json |
+| Live nuke / check.sh / disposition | NOT RUN after first admission failure. Fresh deterministic passes do not complete live qualification; old failures preserved. Source/harness guards held; no retries,changed limits,merge,HFsync,sudo or paidAPI. Draft retained for Claude review | nuke-skipped.json; check-skipped.json; sequence-results.json; post-admission-verification.json |
+
+### Live gates on `386de3e` — 2026-11-06, first attempt 10:02:26 +07:00
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Admission | PASS: pressure normal, free 83%, swap 2758.12 MiB ≈ 2.892 GB ≤ 3.000 GB | `.session/reroot-usb-live-20261106T100226/` |
+| Cold readiness | 50.279 s including router and embedding, filesystem cache unflushed | same folder |
+| 600 s child soak | PASS: 91 normal / 30 warning / 0 critical; 41 batches, 82 children; no GPU OOM | `soak-result.json` |
+| Speed | PASS: 26.67 tok/s | `candidate/speed/summary.json` |
+| Routing, 20 cases | PASS: category 20/20, lane 20/20, r17 X→C, 0 cold, mean 0.891 s ≤ 0.906 s, p50 0.902 s, p99 1.040 s | `routing.log` |
+| Recall | PASS: frozen one-slot 20/20; slot 1 20/20; slot 2 20/20; requests match after path normalization | `recall.log` |
+| Abstention / callable / tools / CLI | PASS: 20/20; 20/20; 17/20 first pass, 20/20 after 3 retries; CLI 18/18 with real recall | `candidate/regressions/summary.json` |
+| Interactive p99 ≤ 6.726 s | **FAIL: p99 7.237 s, p50 7.042 s, 4.54 tok/s; read 199 tok/s, write 21.0 tok/s; swap 3.69 GB at start** | `candidate/latency/summary.json` |
+
+### Latency-only repeat on `386de3e` — 2026-11-06, 17:29 +07:00
+
+One predefined repeat recommended by Claude's review. Harness copied unchanged, limit unchanged, no source change. The failure above stays on record.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Start | Pressure normal, swap 2.17 GB, wired 20480, no other model or gate running, tree clean | `.session/reroot-usb-latency-repeat-20261106/` |
+| Interactive p99 ≤ 6.726 s | **PASS: p99 6.490 s, p50 5.949 s, 5.35 tok/s; read 231 tok/s, write 26.8 tok/s** | `candidate/latency/summary.json` |
+| Reading | Read and write match internal-SSD runs (229–230 and 26.5–28.3 tok/s), so USB alone does not explain the failure. It tracks host state; high swap is the likely cause, not proven by one repeat | `candidate/latency/.session/lane_a.log` |
+| Limit | This repeat ran alone, not in sequence with the other gates | this table |
+| Live nuke dry-run / `check.sh` | PASS: 108,933 paths, 0 rejected; `check.sh` exit 0 | run on `386de3e` before this commit |

@@ -1,5 +1,6 @@
 """Real temporary commits; no real key changes and no credential output."""
 from contextlib import redirect_stderr
+import errno
 import io
 from pathlib import Path
 import subprocess
@@ -39,8 +40,17 @@ def main():
             f'sys.path.insert(0, {str(scanner.ROOT)!r})\nfrom secret_scanner import run\n'
             f'raise SystemExit(run(source=Path({str(source)!r}), '
             f'keychain_reader=lambda: [Path({str(stored)!r}).read_bytes()]))\n')
-        hooks = scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
+        with patch.object(scanner.os, 'link', side_effect=OSError(errno.ENOTSUP, 'fixture')):
+            hooks = scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
         assert scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable)) == hooks
+        hook = hooks[0]
+        installed = hook.read_bytes()
+        legacy = Path.home() / 'Kildall/code'
+        hook.write_text('#!/bin/sh\n# kildall-secret-scanner v1\nexec '
+                        + scanner.shlex.quote(str(legacy / '.venv/bin/python')) + ' '
+                        + scanner.shlex.quote(str(legacy / 'secret_scanner.py')) + '\n')
+        assert scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable)) == hooks
+        assert hook.read_bytes() == installed
         clean = repo / 'clean.txt'
         clean.write_text('A clean first commit. A task-with-a-long-description is ordinary text.\n')
         git('add', '.')
@@ -132,16 +142,45 @@ def main():
             result = permissions.run_action(database, str(repo), 'commit', dict(path=str(repo), message='verified clean commit'))
         assert result['commit'].encode() == git('rev-parse', 'HEAD').stdout.strip()
         assert git('rev-parse', 'HEAD').stdout != head
-        hook = hooks[0]
-        hook.write_text('#!/bin/sh\nexit 23\n')
-        saved = hook.read_bytes()
+        for custom in (b'#!/bin/sh\nexit 23\n', installed + b'exit 23\n'):
+            hook.write_bytes(custom)
+            try:
+                scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
+            except scanner.ScanError:
+                pass
+            else:
+                raise AssertionError('Custom hook overwritten')
+            assert hook.read_bytes() == custom
+        hook.unlink()
+        hook.symlink_to(wrapper)
         try:
             scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
         except scanner.ScanError:
             pass
         else:
-            raise AssertionError('Custom hook overwritten')
-        assert hook.read_bytes() == saved
+            raise AssertionError('Symlink hook accepted')
+        assert hook.is_symlink()
+        hook.unlink()
+        git('config', 'core.hooksPath', str(temporary / 'custom-hooks'))
+        try:
+            scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
+        except scanner.ScanError:
+            pass
+        else:
+            raise AssertionError('Custom hooksPath accepted')
+        assert not hook.exists()
+        git('config', '--unset', 'core.hooksPath')
+        def concurrent_hook(*args):
+            hook.write_bytes(custom)
+            raise OSError(errno.ENOTSUP, 'fixture')
+        with patch.object(scanner.os, 'link', side_effect=concurrent_hook):
+            try:
+                scanner.install((repo,), scanner=wrapper, interpreter=Path(sys.executable))
+            except FileExistsError:
+                pass
+            else:
+                raise AssertionError('Concurrent hook overwritten')
+        assert hook.read_bytes() == custom
     print('PASS: five patterns, planted keys.env and Keychain values block real commits; '
           'clean commits allowed; staged/full-tree/binary/boundary scanning; '
           'redacted filenames, fail-closed reads, excluded-provider enumeration, safe installer; '

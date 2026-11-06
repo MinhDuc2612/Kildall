@@ -3,6 +3,7 @@
 import argparse
 from contextlib import contextmanager
 from kildall_platform import system, require, UnsupportedPlatform
+from kildall_platform.usb_mount import require_drive
 import json
 import os
 from pathlib import Path
@@ -80,7 +81,7 @@ def settings():
     for key, value in config["paths"].items():
         if not value:
             raise ValueError(f"Configure paths.{key} in {path}")
-        config["paths"][key] = (path.parent / value).resolve()
+        config["paths"][key] = (path.parent / Path(value).expanduser()).resolve()
     for section, key in (("lanes", "a"),):
         config[section][key]["model"] = (path.parent / config[section][key]["model"]).resolve()
     config["memory"]["embedding_model"] = (path.parent / config["memory"]["embedding_model"]).resolve()
@@ -820,6 +821,11 @@ def schedule_backups(config):
 
 
 def main():
+    try:
+        require_drive()
+    except RuntimeError as error:
+        print(error, file=sys.stderr)
+        return 1
     argv = sys.argv[1:]
     if argv[:1] in (["keys"], ["cloud"]):
         return cloud_main(argv)

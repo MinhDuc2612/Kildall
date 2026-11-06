@@ -1,4 +1,4 @@
-"""Darwin job golden checks against 29ab89b; no live launchd or backup changes."""
+"""Darwin job golden checks plus the USB launcher; no live launchd or backup changes."""
 
 import ast
 from contextlib import redirect_stderr, redirect_stdout
@@ -63,11 +63,16 @@ def health(body, limit=20480, registered=True, daemon_ok=True, mode=0o100644):
 def main():
     backend = jobs()
     old_backup = previous("backup_ops.py")
-    old_nodes = {node.name: ast.dump(node) for node in ast.parse(old_backup).body
+    # The USB reroot adds admission before scheduling and installation before publishing.
+    expected_scheduling = old_backup.replace(
+        "def schedule_backups(config, root, interpreter):\n",
+        "def schedule_backups(config, root, interpreter):\n    require_drive()\n").replace(
+        "    saved = path.read_bytes()", "    install_launcher()\n    saved = path.read_bytes()")
+    old_nodes = {node.name: ast.dump(node) for node in ast.parse(expected_scheduling).body
                  if isinstance(node, ast.FunctionDef)}
     new_nodes = {node.name: ast.dump(node) for node in ast.parse(Path(backend.__file__).read_text()).body
                  if isinstance(node, ast.FunctionDef)}
-    for name in ("backup_payload", "registration_matches", "_launchctl", "_write_plist", "schedule_backups"):
+    for name in ("registration_matches", "_launchctl", "_write_plist", "schedule_backups"):
         assert old_nodes[name] == new_nodes[name], name
 
     legacy = ModuleType("legacy_backup")
@@ -76,6 +81,9 @@ def main():
     for env in ({}, {"ORBI_CONFIG": str(ROOT / "legacy.toml")}, {"KILDALL_CONFIG": str(ROOT / "kildall.toml")}):
         with patch.dict(os.environ, env, clear=True):
             expected = legacy.backup_payload(config, ROOT, ROOT / ".venv/bin/python")
+            expected.update(ProgramArguments=["/usr/bin/python3", str(
+                Path.home() / "Library/Application Support/Kildall/launcher.py"), "--backup"],
+                WorkingDirectory=str(Path.home()))
             assert backend.backup_payload(config, ROOT, ROOT / ".venv/bin/python") == expected
             path = Path.home() / "Library/LaunchAgents/local.kildall.backup.plist"
             for text in (description(path, expected), "malformed registration"):
@@ -133,8 +141,9 @@ def main():
                 else:
                     raise AssertionError("Unsupported health check did not refuse")
             runner.assert_not_called()
-    print("PASS: Darwin scheduling AST/payloads, print-only installer output/argv and health output/exit/argv "
-          "match 29ab89b; unsupported jobs/health refuse; no live registration changes.")
+    print("PASS: USB launcher argv/HOME; remaining Darwin scheduling AST/payloads, print-only installer "
+          "output/argv and health output/exit/argv match 29ab89b; unsupported jobs/health refuse; "
+          "no live registration changes.")
 
 
 if __name__ == "__main__":

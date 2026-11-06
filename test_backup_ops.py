@@ -88,7 +88,8 @@ def scheduling(root):
             assert ops.schedule_backups(config, code, interpreter) == path
             payload = plistlib.loads(path.read_bytes())
             assert payload == ops.backup_payload(config, code, interpreter)
-            assert payload["ProgramArguments"] == [str(code / "python"), str(code / "kildall.py"), "--backup"]
+            assert payload["ProgramArguments"] == ["/usr/bin/python3", str(home / "Library/Application Support/Kildall/launcher.py"), "--backup"]
+            assert payload["WorkingDirectory"] == str(home)
             assert payload["RunAtLoad"] is True
             assert payload["StartCalendarInterval"] == {"Hour": 3, "Minute": 0}
             assert service.path == path
@@ -187,7 +188,7 @@ def copying(root):
         (another / "kildall-backups").symlink_to(copied.parent, target_is_directory=True)
         rejects(lambda: ops.mirror_backup(snapshot, another))
     errors = io.StringIO()
-    with patch.object(ops.os.path, "ismount", return_value=False), redirect_stderr(errors):
+    with patch.object(ops.os.path, "ismount", side_effect=lambda path: Path(path) == Path("/Volumes/ES2TB")), redirect_stderr(errors):
         local = ops.nightly_backup(memory, backup_dir)
     assert local != snapshot and local.is_file() and "not mounted" in errors.getvalue()
     errors = io.StringIO()

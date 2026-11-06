@@ -98,7 +98,8 @@ def main():
         inner.mkdir()
         (inner/'out').symlink_to(outside, target_is_directory=True)
         for candidate in [inner/'../outside', inner/'out/file', outside, '/etc/passwd',
-                          str(Path.home()/'Kildall/Researchhub'), '~/Kildall/Researchhub/',
+                          str(p.CODE_ROOT.parent/'Researchhub'), '/Volumes/ES2TB/Kildall/Researchhub/',
+                          str(Path.home()/'Kildall/code'), '~/Kildall/code/',
                           str(Path.home()/'Orbi/code'), '~/Orbi/code/',
                           str(p.CODE_ROOT).replace('Kildall', 'Kildall'.lower())]:
             try:
@@ -108,7 +109,7 @@ def main():
             else:
                 raise AssertionError(f'Path escape accepted: {candidate}')
         assert p.guard_path(str(inner)+'/', inner)==inner
-        assert p.guard_path('~/Kildall/code/')==p.CODE_ROOT
+        assert p.guard_path('/Volumes/ES2TB/Kildall/code/')==p.CODE_ROOT
         assert p.guard_path(target)==target
         refused(lambda: run('write', path=str(p.CODE_ROOT/'../Researchhub/phase3-forbidden'), content='no'))
         outside_link = work/'outside-link'
@@ -127,12 +128,22 @@ def main():
         with patch.object(p,'terminal_confirm', side_effect=swap):
             refused(lambda: run('write',path=str(safe/'file'), content='bad'))
         assert (work/'old-safe/file').read_text()=='safe'
-        fifo=work/'fifo'
-        os.mkfifo(fifo)
-        refused(lambda: run('read',path=str(fifo)))
-        os.link(target,work/'hardlink')
-        refused(lambda: run('write',path=str(target), content='bad'))
-        (work/'hardlink').unlink()
+        # exFAT cannot create these entries; exercise the same file guards on APFS.
+        with tempfile.TemporaryDirectory(prefix='kildall-file-guards-') as directory:
+            native = Path(directory)
+            fifo = native/'fifo'
+            os.mkfifo(fifo)
+            linked = native/'linked'
+            linked.write_text('unchanged')
+            os.link(linked, native/'hardlink')
+            for action, path in ((p.file_bytes, fifo), (p.snapshot, linked)):
+                try:
+                    action(path)
+                except PermissionError:
+                    pass
+                else:
+                    raise AssertionError('Unsafe file accepted')
+            assert linked.read_text() == 'unchanged'
         passed('Symlink swap, FIFO and hard-linked mutation targets fail closed')
 
         forbidden = ['rm -rf '+project, 'rm -r '+project, 'sudo true', 'git push --force',

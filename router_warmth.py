@@ -23,8 +23,10 @@ MAINTENANCE = ContextVar('router_maintenance', default=False)
 
 
 def files(port):
-    from kildall import ROOT
-    return ROOT / '.session' / f'warmth-{port}'
+    # _CS_DARWIN_USER_TEMP_DIR: internal, per-user and independent of TMPDIR.
+    directory = Path(os.confstr(65537)) / 'kildall'
+    directory.mkdir(mode=0o700, exist_ok=True)
+    return directory / f'warmth-{port}'
 
 
 def notify(endpoint, message=b'yield'):

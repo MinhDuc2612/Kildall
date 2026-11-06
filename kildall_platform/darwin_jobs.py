@@ -10,20 +10,19 @@ import subprocess
 import sys
 import tempfile
 
+from .usb_mount import install_launcher, launcher_path, require_drive
+
 
 LABEL = "local.kildall.backup"
 
 
 def backup_payload(config, root, interpreter):
     root, interpreter = Path(root), Path(interpreter)
-    canonical = interpreter.with_name("python")
-    if canonical.is_file() and canonical.samefile(interpreter):
-        interpreter = canonical
     logs = Path.home() / "Library/Logs/Kildall"
     return {
         "Label": LABEL,
-        "ProgramArguments": [str(interpreter), str(root / "kildall.py"), "--backup"],
-        "WorkingDirectory": str(config["paths"]["code_dir"]),
+        "ProgramArguments": ["/usr/bin/python3", str(launcher_path()), "--backup"],
+        "WorkingDirectory": str(Path.home()),
         "EnvironmentVariables": {"KILDALL_CONFIG": str(Path(os.environ.get(
             "KILDALL_CONFIG", os.environ.get("ORBI_CONFIG", root / "kildall.toml"))).resolve())},
         "StartCalendarInterval": {"Hour": 3, "Minute": 0},
@@ -69,6 +68,7 @@ def _write_plist(path, data):
 
 
 def schedule_backups(config, root, interpreter):
+    require_drive()
     payload = backup_payload(config, root, interpreter)
     directory = Path.home() / "Library/LaunchAgents"
     path = directory / f"{LABEL}.plist"
@@ -99,6 +99,7 @@ def schedule_backups(config, root, interpreter):
         raise RuntimeError("Could not inspect the backup LaunchAgent")
     if path.is_symlink():
         raise RuntimeError("Backup LaunchAgent path must not be a symlink")
+    install_launcher()
     saved = path.read_bytes() if path.exists() else None
     directory.mkdir(parents=True, exist_ok=True)
     Path(payload["StandardOutPath"]).parent.mkdir(parents=True, exist_ok=True, mode=0o700)

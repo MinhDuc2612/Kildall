@@ -23,7 +23,8 @@ def main():
                           *boot['ProgramArguments'], 'last exit code = 0'])
     live = "\n".join([f"path = {agent}",
         f"program = {schedule['ProgramArguments'][0]}", 'arguments = {', *schedule["ProgramArguments"], '}',
-        f"working directory = {root}", f"KILDALL_CONFIG => {root / 'kildall.toml'}",
+        f"working directory = {schedule['WorkingDirectory']}",
+        f"KILDALL_CONFIG => {schedule['EnvironmentVariables']['KILDALL_CONFIG']}",
         f"stdout path = {schedule['StandardOutPath']}", f"stderr path = {schedule['StandardErrorPath']}",
         '"Hour" => 3', '"Minute" => 0'])
 
@@ -65,7 +66,10 @@ def main():
         assert code != 0 and "Nightly backup: verified" not in output
         assert f"{root}/.venv/bin/kildall --schedule-backups" in errors
         for changed in (live.replace('"Hour" => 3', '"Hour" => 30'),
-                        live.replace(str(root / "kildall.py"), "/unrelated/kildall.py")):
+                        live.replace(schedule['ProgramArguments'][0], "/unrelated/python3"),
+                        live.replace(schedule['ProgramArguments'][1], "/unrelated/launcher.py"),
+                        live.replace(f"working directory = {schedule['WorkingDirectory']}",
+                                     f"working directory = {root}")):
             code, output, errors = run(20480, text=changed, optimize=optimize)
             assert code != 0 and "Nightly backup: verified" not in output
     import install_wiredlimit

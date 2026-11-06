@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+/usr/bin/python3 -c 'import os, sys; sys.exit(0 if os.path.ismount("/Volumes/ES2TB") else "Kildall drive ES2TB is not mounted")'
 cd -- "$(dirname -- "$0")"
 
 if [ ! -f .venv/pyvenv.cfg ] || [ ! -x .venv/bin/python ]; then
