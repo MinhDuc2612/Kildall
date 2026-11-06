@@ -2727,3 +2727,28 @@ unchanged. Report only: no commit/push/PR change/merge, sudo, paid API or HF syn
 | Routing / frozen recall1-slot plus workslots1–2 | NOT RUN after failed admission. Same routing20/20category/lane,mean<=0.906s,0cold,r17X→C; recall each20/20 | routing-skipped.json; recall-skipped.json |
 | Abstention / callable JSON / tools / CLI / interactive p99 | NOT RUN. Same20/20abstention,20/20callable,tools>=17/20first→20/20retry,CLI18/18,p99<=6.726s with100requests+4warmups/32tokens/slot1 | regressions-skipped.json; latency-skipped.json |
 | Live nuke / check.sh / disposition | NOT RUN after first admission failure. Fresh deterministic passes do not complete live qualification; old failures preserved. Source/harness guards held; no retries,changed limits,merge,HFsync,sudo or paidAPI. Draft retained for Claude review | nuke-skipped.json; check-skipped.json; sequence-results.json; post-admission-verification.json |
+
+### Live gates on `386de3e` — 2026-11-06, first attempt 10:02:26 +07:00
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Admission | PASS: pressure normal, free 83%, swap 2758.12 MiB ≈ 2.892 GB ≤ 3.000 GB | `.session/reroot-usb-live-20261106T100226/` |
+| Cold readiness | 50.279 s including router and embedding, filesystem cache unflushed | same folder |
+| 600 s child soak | PASS: 91 normal / 30 warning / 0 critical; 41 batches, 82 children; no GPU OOM | `soak-result.json` |
+| Speed | PASS: 26.67 tok/s | `candidate/speed/summary.json` |
+| Routing, 20 cases | PASS: category 20/20, lane 20/20, r17 X→C, 0 cold, mean 0.891 s ≤ 0.906 s, p50 0.902 s, p99 1.040 s | `routing.log` |
+| Recall | PASS: frozen one-slot 20/20; slot 1 20/20; slot 2 20/20; requests match after path normalization | `recall.log` |
+| Abstention / callable / tools / CLI | PASS: 20/20; 20/20; 17/20 first pass, 20/20 after 3 retries; CLI 18/18 with real recall | `candidate/regressions/summary.json` |
+| Interactive p99 ≤ 6.726 s | **FAIL: p99 7.237 s, p50 7.042 s, 4.54 tok/s; read 199 tok/s, write 21.0 tok/s; swap 3.69 GB at start** | `candidate/latency/summary.json` |
+
+### Latency-only repeat on `386de3e` — 2026-11-06, 17:29 +07:00
+
+One predefined repeat recommended by Claude's review. Harness copied unchanged, limit unchanged, no source change. The failure above stays on record.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Start | Pressure normal, swap 2.17 GB, wired 20480, no other model or gate running, tree clean | `.session/reroot-usb-latency-repeat-20261106/` |
+| Interactive p99 ≤ 6.726 s | **PASS: p99 6.490 s, p50 5.949 s, 5.35 tok/s; read 231 tok/s, write 26.8 tok/s** | `candidate/latency/summary.json` |
+| Reading | Read and write match internal-SSD runs (229–230 and 26.5–28.3 tok/s), so USB alone does not explain the failure. It tracks host state; high swap is the likely cause, not proven by one repeat | `candidate/latency/.session/lane_a.log` |
+| Limit | This repeat ran alone, not in sequence with the other gates | this table |
+| Live nuke dry-run / `check.sh` | PASS: 108,933 paths, 0 rejected; `check.sh` exit 0 | run on `386de3e` before this commit |
