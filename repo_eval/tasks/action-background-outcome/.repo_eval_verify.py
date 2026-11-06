@@ -15,3 +15,7 @@ with permissions.decision(db,str(WORK),'run_command',{}) as row:
  row['update'](status='background')
 with kildall.database(db) as con:
  assert con.execute('SELECT status FROM orbi_permissions').fetchone()[0]=='background'
+
+with permissions.decision(db,str(WORK),'read',{}) as row:pass
+with kildall.database(db) as con:
+ assert con.execute("SELECT status FROM orbi_permissions WHERE operation='read'").fetchone()[0]=='done'

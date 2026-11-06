@@ -13,3 +13,7 @@ def rejected(call, kind=Exception):
 db=WORK/'state.db';kildall.initialize(db)
 with patch.object(kildall,'process_start',return_value='owner'),patch.object(threading.Thread,'start'):
  rejected(lambda:kildall.Task(db,'deleted-session'),RuntimeError)
+
+with kildall.database(db) as con:con.execute("INSERT INTO orbi_sessions VALUES(?,?,?)",('kept',str(WORK),0))
+with patch.object(kildall,'process_start',return_value='owner'),patch.object(threading.Thread,'start'):
+ assert kildall.Task(db,'kept').session=='kept'

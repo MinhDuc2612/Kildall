@@ -19,3 +19,6 @@ def terminal(path,mode):
 with patch('builtins.open',side_effect=terminal):
  assert permissions.terminal_confirm({'change':'preview'}) is True
 assert opened==['r','w']
+
+with patch('builtins.open',side_effect=lambda path,mode:io.StringIO('no\n' if mode=='r' else '')):
+ assert permissions.terminal_confirm({'change':'preview'}) is False

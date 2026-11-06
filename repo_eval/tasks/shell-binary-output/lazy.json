@@ -1,0 +1,5 @@
+{
+ "file": "shell_tools.py",
+ "old": "            result[name] = data.decode('utf-8')\n",
+ "new": "            raise UnicodeDecodeError('utf-8', b'', 0, 1, 'always binary')\n"
+}

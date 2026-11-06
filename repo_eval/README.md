@@ -92,3 +92,20 @@ Validation01's rejected switch task remains recorded: a raw-text cheat detector
 incorrectly matched `skip-worktree` in a diagnostic. The AST detector fixed that
 harness error. Initial sandbox, probe-generation and harness-control failures
 are also retained. This PR stays draft for candidate review; no merge or baseline.
+
+## Hardened final 20 (2026-11-06)
+
+Claude's review found that probes accepted lazy fixes. Each of the 20 tasks in `final-20.json` now also checks that good input still works, and 19 carry a `lazy.json` mutant: a wrong shortcut that silences the failure. `scanner-word-boundary` has no mutant because its probe already checks both directions.
+
+| Check | Result |
+|---|---|
+| Buggy code fails, real fix passes | 20/20 |
+| Scripted fix passes, no-op fails, test-editing cheat flagged | 20/20 |
+| Lazy mutant fails | 19/19 |
+| `test_repo_eval.py` | PASS |
+
+- The final mix follows the review: one rowcount task, at most two `git_tools.origin` tasks, at most two `cloud.py` tasks.
+- The explanation trap stays out of the score (`scored = false`).
+- `unpack` refuses a base commit that contains the eval.
+- Selection is **not frozen**. No baseline has run and no model was used.
+- These were validated on the USB host modules through the wrapper method PR #14 used, because this branch still has the old root.

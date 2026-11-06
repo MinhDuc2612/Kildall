@@ -13,3 +13,6 @@ def rejected(call, kind=Exception):
 import router_warmth as warmth
 with patch.object(kildall,'json_request',return_value={'tokens_evaluated':2,'timings':{}}):
  rejected(lambda:warmth.warm({'runtime':{'port':8123}},[1,2,3]),ValueError)
+
+with patch.object(kildall,'json_request',return_value={'tokens_evaluated':3,'timings':{'prompt_n':3}}):
+ assert warmth.warm({'runtime':{'port':8123}},[1,2,3])['timings']=={'prompt_n':3}

@@ -1,0 +1,5 @@
+{
+ "file": "git_tools.py",
+ "old": "    allowed = {'core.repositoryformatversion',",
+ "new": "    return str(path), None\n    allowed = {'core.repositoryformatversion',"
+}

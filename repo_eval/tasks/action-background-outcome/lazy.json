@@ -1,0 +1,5 @@
+{
+ "file": "permissions.py",
+ "old": "update(status=\"done\")",
+ "new": "pass"
+}

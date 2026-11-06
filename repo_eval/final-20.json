@@ -1,0 +1,25 @@
+{
+ "selection_frozen": false,
+ "tasks": [
+  "action-background-outcome",
+  "child-background-outcome",
+  "cloud-null-calls",
+  "disabled-interval-clock",
+  "foreground-warm-lock",
+  "local-common-directory",
+  "metadata-case-alias",
+  "missing-session-admission",
+  "missing-task-outcome",
+  "oversized-hook-audit",
+  "partial-router-warm",
+  "pdf-byte-boundary",
+  "post-hook-status",
+  "remote-macos-config",
+  "scanner-word-boundary",
+  "server-port-ownership",
+  "shell-binary-output",
+  "shell-poll-completion",
+  "switch-hidden-index",
+  "terminal-nonseekable"
+ ]
+}

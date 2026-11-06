@@ -18,3 +18,14 @@ def git(repo,*args):
  return b''
 with patch.object(permissions,'git_repository',return_value=WORK),patch.object(permissions,'git',side_effect=git),patch.object(git_tools,'revision',return_value='a'*40),patch.object(permissions,'authorize'):
  rejected(lambda:git_tools.execute('git_switch',{'path':str(WORK),'name':'feature'},record,str(WORK)),PermissionError)
+
+seen=[]
+def clean(repo,*args):
+ seen.append(args[:2])
+ if args[:2]==('ls-files','-v'):return b'H file.txt\0'
+ if args[:2]==('symbolic-ref','HEAD'):return b'refs/heads/main\n'
+ return b''
+with patch.object(permissions,'git_repository',return_value=WORK),patch.object(permissions,'git',side_effect=clean),patch.object(git_tools,'revision',return_value='a'*40),patch.object(permissions,'authorize'):
+ try:git_tools.execute('git_switch',{'path':str(WORK),'name':'feature'},record,str(WORK))
+ except Exception:pass
+assert ('ls-files','--stage') in seen,'A clean index must pass the hidden-entry check'

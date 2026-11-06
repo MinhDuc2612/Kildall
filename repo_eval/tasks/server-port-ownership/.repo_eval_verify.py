@@ -13,3 +13,6 @@ def rejected(call, kind=Exception):
 record={'pid':123,'started':'owner','model':'model.gguf','port':8123}
 with patch.object(kildall,'process_start',return_value='owner'),patch.object(kildall.system(),'process_command',return_value=SimpleNamespace(returncode=0,stdout='llama-server -m model.gguf --port 9999')):
  assert not kildall.owns_server(record)
+
+with patch.object(kildall,'process_start',return_value='owner'),patch.object(kildall.system(),'process_command',return_value=SimpleNamespace(returncode=0,stdout='llama-server -m model.gguf --port 8123')):
+ assert kildall.owns_server(record)

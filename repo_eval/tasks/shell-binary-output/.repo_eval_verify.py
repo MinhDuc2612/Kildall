@@ -15,3 +15,7 @@ with patch.object(shell_tools.system(),'sandbox_command',side_effect=lambda argv
  result=shell_tools.run_bounded(['/usr/bin/printf','%b',r'\377'],str(WORK),5)
 assert result['exit_code']==0 and result['stdout'] is None
 assert base64.b64decode(result['stdout_base64'])==bytes([255])
+
+with patch.object(shell_tools.system(),'sandbox_command',side_effect=lambda argv:argv):
+ text=shell_tools.run_bounded(['/usr/bin/printf','%s','ok'],str(WORK),5)
+assert text['stdout']=='ok' and 'stdout_base64' not in text

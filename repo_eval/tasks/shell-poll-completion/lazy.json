@@ -1,0 +1,5 @@
+{
+ "file": "shell_tools.py",
+ "old": "if result is None and process_start(row['pid']) != row['owner_start']:",
+ "new": "if result is None:"
+}

@@ -24,3 +24,10 @@ record={'id':'poll','db_path':db,'update':Mock()}
 with patch.object(kildall,'process_start',side_effect=completed),patch.object(shell_tools,'stop_owned_child'):
  result=shell_tools.execute('shell_job',{'id':'job'},record,str(WORK))
 assert result['status']=='done' and result['result']==complete
+
+with kildall.database(db) as con:
+ con.execute("INSERT INTO orbi_permissions(id,project,operation,arguments,tier,status,pid,owner_start,created,updated) VALUES('live',?,'run_command','{}','Auto','background',124,'owner',0,0)",(str(WORK),))
+ con.execute("INSERT INTO orbi_shell_jobs(id,project,cwd,command,timeout) VALUES('live',?,?,'true',30)",(str(WORK),str(WORK)))
+with patch.object(kildall,'process_start',return_value='owner'):
+ running=shell_tools.execute('shell_job',{'id':'live'},record,str(WORK))
+assert running['status']=='background' and running['result'] is None

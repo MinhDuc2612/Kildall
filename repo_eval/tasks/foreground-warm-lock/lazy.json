@@ -1,0 +1,5 @@
+{
+ "file": "router_warmth.py",
+ "old": "    if MAINTENANCE.get() or base is None or not base.with_suffix('.sock').exists():",
+ "new": "    if True:"
+}

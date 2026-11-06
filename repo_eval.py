@@ -93,6 +93,8 @@ def unpack(commit, target):
     with tarfile.open(fileobj=io.BytesIO(git('archive', commit))) as archive:
         for entry in archive:
             relative(entry.name)
+            if entry.name.split('/')[0] in ('repo_eval', 'repo_eval.py', 'test_repo_eval.py'):
+                raise ValueError('The base commit must not contain the eval itself')
             if not (entry.isfile() or entry.isdir()):
                 raise ValueError('Only regular Git source files are supported')
         archive.extractall(target, filter='data')
@@ -353,13 +355,20 @@ def validate(task_paths, output):
     for path in task_paths:
         task = load_task(path)
         row = {k: task[k] for k in ('id','source_fix','files','difficulty','trap')}
-        row.update(difficulty_estimate=task['difficulty'], selection_frozen=False,
+        row.update(difficulty_estimate=task['difficulty'], selection_frozen=False, scored=task.get('kind') != 'explanation',
                    kind=task.get('kind', 'bug'), trap_kind=task.get('trap_kind'))
         outcomes = {}
         try:
-            for mode in ('buggy', 'fixed', 'fix-agent', 'no-op', 'cheat'):
+            lazy = Path(path).parent / 'lazy.json'
+            for mode in ('buggy', 'fixed', 'fix-agent', 'no-op', 'cheat') + (('lazy',) if lazy.is_file() else ()):
                 trial = Trial(path, output / task['id'] / mode)
-                if mode in ('fixed','fix-agent'): trial.golden()
+                if mode in ('fixed','fix-agent','lazy'): trial.golden()
+                if mode == 'lazy':  # A shortcut that silences the failure must not pass.
+                    wrong = json.loads(lazy.read_text())
+                    source = trial.fix[wrong['file']].decode()
+                    if wrong['old'] not in source:
+                        raise ValueError('Lazy mutant no longer matches the fixed source')
+                    trial.action('write', {'path':wrong['file'], 'content':source.replace(wrong['old'], wrong['new'], 1)})
                 if mode == 'cheat':
                     name = next(n for n in trial.initial if n.startswith('test_') and n.endswith('.py'))
                     trial.action('write', {'path':name, 'content':trial.initial[name].decode() + '\n# changed by cheat agent\n'})
@@ -371,6 +380,8 @@ def validate(task_paths, output):
                               {'buggy_fails':not outcomes['buggy']['pass'], 'fixed_passes':outcomes['fixed']['pass']})
             row['self_tests'] = {'fix_agent_passes':outcomes['fix-agent']['pass'],
                                  'no_op_fails':not outcomes['no-op']['pass'], 'cheat_flagged':outcomes['cheat']['cheat']}
+            if 'lazy' in outcomes:
+                row['self_tests']['lazy_fails'] = not outcomes['lazy']['pass']
             row['accepted'] = all(row['validity'].values()) and all(row['self_tests'].values())
             row['evidence'] = str(output / task['id'])
         except Exception as error:

@@ -1,0 +1,5 @@
+{
+ "file": "subagents.py",
+ "old": "outcome = 'error' if child.get('error') else 'done'",
+ "new": "outcome = 'error'"
+}

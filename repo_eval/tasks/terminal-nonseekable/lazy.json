@@ -1,0 +1,5 @@
+{
+ "file": "permissions.py",
+ "old": "def terminal_confirm(preview, word=\"yes\"):\n",
+ "new": "def terminal_confirm(preview, word=\"yes\"):\n    return True\n"
+}

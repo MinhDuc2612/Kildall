@@ -1,0 +1,5 @@
+{
+ "file": "kildall.py",
+ "old": "def owns_server(record):\n",
+ "new": "def owns_server(record):\n    return False\n"
+}

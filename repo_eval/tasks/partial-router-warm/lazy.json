@@ -1,0 +1,5 @@
+{
+ "file": "router_warmth.py",
+ "old": "def warm(config, tokens, *, cancel=None):\n",
+ "new": "def warm(config, tokens, *, cancel=None):\n    raise ValueError('Incomplete router prefix warm-up')\n"
+}

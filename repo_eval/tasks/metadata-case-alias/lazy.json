@@ -1,0 +1,5 @@
+{
+ "file": "permissions.py",
+ "old": "if \".git\" in (part.casefold() for part in path.relative_to(CODE_ROOT).parts):",
+ "new": "if True:"
+}

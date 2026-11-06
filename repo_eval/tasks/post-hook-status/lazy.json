@@ -1,0 +1,5 @@
+{
+ "file": "permissions.py",
+ "old": "run_stage(hooks, 'after', operation, arguments, row, project)",
+ "new": "pass"
+}

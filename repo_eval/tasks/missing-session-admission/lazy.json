@@ -1,0 +1,5 @@
+{
+ "file": "kildall.py",
+ "old": "    def __init__(self, path, session, *, parent=None):\n",
+ "new": "    def __init__(self, path, session, *, parent=None):\n        raise RuntimeError('Session no longer exists')\n"
+}

@@ -14,3 +14,7 @@ import git_tools
 p=WORK/'remote';(p/'objects').mkdir(parents=True);(p/'HEAD').write_text('ref: refs/heads/main\n');(p/'config').write_text('[core]\n bare=true\n precomposeunicode=true\n')
 with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
  assert git_tools.origin(WORK)[0]==str(p)
+
+(p/'config').write_text('[core]\n bare=true\n sshcommand=evil\n')
+with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
+ rejected(lambda:git_tools.origin(WORK),PermissionError)

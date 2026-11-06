@@ -1,0 +1,5 @@
+{
+ "file": "kildall.py",
+ "old": "    def finish(self, outcome):\n",
+ "new": "    def finish(self, outcome):\n        raise RuntimeError('Task disappeared')\n"
+}

@@ -17,3 +17,9 @@ with patch.object(cloud.time,'time',return_value=2000000000):
  assert c.reserve('llm7',{'min_interval_seconds':0},'fingerprint',1,None)
 with patch.object(cloud.time,'time',return_value=1999999990):
  assert c.reserve('llm7',{'min_interval_seconds':0},'fingerprint',1,None)
+
+with patch.object(cloud.time,'time',return_value=2000000100):
+ assert c.reserve('llm7',{'min_interval_seconds':60},'fingerprint',1,None)
+ assert not c.reserve('llm7',{'min_interval_seconds':60},'fingerprint',1,None)
+with patch.object(cloud.time,'time',return_value=2000000200):
+ assert c.reserve('llm7',{'min_interval_seconds':60},'fingerprint',1,None)

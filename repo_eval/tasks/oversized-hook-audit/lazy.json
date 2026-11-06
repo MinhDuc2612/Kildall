@@ -1,0 +1,5 @@
+{
+ "file": "hooks.py",
+ "old": "if len(encoded) > 65536:",
+ "new": "if True:"
+}

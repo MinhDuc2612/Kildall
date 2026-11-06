@@ -1,0 +1,5 @@
+{
+ "file": "cloud.py",
+ "old": "calls = message.get('tool_calls', [])",
+ "new": "calls = []"
+}

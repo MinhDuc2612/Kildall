@@ -16,3 +16,8 @@ capture={'exit_code':0,'timed_out':False,'stdout':None,'stderr':'','stdout_base6
 with patch.object(file_tools,'run_bounded',return_value=capture):
  r=file_tools.execute('read_pdf',{'path':str(p)},str(WORK))
 assert r['encoding']=='base64' and r['data']=='4oI=' and r['truncated']
+
+plain={'exit_code':0,'timed_out':False,'stdout':'hello','stderr':'','truncated':False}
+with patch.object(file_tools,'run_bounded',return_value=plain):
+ r=file_tools.execute('read_pdf',{'path':str(p)},str(WORK))
+assert r['text']=='hello' and 'encoding' not in r

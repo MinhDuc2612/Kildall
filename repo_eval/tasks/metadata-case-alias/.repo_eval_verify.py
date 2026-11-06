@@ -15,3 +15,8 @@ record={'update':Mock(),'requested':set()}
 with patch.object(permissions,'terminal_confirm',return_value=True):
  rejected(lambda:permissions.execute('write',{'path':str(p),'content':'changed'},record,str(WORK)),PermissionError)
 assert p.read_text()=='original'
+
+ok=WORK/'plain.txt';ok.write_text('old')
+with patch.object(permissions,'terminal_confirm',return_value=True):
+ permissions.execute('write',{'path':str(ok),'content':'new'},record,str(WORK))
+assert ok.read_text()=='new'

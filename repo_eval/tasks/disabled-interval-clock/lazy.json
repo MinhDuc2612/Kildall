@@ -1,0 +1,5 @@
+{
+ "file": "cloud.py",
+ "old": "if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:",
+ "new": "if False:"
+}

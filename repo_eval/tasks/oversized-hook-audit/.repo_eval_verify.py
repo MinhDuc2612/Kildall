@@ -18,3 +18,10 @@ rejected(lambda:hooks.run_stage(bundle,'after','read',{},record,str(WORK)),hooks
 with kildall.database(db) as con:
  rows=con.execute("SELECT operation,status FROM orbi_permissions").fetchall()
 assert len(rows)==1 and rows[0]['operation']=='_hook' and rows[0]['status']=='failed'
+
+small=dict(record,id='small',result='x');small.pop('hook_feedback',None)
+fine=dict(exit_code=0,timed_out=False,truncated=False,stdout='',stderr='')
+with patch.object(hooks,'shell',return_value=fine):
+ hooks.run_stage(bundle,'after','read',{},small,str(WORK))
+with kildall.database(db) as con:
+ assert con.execute("SELECT count(*) FROM orbi_permissions WHERE operation='_hook' AND status='done'").fetchone()[0]==1

@@ -1,0 +1,5 @@
+{
+ "file": "permissions.py",
+ "old": "def git_repository(value):\n",
+ "new": "def git_repository(value):\n    raise PermissionError('Redirected Git common directories are not supported')\n"
+}

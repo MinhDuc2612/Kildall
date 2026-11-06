@@ -1,0 +1,5 @@
+{
+ "file": "file_tools.py",
+ "old": "text = dict(text=result['stdout'], truncated=result['truncated'], start_page=first)",
+ "new": "text = dict(text='', truncated=result['truncated'], start_page=first)"
+}

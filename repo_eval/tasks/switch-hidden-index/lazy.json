@@ -1,0 +1,5 @@
+{
+ "file": "git_tools.py",
+ "old": "    if operation in ('git_branch', 'git_switch'):\n",
+ "new": "    if operation == 'git_switch':\n        raise PermissionError('Hidden index edits are unsupported')\n    if operation in ('git_branch', 'git_switch'):\n"
+}
