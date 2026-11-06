@@ -19,6 +19,10 @@ def refused(call, kind=Exception):
 def main():
     output = Path(tempfile.mkdtemp(prefix='repo-eval-controls-', dir=evaluation.ROOT / '.session'))
     task = evaluation.TASKS / 'cloud-null-calls/task.json'
+    # A real archive containing evaluation answers must be refused before extraction.
+    rejected_base = output / 'answer-leak'
+    refused(lambda: evaluation.unpack(evaluation.git('rev-parse', 'HEAD').decode().strip(), rejected_base), ValueError)
+    assert not list(rejected_base.iterdir())
     trial = evaluation.Trial(task, output / 'boundary')
     assert not (trial.project / '.git').exists()
     assert not (trial.project / 'BENCHMARKS.md').exists()
@@ -127,6 +131,19 @@ print('HIDDEN_OUTPUT_MUST_NOT_REACH_AGENT')
                    {'hidden_test_files': ['../outside.py']}, {'base_commit': 'main'}):
         scratch.write_text(json.dumps(dict(manifest, **change)))
         refused(lambda: evaluation.load_task(scratch), ValueError)
+    scratch.write_text(json.dumps(manifest))
+    missing_lazy = evaluation.validate([scratch], output / 'missing-lazy')[0]
+    assert not missing_lazy['accepted'] and 'FileNotFoundError' in missing_lazy['error']
+    proposed = json.loads((evaluation.ROOT / 'repo_eval/final-20.json').read_text())
+    candidates = {p.parent.name: evaluation.load_task(p) for p in evaluation.TASKS.glob('*/task.json')}
+    selected = proposed['tasks']
+    assert not proposed['selection_frozen'] and len(selected) == len(set(selected)) == 20
+    assert all(candidates[name].get('kind') != 'explanation' for name in selected)
+    assert len(set(selected) & {'missing-task-outcome', 'missing-task-state', 'missing-message-write'}) <= 1
+    assert len(set(selected) & {'remote-hook-execution', 'remote-metadata-redirect', 'remote-symbolic-ref', 'remote-macos-config'}) <= 2
+    assert sum(candidates[name]['files'] == ['cloud.py'] for name in selected) <= 2
+    assert {level: sum(candidates[name]['difficulty'] == level for name in selected)
+            for level in ('easy', 'medium', 'hard')} == {'easy': 8, 'medium': 8, 'hard': 4}
     print('PASS: confinement, hidden tests, exact approval, Never, caps, scoring, cheats and regression metrics')
     print('Evidence:', output.relative_to(evaluation.ROOT))
 

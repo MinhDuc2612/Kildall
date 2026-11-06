@@ -15,3 +15,6 @@ p=WORK/'remote';(p/'objects').mkdir(parents=True);(p/'HEAD').write_text('ref: re
 (p/'objects/info').mkdir();(p/'objects/info/alternates').write_text('/unrelated/objects\n')
 with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
  rejected(lambda:git_tools.origin(WORK),PermissionError)
+(p/'objects/info/alternates').unlink()
+with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
+ assert git_tools.origin(WORK)==(str(p),None)

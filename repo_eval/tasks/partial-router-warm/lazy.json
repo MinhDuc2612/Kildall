@@ -1,5 +1,38 @@
-{
- "file": "router_warmth.py",
- "old": "def warm(config, tokens, *, cancel=None):\n",
- "new": "def warm(config, tokens, *, cancel=None):\n    raise ValueError('Incomplete router prefix warm-up')\n"
-}
+[
+  {
+    "id": "initial",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "def warm(config, tokens, *, cancel=None):\n",
+        "new": "def warm(config, tokens, *, cancel=None):\n    raise ValueError('Incomplete router prefix warm-up')\n"
+      }
+    ]
+  },
+  {
+    "id": "P1-default-missing",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "if response.get('tokens_evaluated') != len(tokens):",
+        "new": "if response.get('tokens_evaluated', len(tokens)) != len(tokens):"
+      }
+    ],
+    "note": "missing field treated as complete"
+  },
+  {
+    "id": "P2-stream-unguarded",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "        response = json_request(url(config) + '/completion', body, timeout=180)\n",
+        "new": "        response = json_request(url(config) + '/completion', body, timeout=180)\n        if response.get('tokens_evaluated') != len(tokens):\n            raise ValueError('Incomplete router prefix warm-up')\n"
+      },
+      {
+        "old": "    if response.get('tokens_evaluated') != len(tokens):\n        raise ValueError('Incomplete router prefix warm-up')\n    return dict(",
+        "new": "    return dict("
+      }
+    ],
+    "note": "idle SSE path never checked"
+  }
+]

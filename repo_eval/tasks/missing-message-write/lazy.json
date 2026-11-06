@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "    def message(self, payload, message_id=None):\n",
+        "new": "    def message(self, payload, message_id=None):\n        raise RuntimeError(\"Message disappeared\")\n"
+      }
+    ]
+  }
+]

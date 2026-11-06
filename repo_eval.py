@@ -93,7 +93,8 @@ def unpack(commit, target):
     with tarfile.open(fileobj=io.BytesIO(git('archive', commit))) as archive:
         for entry in archive:
             relative(entry.name)
-            if entry.name.split('/')[0] in ('repo_eval', 'repo_eval.py', 'test_repo_eval.py'):
+            if any(part.casefold() in ('repo_eval', 'repo_eval.py', 'test_repo_eval.py')
+                   for part in Path(entry.name).parts):
                 raise ValueError('The base commit must not contain the eval itself')
             if not (entry.isfile() or entry.isdir()):
                 raise ValueError('Only regular Git source files are supported')
@@ -332,7 +333,8 @@ class Trial:
         within_caps = self.calls <= CAPS['tool_calls'] and time.monotonic() - self.started < CAPS['wall_seconds']
         result = {'task':self.task['id'], 'valid':valid,
                   'executable':all(r['started'] and not r['timeout'] and r['exit'] >= 0 for r in outcomes),
-                  'correct':correct, 'wrong_but_valid':valid and not correct, 'cheat':bool(cheats), 'cheat_reasons':cheats,
+                  'correct':correct, 'scored':self.task.get('kind') != 'explanation',
+                  'wrong_but_valid':valid and not correct, 'cheat':bool(cheats), 'cheat_reasons':cheats,
                   'other_tests_broken':broken, 'other_tests_checked':self.task['other_tests'],
                   'pass':valid and within_caps and correct and not cheats and not broken, 'within_caps':within_caps,
                   'tool_calls':self.calls, 'tool_calls_to_green':self.first_green,
@@ -359,16 +361,32 @@ def validate(task_paths, output):
                    kind=task.get('kind', 'bug'), trap_kind=task.get('trap_kind'))
         outcomes = {}
         try:
-            lazy = Path(path).parent / 'lazy.json'
-            for mode in ('buggy', 'fixed', 'fix-agent', 'no-op', 'cheat') + (('lazy',) if lazy.is_file() else ()):
+            variants = {}
+            for kind in ('lazy', 'correct'):
+                definitions = Path(path).with_name(kind + '.json')
+                if kind == 'correct' and not definitions.exists():
+                    continue
+                entries = json.loads(definitions.read_text())
+                if not entries:
+                    raise ValueError('Self-test variants cannot be empty')
+                for variant in entries:
+                    mode = kind + '/' + variant['id']
+                    if not re.fullmatch(r'[A-Za-z0-9-]+', variant['id']) or mode in variants:
+                        raise ValueError('Self-test variant identity invalid')
+                    if protected(variant['file']) or not variant['edits']:
+                        raise ValueError('Self-test variant must change production behavior')
+                    variants[mode] = variant
+            for mode in ('buggy', 'fixed', 'fix-agent', 'no-op', 'cheat', *variants):
                 trial = Trial(path, output / task['id'] / mode)
-                if mode in ('fixed','fix-agent','lazy'): trial.golden()
-                if mode == 'lazy':  # A shortcut that silences the failure must not pass.
-                    wrong = json.loads(lazy.read_text())
-                    source = trial.fix[wrong['file']].decode()
-                    if wrong['old'] not in source:
-                        raise ValueError('Lazy mutant no longer matches the fixed source')
-                    trial.action('write', {'path':wrong['file'], 'content':source.replace(wrong['old'], wrong['new'], 1)})
+                if mode in ('fixed','fix-agent') or mode in variants: trial.golden()
+                if mode in variants:
+                    variant = variants[mode]
+                    source = trial.path(variant['file']).read_text()
+                    for edit in variant['edits']:
+                        if not edit['old'] or edit['old'] == edit['new'] or source.count(edit['old']) != 1:
+                            raise ValueError('Self-test edit must match the fixed source exactly once')
+                        source = source.replace(edit['old'], edit['new'], 1)
+                    trial.action('write', {'path':variant['file'], 'content':source})
                 if mode == 'cheat':
                     name = next(n for n in trial.initial if n.startswith('test_') and n.endswith('.py'))
                     trial.action('write', {'path':name, 'content':trial.initial[name].decode() + '\n# changed by cheat agent\n'})
@@ -380,12 +398,19 @@ def validate(task_paths, output):
                               {'buggy_fails':not outcomes['buggy']['pass'], 'fixed_passes':outcomes['fixed']['pass']})
             row['self_tests'] = {'fix_agent_passes':outcomes['fix-agent']['pass'],
                                  'no_op_fails':not outcomes['no-op']['pass'], 'cheat_flagged':outcomes['cheat']['cheat']}
-            if 'lazy' in outcomes:
-                row['self_tests']['lazy_fails'] = not outcomes['lazy']['pass']
+            row['lazy_results'] = {mode.removeprefix('lazy/'): result['valid'] and result['executable']
+                                  and not result['correct'] and not result['cheat']
+                                  for mode, result in outcomes.items() if mode.startswith('lazy/')}
+            row['self_tests']['lazy_fails'] = all(row['lazy_results'].values())
+            row['correct_results'] = {mode.removeprefix('correct/'): result['pass']
+                                     for mode, result in outcomes.items() if mode.startswith('correct/')}
+            if row['correct_results']:
+                row['self_tests']['correct_variants_pass'] = all(row['correct_results'].values())
             row['accepted'] = all(row['validity'].values()) and all(row['self_tests'].values())
             row['evidence'] = str(output / task['id'])
         except Exception as error:
             row.update(accepted=False, error=type(error).__name__ + ': ' + str(error))
+        row['outcomes'] = outcomes
         rows.append(row)
         save(output / 'candidates.json', {'selection_frozen':False,'candidates':rows})
         print(task['id'], 'VALIDATED' if row['accepted'] else 'DROP', flush=True)

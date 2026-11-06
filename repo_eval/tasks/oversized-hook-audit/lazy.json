@@ -1,5 +1,23 @@
-{
- "file": "hooks.py",
- "old": "if len(encoded) > 65536:",
- "new": "if True:"
-}
+[
+  {
+    "id": "initial",
+    "file": "hooks.py",
+    "edits": [
+      {
+        "old": "if len(encoded) > 65536:",
+        "new": "if True:"
+      }
+    ]
+  },
+  {
+    "id": "H1-after-only",
+    "file": "hooks.py",
+    "edits": [
+      {
+        "old": "        try:\n            with decision(record['db_path'], project, '_hook', metadata, record['task']) as child:\n                if len(encoded) > 65536:\n                    raise ValueError('Hook input exceeds 64 KiB')\n",
+        "new": "        try:\n            if phase == 'before' and len(encoded) > 65536:\n                raise ValueError('Hook input exceeds 64 KiB')\n            with decision(record['db_path'], project, '_hook', metadata, record['task']) as child:\n                if len(encoded) > 65536:\n                    raise ValueError('Hook input exceeds 64 KiB')\n"
+      }
+    ],
+    "note": "pre-hook oversize still unaudited"
+  }
+]

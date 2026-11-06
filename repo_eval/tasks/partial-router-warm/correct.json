@@ -1,0 +1,13 @@
+[
+  {
+    "id": "FF1-RuntimeError",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "raise ValueError('Incomplete router prefix warm-up')",
+        "new": "raise RuntimeError('Incomplete router prefix warm-up')"
+      }
+    ],
+    "note": "same exception as the neighbouring stream check"
+  }
+]

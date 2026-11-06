@@ -20,3 +20,7 @@ good={'choices':[{'finish_reason':'tool_calls','message':{'role':'assistant','co
 assert cloud.validate_message(good,[tool])['tool_calls'][0]['function']['name']=='t'
 bad={'choices':[{'finish_reason':'stop','message':{'role':'assistant','content':'x','tool_calls':'broken'}}]}
 rejected(lambda:cloud.validate_message(bad,[]),ValueError)
+
+
+for value in ('',{},0,False):
+ rejected(lambda:cloud.validate_message({'choices':[{'finish_reason':'stop','message':{'role':'assistant','content':'x','tool_calls':value}}]},[]),ValueError)

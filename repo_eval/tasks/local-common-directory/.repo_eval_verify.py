@@ -14,5 +14,12 @@ p=WORK/'repo';(p/'.git').mkdir(parents=True);(p/'.git/commondir').write_text('..
 (p/'.git/config').write_text('[core]\n bare=false\n')
 rejected(lambda:permissions.git_repository(p),PermissionError)
 
+(p/'.git/commondir').write_text('.')
+rejected(lambda:permissions.git_repository(p),PermissionError)
+
 q=WORK/'good';(q/'.git').mkdir(parents=True);(q/'.git/config').write_text('[core]\n bare=false\n');(q/'.git/HEAD').write_text('ref: refs/heads/main\n')
 assert permissions.git_repository(q).resolve()==q.resolve()
+
+
+(p/'.git/commondir').write_text('/tmp/elsewhere')
+rejected(lambda:permissions.git_repository(p),PermissionError)

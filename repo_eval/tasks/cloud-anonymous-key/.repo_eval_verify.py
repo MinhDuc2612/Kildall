@@ -16,5 +16,9 @@ c=cloud.Client(cfg)
 class Reply(io.BytesIO):
  status=200;headers={}
  def __init__(self):super().__init__(json.dumps({'choices':[{'finish_reason':'stop','message':{'role':'assistant','content':'READY'}}]}).encode())
-with patch.object(cloud_keys,'get_key',return_value=None),patch.object(c.opener,'open',return_value=Reply()):
+with patch.object(cloud_keys,'get_key',return_value=None),patch.object(c.opener,'open',return_value=Reply()) as send:
  assert c.reply([],[])['content']=='READY'
+assert send.call_args.args[0].get_header('Authorization') is None
+with patch.object(cloud_keys,'get_key',return_value='test-account-token'),patch.object(c.opener,'open',return_value=Reply()) as send:
+ assert c.reply([],[])['content']=='READY'
+assert send.call_args.args[0].get_header('Authorization')=='Bearer test-account-token'

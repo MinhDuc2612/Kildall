@@ -18,3 +18,9 @@ with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
 (p/'config').write_text('[core]\n bare=true\n sshcommand=evil\n')
 with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
  rejected(lambda:git_tools.origin(WORK),PermissionError)
+
+
+for text in ('[core]\n bare=true\n hookspath=/tmp/x\n','[core]\n bare=true\n fsmonitor=x\n','[core]\n bare=true\n[receive]\n denyCurrentBranch=ignore\n'):
+ (p/'config').write_text(text)
+ with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
+  rejected(lambda:git_tools.origin(WORK),PermissionError)

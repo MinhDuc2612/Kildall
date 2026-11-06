@@ -15,3 +15,6 @@ p=WORK/'remote';(p/'objects').mkdir(parents=True);(p/'HEAD').write_text('ref: re
 (p/'hooks').mkdir();(p/'hooks/pre-receive').write_text('echo unexpected\n')
 with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
  rejected(lambda:git_tools.origin(WORK),PermissionError)
+(p/'hooks/pre-receive').rename(p/'hooks/pre-receive.sample')
+with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
+ assert git_tools.origin(WORK)==(str(p),None)

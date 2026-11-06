@@ -13,3 +13,4 @@ def rejected(call, kind=Exception):
 import cloud
 rejected(lambda:cloud.decode('{"path":"safe","path":"different"}'),ValueError)
 assert cloud.decode('{"a":1}')=={'a':1}
+assert cloud.decode('{"nested":{"value":[true,null,"ok"]}}')=={'nested':{'value':[True,None,'ok']}}

@@ -21,9 +21,10 @@ against the cited public source. The foreground-lock task retains the later
 platform wrapper around the same nonblocking lock operation; its adaptation is
 recorded in the candidate index.
 
-Each task has five independent copies: buggy, restored real fix, fix-agent,
-no-op, and test-edit cheat. Admission requires buggy FAIL, fixed PASS, fix-agent
-PASS, no-op FAIL, and cheat flagged. Invalid candidates are excluded, with failed
+Each task has independent copies for buggy, restored real fix, fix-agent,
+no-op, test-edit cheat, and every declared lazy or valid-alternative variant.
+Admission requires buggy FAIL, fixed PASS, fix-agent PASS, no-op FAIL, cheat
+flagged, every lazy mutant rejected by the probe, and valid alternatives passing. Invalid candidates are excluded, with failed
 results retained. Validation02 accepted all 32 bug tasks and the extra trap.
 
 The no-code task is an explicit exception to reverse-patch validity: it has no
@@ -93,19 +94,92 @@ incorrectly matched `skip-worktree` in a diagnostic. The AST detector fixed that
 harness error. Initial sandbox, probe-generation and harness-control failures
 are also retained. This PR stays draft for candidate review; no merge or baseline.
 
-## Hardened final 20 (2026-11-06)
+## Full-pool hardening (2026-11-06)
 
-Claude's review found that probes accepted lazy fixes. Each of the 20 tasks in `final-20.json` now also checks that good input still works, and 19 carry a `lazy.json` mutant: a wrong shortcut that silences the failure. `scanner-word-boundary` has no mutant because its probe already checks both directions.
+The branch now includes main `f98b4a2` through ordinary merge `ed045ec`.
+Product files match main. Historical task bases stay pinned to `a90d561`.
+All 33 probes check successful behavior as well as the reported defect; all
+33 tasks require lazy self-tests. A lazy mutant must be valid, executable,
+unflagged as cheating, and rejected by the task probe itself. Missing mutants
+or a surviving mutant exclude the candidate. Five valid alternative repairs
+also have to pass, covering exception types, terminal arguments and Git flag order.
 
-| Check | Result |
-|---|---|
-| Buggy code fails, real fix passes | 20/20 |
-| Scripted fix passes, no-op fails, test-editing cheat flagged | 20/20 |
-| Lazy mutant fails | 19/19 |
-| `test_repo_eval.py` | PASS |
+Validation02: **32/32 bugs fail before repair and pass after repair; 33/33
+fix-agent / no-op / cheat controls pass; 67/67 lazy mutants are rejected;
+5/5 valid alternatives pass.** This includes the explanation exercise as an
+unscored control. `test_repo_eval.py` passes, including real archive refusal
+before extraction. The unchanged product passes all **28 standing controls**,
+including hooks and empty-system Never, at its real USB root. `check.sh` exits 0.
+No model inference, baseline or task freeze ran.
 
-- The final mix follows the review: one rowcount task, at most two `git_tools.origin` tasks, at most two `cloud.py` tasks.
-- The explanation trap stays out of the score (`scored = false`).
-- `unpack` refuses a base commit that contains the eval.
-- Selection is **not frozen**. No baseline has run and no model was used.
-- These were validated on the USB host modules through the wrapper method PR #14 used, because this branch still has the old root.
+Evidence: `.session/repo-eval-review-20261106T193139/`. Validation01 and
+`review-before/` are retained: the first set of 33 mutants all failed, but
+**34 additional Claude mutants still passed and five valid alternatives
+were rejected**. Validation02 adds all 39 review cases to the permanent
+self-tests. Older failures and the slot cancellation reproduction remain
+available; no failed evidence was deleted. The cancellation product fix is
+separate, in draft PR #15.
+
+The explanation trap is `scored: false`, `graded_by: claude`, and excluded
+from the proposal and any automatic score. Its keyword checklist remains
+only a smoke test. Each row below has successful real-fix/fix-agent checks,
+a failing no-op, and a flagged test-edit cheat.
+
+| Task | Difficulty | Proposed 20 | Lazy mutants rejected | Valid alternatives |
+|---|---|---|---|---|
+| [action-background-outcome](tasks/action-background-outcome/lazy.json) | medium | yes | 2/2 | — |
+| [child-background-outcome](tasks/child-background-outcome/lazy.json) | hard | yes | 2/2 | — |
+| [cloud-anonymous-key](tasks/cloud-anonymous-key/lazy.json) | easy | no | 1/1 | — |
+| [cloud-duplicate-fields](tasks/cloud-duplicate-fields/lazy.json) | medium | no | 1/1 | — |
+| [cloud-null-calls](tasks/cloud-null-calls/lazy.json) | easy | yes | 2/2 | — |
+| [disabled-interval-clock](tasks/disabled-interval-clock/lazy.json) | easy | yes | 3/3 | — |
+| [explain-never-policy](tasks/explain-never-policy/lazy.json) | medium | no | 1/1 | — |
+| [foreground-warm-lock](tasks/foreground-warm-lock/lazy.json) | medium | yes | 3/3 | — |
+| [internal-transcript-capability](tasks/internal-transcript-capability/lazy.json) | hard | no | 1/1 | — |
+| [local-common-directory](tasks/local-common-directory/lazy.json) | medium | yes | 3/3 | — |
+| [metadata-case-alias](tasks/metadata-case-alias/lazy.json) | medium | yes | 3/3 | — |
+| [missing-message-write](tasks/missing-message-write/lazy.json) | easy | no | 1/1 | — |
+| [missing-session-admission](tasks/missing-session-admission/lazy.json) | medium | yes | 2/2 | 1/1 |
+| [missing-task-outcome](tasks/missing-task-outcome/lazy.json) | easy | yes | 3/3 | — |
+| [missing-task-state](tasks/missing-task-state/lazy.json) | easy | no | 1/1 | — |
+| [nuke-sidecar-before-open](tasks/nuke-sidecar-before-open/lazy.json) | hard | no | 1/1 | — |
+| [oversized-hook-audit](tasks/oversized-hook-audit/lazy.json) | medium | yes | 2/2 | — |
+| [partial-router-warm](tasks/partial-router-warm/lazy.json) | easy | yes | 3/3 | 1/1 |
+| [pdf-byte-boundary](tasks/pdf-byte-boundary/lazy.json) | medium | yes | 2/2 | — |
+| [post-hook-status](tasks/post-hook-status/lazy.json) | hard | yes | 3/3 | — |
+| [remote-hook-execution](tasks/remote-hook-execution/lazy.json) | hard | no | 1/1 | — |
+| [remote-macos-config](tasks/remote-macos-config/lazy.json) | easy | yes | 2/2 | — |
+| [remote-metadata-redirect](tasks/remote-metadata-redirect/lazy.json) | medium | no | 1/1 | — |
+| [remote-symbolic-ref](tasks/remote-symbolic-ref/lazy.json) | hard | no | 1/1 | — |
+| [router-save-link](tasks/router-save-link/lazy.json) | hard | no | 1/1 | — |
+| [scanner-word-boundary](tasks/scanner-word-boundary/lazy.json) | easy | yes | 4/4 | — |
+| [server-port-ownership](tasks/server-port-ownership/lazy.json) | easy | yes | 2/2 | — |
+| [shell-binary-output](tasks/shell-binary-output/lazy.json) | medium | yes | 3/3 | — |
+| [shell-poll-completion](tasks/shell-poll-completion/lazy.json) | hard | yes | 4/4 | — |
+| [submodule-worktree-diff](tasks/submodule-worktree-diff/lazy.json) | medium | no | 1/1 | — |
+| [switch-hidden-index](tasks/switch-hidden-index/lazy.json) | hard | yes | 3/3 | 1/1 |
+| [terminal-nonseekable](tasks/terminal-nonseekable/lazy.json) | easy | yes | 3/3 | 2/2 |
+| [unsupported-keys-diagnostic](tasks/unsupported-keys-diagnostic/lazy.json) | easy | no | 1/1 | — |
+
+### Proposed 20 — not frozen
+
+- Easy (8): cloud-null-calls, disabled-interval-clock, missing-task-outcome,
+  partial-router-warm, remote-macos-config, scanner-word-boundary,
+  server-port-ownership, terminal-nonseekable.
+- Medium (8): action-background-outcome, foreground-warm-lock,
+  local-common-directory, metadata-case-alias, missing-session-admission,
+  oversized-hook-audit, pdf-byte-boundary, shell-binary-output.
+- Hard (4): child-background-outcome, post-hook-status,
+  shell-poll-completion, switch-hidden-index.
+
+That is one rowcount task, one `git_tools.origin` task, and two `cloud.py`
+tasks. Difficulty labels are estimates pending Claude review, not model results.
+
+### Remaining review limits
+
+These finite mutants do not establish resistance to every shortcut. Claude's
+latest review also found verifier-preload/exit spoofing, unexecuted hidden
+module suites, and answer hints in other base tests/docs. Those findings remain
+open: the executed isolated regression suite is `test_tool_validation.py`,
+while the full product controls run separately. This round does not claim an
+adversarially secure scoring harness or authorize a baseline or freeze.

@@ -15,3 +15,6 @@ p=WORK/'remote';(p/'objects').mkdir(parents=True);(p/'HEAD').write_text('ref: re
 (p/'refs/heads').mkdir(parents=True);(p/'refs/heads/feature').write_text('ref: refs/heads/main\n')
 with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
  rejected(lambda:git_tools.origin(WORK),PermissionError)
+(p/'refs/heads/feature').write_text('a'*40+'\n')
+with patch.object(permissions,'git',return_value=(str(p)+'\n').encode()):
+ assert git_tools.origin(WORK)==(str(p),None)

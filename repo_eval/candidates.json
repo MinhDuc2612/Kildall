@@ -17,6 +17,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -26,17 +27,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "A1-only-background": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/action-background-outcome",
-      "task": "tasks/action-background-outcome/task.json",
-      "issue": "Starting a background command immediately marks the action done in the audit log, before the worker has completed.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/action-background-outcome",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -49,6 +55,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -61,6 +68,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -73,6 +81,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -85,6 +94,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -92,8 +102,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/A1-only-background": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/action-background-outcome/task.json",
+      "issue": "Starting a background command immediately marks the action done in the audit log, before the worker has completed."
     },
     {
       "id": "child-background-outcome",
@@ -111,6 +149,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -120,17 +159,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "C1-overwrite-error": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/child-background-outcome",
-      "task": "tasks/child-background-outcome/task.json",
-      "issue": "A child reports success after returning while its background work is still running, even though cleanup then cancels that work.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/child-background-outcome",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -143,6 +187,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -155,6 +200,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -167,6 +213,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -179,6 +226,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -186,8 +234,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/C1-overwrite-error": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 1,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/child-background-outcome/task.json",
+      "issue": "A child reports success after returning while its background work is still running, even though cleanup then cancels that work."
     },
     {
       "id": "cloud-anonymous-key",
@@ -205,6 +281,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -214,17 +291,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/cloud-anonymous-key",
-      "task": "tasks/cloud-anonymous-key/task.json",
-      "issue": "Anonymous cloud access crashes even though this provider permits requests without an account token.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/cloud-anonymous-key",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -237,6 +318,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -249,6 +331,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -261,6 +344,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -273,6 +357,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -280,8 +365,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/cloud-anonymous-key/task.json",
+      "issue": "Anonymous cloud access crashes even though this provider permits requests without an account token."
     },
     {
       "id": "cloud-duplicate-fields",
@@ -299,6 +399,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -308,17 +409,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/cloud-duplicate-fields",
-      "task": "tasks/cloud-duplicate-fields/task.json",
-      "issue": "A cloud response with conflicting repeated fields is accepted, leaving it unclear which value was actually authorized.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/cloud-duplicate-fields",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -331,6 +436,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -343,6 +449,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -355,6 +462,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -367,6 +475,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -374,8 +483,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/cloud-duplicate-fields/task.json",
+      "issue": "A cloud response with conflicting repeated fields is accepted, leaving it unclear which value was actually authorized."
     },
     {
       "id": "cloud-null-calls",
@@ -393,6 +517,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -402,17 +527,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "N1-falsy-or": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/cloud-null-calls",
-      "task": "tasks/cloud-null-calls/task.json",
-      "issue": "A free cloud response contains a normal text answer, but the assistant rejects it as malformed instead of showing the answer.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/cloud-null-calls",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -425,6 +555,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -437,6 +568,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -449,6 +581,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -461,6 +594,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -468,8 +602,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/N1-falsy-or": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/cloud-null-calls/task.json",
+      "issue": "A free cloud response contains a normal text answer, but the assistant rejects it as malformed instead of showing the answer."
     },
     {
       "id": "disabled-interval-clock",
@@ -487,6 +649,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -496,17 +659,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "D1-nonneg-delta": true,
+        "D2-abs": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/disabled-interval-clock",
-      "task": "tasks/disabled-interval-clock/task.json",
-      "issue": "A clock correction prevents cloud requests even though the minimum request interval is disabled and no quota or cooldown is active.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/disabled-interval-clock",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -519,6 +688,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -531,6 +701,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -543,6 +714,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -555,6 +727,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -562,8 +735,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/D1-nonneg-delta": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/D2-abs": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/disabled-interval-clock/task.json",
+      "issue": "A clock correction prevents cloud requests even though the minimum request interval is disabled and no quota or cooldown is active."
     },
     {
       "id": "explain-never-policy",
@@ -578,6 +792,7 @@
       "trap": true,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": false,
       "kind": "explanation",
       "trap_kind": "no-code-change",
       "validity": {
@@ -587,17 +802,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/explain-never-policy",
-      "task": "tasks/explain-never-policy/task.json",
-      "issue": "I removed the system instructions for a computer-control request, but it is still refused as Never. Is this a bug, or should the behavior remain? Explain the outcome without changing working behavior.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/explain-never-policy",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": false,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -610,6 +829,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": false,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -622,6 +842,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": false,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -634,6 +855,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": false,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -646,6 +868,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": false,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -653,8 +876,24 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": false,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 2,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/explain-never-policy/task.json",
+      "issue": "I removed the system instructions for a computer-control request, but it is still refused as Never. Is this a bug, or should the behavior remain? Explain the outcome without changing working behavior.",
+      "graded_by": "claude"
     },
     {
       "id": "foreground-warm-lock",
@@ -672,6 +911,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -681,17 +921,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "F1-exclusive": true,
+        "F2-no-notify": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/foreground-warm-lock",
-      "task": "tasks/foreground-warm-lock/task.json",
-      "issue": "A foreground request can wait behind an idle maintenance lock, even though maintenance is meant to yield immediately.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/foreground-warm-lock",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -704,6 +950,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -716,6 +963,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -728,6 +976,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -740,6 +989,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -747,9 +997,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/F1-exclusive": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/F2-no-notify": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
       },
-      "source_adaptation": "aef3d02 uses fcntl.LOCK_SH | fcntl.LOCK_NB; the pinned base has the same operation as system().lock(exclusive=False, nonblocking=True). The patch removes only the nonblocking flag."
+      "task": "tasks/foreground-warm-lock/task.json",
+      "issue": "A foreground request can wait behind an idle maintenance lock, even though maintenance is meant to yield immediately."
     },
     {
       "id": "internal-transcript-capability",
@@ -767,6 +1057,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -776,17 +1067,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/internal-transcript-capability",
-      "task": "tasks/internal-transcript-capability/task.json",
-      "issue": "A child can request an internal transcript operation directly and gain a write permission that was intended only for trusted automatic bookkeeping.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/internal-transcript-capability",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -799,6 +1094,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -811,6 +1107,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -823,6 +1120,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -835,6 +1133,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -842,8 +1141,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/internal-transcript-capability/task.json",
+      "issue": "A child can request an internal transcript operation directly and gain a write permission that was intended only for trusted automatic bookkeeping."
     },
     {
       "id": "local-common-directory",
@@ -861,6 +1175,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -870,17 +1185,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "L1-dotdot-only": true,
+        "L2-inside-repo-ok": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/local-common-directory",
-      "task": "tasks/local-common-directory/task.json",
-      "issue": "A repository can move its Git metadata outside the approved project through an indirection file, while ordinary guarded Git operations still accept it.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/local-common-directory",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -893,6 +1214,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -905,6 +1227,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -917,6 +1240,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -929,6 +1253,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -936,8 +1261,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/L1-dotdot-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/L2-inside-repo-ok": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/local-common-directory/task.json",
+      "issue": "A repository can move its Git metadata outside the approved project through an indirection file, while ordinary guarded Git operations still accept it."
     },
     {
       "id": "metadata-case-alias",
@@ -955,6 +1321,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -964,17 +1331,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "M1-two-spellings": true,
+        "M2-parent-only": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/metadata-case-alias",
-      "task": "tasks/metadata-case-alias/task.json",
-      "issue": "On a case-insensitive disk, changing the capitalization of repository metadata lets an ordinary file write bypass the metadata restriction.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/metadata-case-alias",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -987,6 +1360,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -999,6 +1373,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1011,6 +1386,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1023,6 +1399,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1030,8 +1407,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/M1-two-spellings": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/M2-parent-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/metadata-case-alias/task.json",
+      "issue": "On a case-insensitive disk, changing the capitalization of repository metadata lets an ordinary file write bypass the metadata restriction."
     },
     {
       "id": "missing-message-write",
@@ -1049,6 +1467,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1058,17 +1477,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/missing-message-write",
-      "task": "tasks/missing-message-write/task.json",
-      "issue": "Editing a saved conversation message reports success even when the message is gone; the new text is lost.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/missing-message-write",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1081,6 +1504,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1093,6 +1517,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1105,6 +1530,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1117,6 +1543,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1124,8 +1551,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/missing-message-write/task.json",
+      "issue": "Editing a saved conversation message reports success even when the message is gone; the new text is lost."
     },
     {
       "id": "missing-session-admission",
@@ -1143,6 +1585,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1152,17 +1595,25 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true,
+        "correct_variants_pass": true
+      },
+      "lazy_results": {
+        "initial": true,
+        "S1-top-level-only": true
+      },
+      "correct_results": {
+        "FF5-PermissionError": true
       },
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/missing-session-admission",
-      "task": "tasks/missing-session-admission/task.json",
-      "issue": "After restoring an older backup, continuing a session that no longer exists silently starts a new task with nowhere to save its history.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/missing-session-admission",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1175,6 +1626,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1187,6 +1639,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1199,6 +1652,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1211,6 +1665,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1218,8 +1673,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/S1-top-level-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "correct/FF5-PermissionError": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": 3,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
         }
-      }
+      },
+      "task": "tasks/missing-session-admission/task.json",
+      "issue": "After restoring an older backup, continuing a session that no longer exists silently starts a new task with nowhere to save its history."
     },
     {
       "id": "missing-task-outcome",
@@ -1237,6 +1733,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1246,17 +1743,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "T1-done-only": true,
+        "T2-constant-done": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/missing-task-outcome",
-      "task": "tasks/missing-task-outcome/task.json",
-      "issue": "A completed task appears successful even though its final outcome was not saved because its row disappeared.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/missing-task-outcome",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1269,6 +1772,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1281,6 +1785,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1293,6 +1798,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1305,6 +1811,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1312,8 +1819,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
+        },
+        "lazy/T1-done-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/T2-constant-done": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/missing-task-outcome/task.json",
+      "issue": "A completed task appears successful even though its final outcome was not saved because its row disappeared."
     },
     {
       "id": "missing-task-state",
@@ -1331,6 +1879,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1340,17 +1889,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/missing-task-state",
-      "task": "tasks/missing-task-state/task.json",
-      "issue": "A task reports a state change as saved after its database row has disappeared.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/missing-task-state",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1363,6 +1916,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1375,6 +1929,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1387,6 +1942,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1399,6 +1955,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1406,8 +1963,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/missing-task-state/task.json",
+      "issue": "A task reports a state change as saved after its database row has disappeared."
     },
     {
       "id": "nuke-sidecar-before-open",
@@ -1425,6 +1997,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1434,17 +2007,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/nuke-sidecar-before-open",
-      "task": "tasks/nuke-sidecar-before-open/task.json",
-      "issue": "The dry-run audit may open a SQLite sidecar that points outside the deletion scope. It should refuse before opening the audit database.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/nuke-sidecar-before-open",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1457,6 +2034,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1469,6 +2047,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1481,6 +2060,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1493,6 +2073,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1500,8 +2081,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/nuke-sidecar-before-open/task.json",
+      "issue": "The dry-run audit may open a SQLite sidecar that points outside the deletion scope. It should refuse before opening the audit database."
     },
     {
       "id": "oversized-hook-audit",
@@ -1519,6 +2115,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1528,17 +2125,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "H1-after-only": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/oversized-hook-audit",
-      "task": "tasks/oversized-hook-audit/task.json",
-      "issue": "An oversized action result correctly stops a reporting hook, but the failed hook has no audit entry.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/oversized-hook-audit",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1551,6 +2153,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1563,6 +2166,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1575,6 +2179,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1587,6 +2192,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1594,8 +2200,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/H1-after-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/oversized-hook-audit/task.json",
+      "issue": "An oversized action result correctly stops a reporting hook, but the failed hook has no audit entry."
     },
     {
       "id": "partial-router-warm",
@@ -1613,6 +2247,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1622,17 +2257,26 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true,
+        "correct_variants_pass": true
+      },
+      "lazy_results": {
+        "initial": true,
+        "P1-default-missing": true,
+        "P2-stream-unguarded": true
+      },
+      "correct_results": {
+        "FF1-RuntimeError": true
       },
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/partial-router-warm",
-      "task": "tasks/partial-router-warm/task.json",
-      "issue": "Startup marks the router ready after only part of its prefix was evaluated, so the next request unexpectedly pays for a cold router.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/partial-router-warm",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1645,6 +2289,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1657,6 +2302,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1669,6 +2315,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1681,6 +2328,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1688,8 +2336,62 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/P1-default-missing": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/P2-stream-unguarded": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "correct/FF1-RuntimeError": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": 3,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
         }
-      }
+      },
+      "task": "tasks/partial-router-warm/task.json",
+      "issue": "Startup marks the router ready after only part of its prefix was evaluated, so the next request unexpectedly pays for a cold router."
     },
     {
       "id": "pdf-byte-boundary",
@@ -1707,6 +2409,7 @@
       "trap": true,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": "cross-file-cause",
       "validity": {
@@ -1716,17 +2419,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "B1-truncated-only": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/pdf-byte-boundary",
-      "task": "tasks/pdf-byte-boundary/task.json",
-      "issue": "Reading a long PDF loses the last captured bytes when the output limit splits a non-ASCII character. The underlying capture still contains those bytes.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/pdf-byte-boundary",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1739,6 +2447,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1751,6 +2460,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1763,6 +2473,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1775,6 +2486,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1782,8 +2494,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/B1-truncated-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/pdf-byte-boundary/task.json",
+      "issue": "Reading a long PDF loses the last captured bytes when the output limit splits a non-ASCII character. The underlying capture still contains those bytes."
     },
     {
       "id": "post-hook-status",
@@ -1801,6 +2541,7 @@
       "trap": true,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": "preserve-completed-action",
       "validity": {
@@ -1810,17 +2551,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "PH1-background-only": true,
+        "PH2-swallow": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/post-hook-status",
-      "task": "tasks/post-hook-status/task.json",
-      "issue": "A reporting hook fails after a background action has started, and the action itself is incorrectly recorded as failed.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/post-hook-status",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1833,6 +2580,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1845,6 +2593,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1857,6 +2606,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1869,6 +2619,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1876,8 +2627,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/PH1-background-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/PH2-swallow": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 7,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/post-hook-status/task.json",
+      "issue": "A reporting hook fails after a background action has started, and the action itself is incorrectly recorded as failed."
     },
     {
       "id": "remote-hook-execution",
@@ -1895,6 +2687,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1904,17 +2697,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/remote-hook-execution",
-      "task": "tasks/remote-hook-execution/task.json",
-      "issue": "Pushing to a local repository can unexpectedly execute a hook even though client hooks are disabled. Refuse that destination before transport.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/remote-hook-execution",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1927,6 +2724,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1939,6 +2737,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1951,6 +2750,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -1963,6 +2763,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -1970,8 +2771,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/remote-hook-execution/task.json",
+      "issue": "Pushing to a local repository can unexpectedly execute a hook even though client hooks are disabled. Refuse that destination before transport."
     },
     {
       "id": "remote-macos-config",
@@ -1989,6 +2805,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -1998,17 +2815,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "R1-denylist": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/remote-macos-config",
-      "task": "tasks/remote-macos-config/task.json",
-      "issue": "A normal bare repository created on macOS is refused as unsafe even though it has no custom helpers or hooks.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/remote-macos-config",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2021,6 +2843,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2033,6 +2856,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2045,6 +2869,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2057,6 +2882,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2064,8 +2890,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/R1-denylist": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/remote-macos-config/task.json",
+      "issue": "A normal bare repository created on macOS is refused as unsafe even though it has no custom helpers or hooks."
     },
     {
       "id": "remote-metadata-redirect",
@@ -2083,6 +2937,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2092,17 +2947,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/remote-metadata-redirect",
-      "task": "tasks/remote-metadata-redirect/task.json",
-      "issue": "A local push destination can redirect its object storage outside the approved repository without using a symlink. The preview should not approve it.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/remote-metadata-redirect",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2115,6 +2974,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2127,6 +2987,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2139,6 +3000,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2151,6 +3013,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2158,8 +3021,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/remote-metadata-redirect/task.json",
+      "issue": "A local push destination can redirect its object storage outside the approved repository without using a symlink. The preview should not approve it."
     },
     {
       "id": "remote-symbolic-ref",
@@ -2177,6 +3055,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2186,17 +3065,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/remote-symbolic-ref",
-      "task": "tasks/remote-symbolic-ref/task.json",
-      "issue": "A destination branch advertised as a feature branch can redirect a push onto the protected main branch. It must be refused before any push.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/remote-symbolic-ref",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2209,6 +3092,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2221,6 +3105,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2233,6 +3118,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2245,6 +3131,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2252,8 +3139,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/remote-symbolic-ref/task.json",
+      "issue": "A destination branch advertised as a feature branch can redirect a push onto the protected main branch. It must be refused before any push."
     },
     {
       "id": "router-save-link",
@@ -2271,6 +3173,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2280,17 +3183,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/router-save-link",
-      "task": "tasks/router-save-link/task.json",
-      "issue": "Saving router startup state can overwrite another file if a leftover destination link already exists. Startup should refuse the destination before asking the server to save.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/router-save-link",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2303,6 +3210,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2315,6 +3223,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2327,6 +3236,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2339,6 +3249,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2346,8 +3257,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/router-save-link/task.json",
+      "issue": "Saving router startup state can overwrite another file if a leftover destination link already exists. Startup should refuse the destination before asking the server to save."
     },
     {
       "id": "scanner-word-boundary",
@@ -2365,6 +3291,7 @@
       "trap": true,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": "correct-test-looks-wrong",
       "validity": {
@@ -2374,17 +3301,24 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "W1-no-hyphen": true,
+        "W2-threshold-24": true,
+        "W3-delete-others": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/scanner-word-boundary",
-      "task": "tasks/scanner-word-boundary/task.json",
-      "issue": "A clean commit containing an ordinary long task identifier is rejected as a leaked credential. Credential detection must still work for actual token-shaped values.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/scanner-word-boundary",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2397,6 +3331,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2409,6 +3344,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2421,6 +3357,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2433,6 +3370,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2440,8 +3378,62 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
+        },
+        "lazy/W1-no-hyphen": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/W2-threshold-24": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/W3-delete-others": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/scanner-word-boundary/task.json",
+      "issue": "A clean commit containing an ordinary long task identifier is rejected as a leaked credential. Credential detection must still work for actual token-shaped values."
     },
     {
       "id": "server-port-ownership",
@@ -2459,6 +3451,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2468,17 +3461,22 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "O1-substring": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/server-port-ownership",
-      "task": "tasks/server-port-ownership/task.json",
-      "issue": "A runtime registry entry is treated as owned even when the matching process is serving the same model on a different port.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/server-port-ownership",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2491,6 +3489,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2503,6 +3502,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2515,6 +3515,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2527,6 +3528,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2534,8 +3536,36 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/O1-substring": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/server-port-ownership/task.json",
+      "issue": "A runtime registry entry is treated as owned even when the matching process is serving the same model on a different port."
     },
     {
       "id": "shell-binary-output",
@@ -2553,6 +3583,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2562,17 +3593,23 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "Y1-isascii": true,
+        "Y2-stdout-only": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/shell-binary-output",
-      "task": "tasks/shell-binary-output/task.json",
-      "issue": "Captured command output containing a non-UTF-8 byte is corrupted instead of being returned losslessly.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/shell-binary-output",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2585,6 +3622,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2597,6 +3635,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2609,6 +3648,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2621,6 +3661,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2628,8 +3669,49 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 1
+        },
+        "lazy/Y1-isascii": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 1
+        },
+        "lazy/Y2-stdout-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 6,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/shell-binary-output/task.json",
+      "issue": "Captured command output containing a non-UTF-8 byte is corrupted instead of being returned losslessly."
     },
     {
       "id": "shell-poll-completion",
@@ -2647,6 +3729,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2656,17 +3739,24 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true,
+        "Q1-no-interrupted": true,
+        "Q2-no-kill": true,
+        "Q3-status-only": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/shell-poll-completion",
-      "task": "tasks/shell-poll-completion/task.json",
-      "issue": "Polling a background command occasionally reports it as interrupted just as it finishes, discarding the completed output.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/shell-poll-completion",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2679,6 +3769,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2691,6 +3782,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2703,6 +3795,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2715,6 +3808,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2722,8 +3816,62 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 7,
+          "verify_exit": 1
+        },
+        "lazy/Q1-no-interrupted": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/Q2-no-kill": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 7,
+          "verify_exit": 1
+        },
+        "lazy/Q3-status-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 7,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/shell-poll-completion/task.json",
+      "issue": "Polling a background command occasionally reports it as interrupted just as it finishes, discarding the completed output."
     },
     {
       "id": "submodule-worktree-diff",
@@ -2741,6 +3889,7 @@
       "trap": false,
       "difficulty_estimate": "medium",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2750,17 +3899,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/submodule-worktree-diff",
-      "task": "tasks/submodule-worktree-diff/task.json",
-      "issue": "A worktree diff can silently omit submodule changes, giving me an incomplete preview. Unsupported worktree inspection should fail clearly.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/submodule-worktree-diff",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2773,6 +3926,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2785,6 +3939,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2797,6 +3952,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2809,6 +3965,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2816,8 +3973,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/submodule-worktree-diff/task.json",
+      "issue": "A worktree diff can silently omit submodule changes, giving me an incomplete preview. Unsupported worktree inspection should fail clearly."
     },
     {
       "id": "switch-hidden-index",
@@ -2835,6 +4007,7 @@
       "trap": false,
       "difficulty_estimate": "hard",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2844,17 +4017,26 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true,
+        "correct_variants_pass": true
+      },
+      "lazy_results": {
+        "initial": true,
+        "I1-assume-unchanged-only": true,
+        "I2-h-and-S-only": true
+      },
+      "correct_results": {
+        "FF4-flag-order": true
       },
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/switch-hidden-index",
-      "task": "tasks/switch-hidden-index/task.json",
-      "issue": "Switching branches accepts a supposedly clean working tree even when index flags hide local edits. The hidden edits must not be overwritten.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/switch-hidden-index",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2867,6 +4049,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2879,6 +4062,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2891,6 +4075,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2903,6 +4088,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -2910,8 +4096,62 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/I1-assume-unchanged-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "lazy/I2-h-and-S-only": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 1
+        },
+        "correct/FF4-flag-order": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": 3,
+          "diff_lines_outside_tests": 2,
+          "verify_exit": 0
         }
-      }
+      },
+      "task": "tasks/switch-hidden-index/task.json",
+      "issue": "Switching branches accepts a supposedly clean working tree even when index flags hide local edits. The hidden edits must not be overwritten."
     },
     {
       "id": "terminal-nonseekable",
@@ -2929,6 +4169,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -2938,17 +4179,27 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true,
+        "correct_variants_pass": true
+      },
+      "lazy_results": {
+        "initial": true,
+        "Z1-not-no": true,
+        "Z2-strip": true
+      },
+      "correct_results": {
+        "FF2-reversed-open": true,
+        "FF3-encoding-kw": true
       },
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/terminal-nonseekable",
-      "task": "tasks/terminal-nonseekable/task.json",
-      "issue": "Approving a file edit from a real terminal fails with \u201cFile or stream is not seekable\u201d before I can enter my answer.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/terminal-nonseekable",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2961,6 +4212,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2973,6 +4225,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2985,6 +4238,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -2997,6 +4251,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -3004,8 +4259,75 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 4,
+          "verify_exit": 1
+        },
+        "lazy/Z1-not-no": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
+        },
+        "lazy/Z2-strip": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
+        },
+        "correct/FF2-reversed-open": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": 3,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
+        },
+        "correct/FF3-encoding-kw": {
+          "pass": true,
+          "valid": true,
+          "correct": true,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": 3,
+          "diff_lines_outside_tests": 3,
+          "verify_exit": 0
         }
-      }
+      },
+      "task": "tasks/terminal-nonseekable/task.json",
+      "issue": "Approving a file edit from a real terminal fails with “File or stream is not seekable” before I can enter my answer."
     },
     {
       "id": "unsupported-keys-diagnostic",
@@ -3023,6 +4345,7 @@
       "trap": false,
       "difficulty_estimate": "easy",
       "selection_frozen": false,
+      "scored": true,
       "kind": "bug",
       "trap_kind": null,
       "validity": {
@@ -3032,17 +4355,21 @@
       "self_tests": {
         "fix_agent_passes": true,
         "no_op_fails": true,
-        "cheat_flagged": true
+        "cheat_flagged": true,
+        "lazy_fails": true
       },
+      "lazy_results": {
+        "initial": true
+      },
+      "correct_results": {},
       "accepted": true,
-      "evidence": ".session/repo-eval-20261025/validation-02/unsupported-keys-diagnostic",
-      "task": "tasks/unsupported-keys-diagnostic/task.json",
-      "issue": "On an unsupported operating system, importing credentials reports a generic credential failure, so I cannot tell that the secure store is unavailable.",
+      "evidence": ".session/repo-eval-review-20261106T193139/validation-02/unsupported-keys-diagnostic",
       "outcomes": {
         "buggy": {
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -3055,6 +4382,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -3067,6 +4395,7 @@
           "pass": true,
           "valid": true,
           "correct": true,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -3079,6 +4408,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": false,
           "other_tests_broken": [],
@@ -3091,6 +4421,7 @@
           "pass": false,
           "valid": true,
           "correct": false,
+          "scored": true,
           "executable": true,
           "cheat": true,
           "other_tests_broken": [],
@@ -3098,42 +4429,23 @@
           "tool_calls_to_green": null,
           "diff_lines_outside_tests": 0,
           "verify_exit": 1
+        },
+        "lazy/initial": {
+          "pass": false,
+          "valid": true,
+          "correct": false,
+          "scored": true,
+          "executable": true,
+          "cheat": false,
+          "other_tests_broken": [],
+          "tool_calls": 3,
+          "tool_calls_to_green": null,
+          "diff_lines_outside_tests": 5,
+          "verify_exit": 1
         }
-      }
+      },
+      "task": "tasks/unsupported-keys-diagnostic/task.json",
+      "issue": "On an unsupported operating system, importing credentials reports a generic credential failure, so I cannot tell that the secure store is unavailable."
     }
-  ],
-  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
-  "bug_candidates": 32,
-  "extra_explanation_traps": 1,
-  "proposed_final_mix": {
-    "easy": 8,
-    "medium": 8,
-    "hard": 4
-  },
-  "model_inference": false,
-  "baseline_runs": 0,
-  "all_product_files_unchanged": true,
-  "validation_evidence": ".session/repo-eval-20261025/validation-02",
-  "retained_failures": [
-    {
-      "evidence": ".session/repo-eval-20261025/validation-01",
-      "finding": "30/31 accepted; cheat detector falsely flagged skip-worktree diagnostic in the real fix. Fixed AST detector; rejected result retained."
-    },
-    {
-      "evidence": ".session/repo-eval-20261025/controls/test_slot_isolation.py.log",
-      "finding": "Unchanged cancellation control raises JSONDecodeError on empty HTTP response; standing controls26/27, no rerun or source change."
-    }
-  ],
-  "next_run_plan": {
-    "fresh_copy_under": ".session",
-    "project_root": "task copy",
-    "cloud_enabled": false,
-    "lane": "A",
-    "caps": {
-      "tool_calls": 40,
-      "wall_seconds": 900
-    },
-    "requires_claude_candidate_review": true,
-    "selection_frozen": false
-  }
+  ]
 }

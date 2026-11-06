@@ -21,3 +21,11 @@ cfg={'paths':{'code_dir':root},'runtime':{'port':8123,'parallel':3,'context_size
 with patch.object(warmth,'cache_key',return_value={}),patch.object(warmth,'prefix',return_value=[1]),patch.object(warmth,'valid_file',return_value=False),patch.object(warmth,'warm',return_value={}),patch.object(warmth.uuid,'uuid4',return_value=SimpleNamespace(hex='fixed')),patch.object(subagents,'router_slot',side_effect=lambda cfg:contextlib.nullcontext()),patch.object(kildall,'json_request',side_effect=request):
  rejected(lambda:warmth.initialize(cfg,{},[]),ValueError)
 assert sentinel.read_bytes()==b'preserve'
+(directory/'prefix-fixed.pending').unlink()
+with patch.object(warmth,'cache_key',return_value={}),patch.object(warmth,'prefix',return_value=[1]),patch.object(warmth,'valid_file',return_value=False),patch.object(warmth,'warm',return_value={}),patch.object(warmth.uuid,'uuid4',return_value=SimpleNamespace(hex='fixed')),patch.object(subagents,'router_slot',side_effect=lambda cfg:contextlib.nullcontext()),patch.object(kildall,'json_request',side_effect=request),patch.object(warmth,'saved_tokens',return_value=[1]),patch.object(warmth,'start_monitor') as monitor:
+ warmth.initialize(cfg,{},[])
+monitor.assert_called_once_with(cfg,{},fresh=True)
+assert (directory/'prefix.bin').read_bytes()==b'overwritten'
+assert json.loads((directory/'prefix.json').read_text())['tokens']==1
+assert json.loads((directory/'worker.json').read_text())['valid'] is True
+assert sentinel.read_bytes()==b'preserve'

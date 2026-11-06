@@ -28,3 +28,10 @@ with a.bind_slot(kildall.url(cfg),1,3),patch.object(a,'capacity',return_value={'
  clean=second.spawn({'tasks':[{'prompt':'Complete work'}]},record)
 assert clean['results'][0]['error'] is None and clean['results'][0]['text']=='Finished'
 done.finish.assert_called_once_with('done')
+
+
+third=Mock(id='child3',path=db);third.finished=threading.Event();third.finish.side_effect=lambda outcome:third.finished.set()
+failing=a.Manager(cfg,Mock(),parent,str(WORK),[])
+with a.bind_slot(kildall.url(cfg),1,3),patch.object(a,'capacity',return_value={'separate_cap':0,'pressure':1,'available_bytes':10**12}),patch.object(kildall,'Task',return_value=third),patch.object(failing,'action'),patch.object(failing,'infer',side_effect=RuntimeError('model failed')),patch.object(a,'stop_jobs',return_value=[{'status':'cancelled'}]),patch.object(a,'wait_idle'):
+ failed=failing.spawn({'tasks':[{'prompt':'Complete work'}]},record)
+assert failed['results'][0]['error']=='model failed',failed

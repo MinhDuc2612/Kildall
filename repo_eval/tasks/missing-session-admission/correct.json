@@ -1,0 +1,13 @@
+[
+  {
+    "id": "FF5-PermissionError",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "raise RuntimeError(\"Session no longer exists; start a new session after restoring\")",
+        "new": "raise PermissionError(\"Session no longer exists; start a new session after restoring\")"
+      }
+    ],
+    "note": "same refusal, other exception type"
+  }
+]

@@ -12,8 +12,16 @@ def rejected(call, kind=Exception):
 
 db=WORK/'state.db';kildall.initialize(db)
 with patch.object(kildall,'process_start',return_value='owner'),patch.object(threading.Thread,'start'):
- rejected(lambda:kildall.Task(db,'deleted-session'),RuntimeError)
+ rejected(lambda:kildall.Task(db,'deleted-session'),(RuntimeError,PermissionError,ValueError))
 
 with kildall.database(db) as con:con.execute("INSERT INTO orbi_sessions VALUES(?,?,?)",('kept',str(WORK),0))
 with patch.object(kildall,'process_start',return_value='owner'),patch.object(threading.Thread,'start'):
- assert kildall.Task(db,'kept').session=='kept'
+ live=kildall.Task(db,'kept')
+ assert live.session=='kept'
+
+parent=dict(parent_task=live.id,parent_decision='decision',project=str(WORK),tools=[],requested=[],mode='shared')
+with kildall.database(db) as con:con.execute('DELETE FROM orbi_sessions WHERE id=?',('kept',))
+with patch.object(kildall,'process_start',return_value='owner'),patch.object(threading.Thread,'start'):
+ rejected(lambda:kildall.Task(db,'kept',parent=parent),(RuntimeError,PermissionError,ValueError))
+with kildall.database(db) as con:
+ assert con.execute('SELECT count(*) FROM orbi_tasks').fetchone()[0]==1

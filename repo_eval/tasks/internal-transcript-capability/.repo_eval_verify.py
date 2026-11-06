@@ -21,3 +21,10 @@ def execute(op,args,record,project):
  assert record.get('transcript_capability') is not True,'Model minted transcript capability'
 with patch.object(permissions,'decision',side_effect=decision),patch.object(permissions,'execute',side_effect=execute):
  manager.action(child,'_agent_memory',{'text':'untrusted'})
+
+def trusted(op,args,record,project):
+ assert op=='_agent_memory' and record.get('transcript_capability') is True
+ assert record['memory_capability'] is manager.memory
+ return {'saved':'transcript'}
+with patch.object(permissions,'decision',side_effect=decision),patch.object(permissions,'execute',side_effect=trusted):
+ assert manager.action(child,'_agent_memory',{'text':'trusted'},automatic=True)=={'saved':'transcript'}

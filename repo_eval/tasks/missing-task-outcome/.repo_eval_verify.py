@@ -20,3 +20,11 @@ with patch.object(kildall,'process_start',return_value='owner'),patch.object(thr
  live=kildall.Task(db,'kept')
 live.watcher=Mock();live.set=Mock();live.finish('done')
 with kildall.database(db) as con:assert con.execute('SELECT outcome FROM orbi_tasks WHERE id=?',(live.id,)).fetchone()[0]=='done'
+
+
+t.finished=threading.Event()
+rejected(lambda:t.finish('error'),RuntimeError)
+
+live.finished=threading.Event();live.finish('error')
+with kildall.database(db) as con:
+ assert con.execute('SELECT outcome FROM orbi_tasks WHERE id=?',(live.id,)).fetchone()[0]=='error'

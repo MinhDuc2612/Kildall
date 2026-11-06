@@ -1,0 +1,53 @@
+[
+  {
+    "id": "initial",
+    "file": "secret_scanner.py",
+    "edits": [
+      {
+        "old": "PATTERNS = tuple(",
+        "new": "PATTERNS = ()\n_UNUSED_PATTERNS = tuple("
+      }
+    ]
+  },
+  {
+    "id": "W1-no-hyphen",
+    "file": "secret_scanner.py",
+    "edits": [
+      {
+        "old": "re.compile(rb'(?<![A-Za-z0-9_-])' + pattern)",
+        "new": "re.compile(pattern)"
+      },
+      {
+        "old": "rb'sk-[A-Za-z0-9_-]{12,}'",
+        "new": "rb'sk-[A-Za-z0-9_]{12,}'"
+      }
+    ],
+    "note": "sk-proj-... keys no longer detected"
+  },
+  {
+    "id": "W2-threshold-24",
+    "file": "secret_scanner.py",
+    "edits": [
+      {
+        "old": "re.compile(rb'(?<![A-Za-z0-9_-])' + pattern)",
+        "new": "re.compile(pattern)"
+      },
+      {
+        "old": "rb'sk-[A-Za-z0-9_-]{12,}'",
+        "new": "rb'sk-[A-Za-z0-9_-]{24,}'"
+      }
+    ],
+    "note": "longer identifiers still flagged, short keys missed"
+  },
+  {
+    "id": "W3-delete-others",
+    "file": "secret_scanner.py",
+    "edits": [
+      {
+        "old": "    ('groq-pattern', rb'gsk_[A-Za-z0-9_-]{12,}'),\n    ('google-pattern', rb'AIza[A-Za-z0-9_-]{20,}'),\n    ('nvidia-pattern', rb'nvapi-[A-Za-z0-9_-]{12,}'),\n    ('huggingface-pattern', rb'hf_[A-Za-z0-9_-]{12,}'),\n",
+        "new": ""
+      }
+    ],
+    "note": "4 of 5 credential patterns deleted"
+  }
+]

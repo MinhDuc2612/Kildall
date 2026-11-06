@@ -1,5 +1,34 @@
-{
- "file": "permissions.py",
- "old": "def terminal_confirm(preview, word=\"yes\"):\n",
- "new": "def terminal_confirm(preview, word=\"yes\"):\n    return True\n"
-}
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "def terminal_confirm(preview, word=\"yes\"):\n",
+        "new": "def terminal_confirm(preview, word=\"yes\"):\n    return True\n"
+      }
+    ]
+  },
+  {
+    "id": "Z1-not-no",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "return response.readline().rstrip(\"\\r\\n\") == word",
+        "new": "return response.readline().rstrip(\"\\r\\n\") != \"no\""
+      }
+    ],
+    "note": "empty answer approves"
+  },
+  {
+    "id": "Z2-strip",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "return response.readline().rstrip(\"\\r\\n\") == word",
+        "new": "return response.readline().strip() == word"
+      }
+    ],
+    "note": "Z2-strip"
+  }
+]

@@ -14,3 +14,7 @@ root=WORK/'scope';root.mkdir();outside=WORK/'sentinel';outside.write_text('uncha
 (root/'kildall.db-wal').symlink_to(outside)
 rejected(lambda:permissions.nuke_database(root),PermissionError)
 assert outside.read_text()=='unchanged'
+(root/'kildall.db-wal').unlink()
+assert permissions.nuke_database(root)==root/'kildall.db'
+assert not (root/'kildall.db').exists(),'Validation must not open the audit database'
+assert outside.read_text()=='unchanged'

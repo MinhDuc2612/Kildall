@@ -28,3 +28,12 @@ with patch.object(hooks,'run_stage') as stage,patch.object(kildall,'process_star
 assert 'after' in [call.args[1] for call in stage.call_args_list]
 with kildall.database(other) as con:
  assert con.execute('SELECT status FROM orbi_permissions').fetchone()[0]=='done'
+
+
+third=WORK/'audit3.db';kildall.initialize(third)
+def finished():
+ with permissions.decision(third,str(WORK),'read',{},hooks={}) as row:pass
+with patch.object(hooks,'run_stage',side_effect=hook),patch.object(kildall,'process_start',return_value='owner'):
+ rejected(finished,RuntimeError)
+with kildall.database(third) as con:
+ assert con.execute('SELECT status FROM orbi_permissions').fetchone()[0]=='done'

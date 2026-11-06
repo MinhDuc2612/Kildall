@@ -31,3 +31,17 @@ with kildall.database(db) as con:
 with patch.object(kildall,'process_start',return_value='owner'):
  running=shell_tools.execute('shell_job',{'id':'live'},record,str(WORK))
 assert running['status']=='background' and running['result'] is None
+
+
+with kildall.database(db) as con:
+ con.execute("INSERT INTO orbi_permissions(id,project,operation,arguments,tier,status,pid,owner_start,created,updated) VALUES('dead',?,'run_command','{}','Auto','background',125,'owner',0,0)",(str(WORK),))
+ con.execute("INSERT INTO orbi_shell_jobs(id,project,cwd,command,timeout) VALUES('dead',?,?,'true',30)",(str(WORK),str(WORK)))
+with patch.object(kildall,'process_start',return_value=None),patch.object(shell_tools,'stop_owned_child') as kill:
+ gone=shell_tools.execute('shell_job',{'id':'dead'},record,str(WORK))
+assert gone['status']=='interrupted' and gone['result'] is None and kill.called
+
+failed=dict(complete,exit_code=1,stderr='command failed')
+shell_tools.finish(db,'live',failed)
+with patch.object(kildall,'process_start',return_value=None):
+ result=shell_tools.execute('shell_job',{'id':'live'},record,str(WORK))
+assert result['status']=='failed' and result['result']==failed

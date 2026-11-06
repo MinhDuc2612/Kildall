@@ -25,3 +25,10 @@ with patch.object(hooks,'shell',return_value=fine):
  hooks.run_stage(bundle,'after','read',{},small,str(WORK))
 with kildall.database(db) as con:
  assert con.execute("SELECT count(*) FROM orbi_permissions WHERE operation='_hook' AND status='done'").fetchone()[0]==1
+
+
+fresh=WORK/'audit2.db';kildall.initialize(fresh)
+early=dict(record,db_path=fresh,id='early',status='checking',result='x'*70000);early.pop('hook_feedback',None)
+rejected(lambda:hooks.run_stage({'before':[('script','true')],'after':[],'timeout':1},'before','read',{},early,str(WORK)),hooks.HookFailure)
+with kildall.database(fresh) as con:
+ assert [tuple(r) for r in con.execute("SELECT operation,status FROM orbi_permissions")]==[('_hook','failed')]

@@ -1,5 +1,23 @@
-{
- "file": "permissions.py",
- "old": "update(status=\"done\")",
- "new": "pass"
-}
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "update(status=\"done\")",
+        "new": "pass"
+      }
+    ]
+  },
+  {
+    "id": "A1-only-background",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "if row[\"status\"] not in (\"rejected\", \"authorized\", \"done\", \"failed\", \"timed_out\", \"background\", \"interrupted\"):",
+        "new": "if row[\"status\"] not in (\"rejected\", \"authorized\", \"background\"):"
+      }
+    ],
+    "note": "failed/timed_out/interrupted overwritten with done"
+  }
+]

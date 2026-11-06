@@ -1,5 +1,23 @@
-{
- "file": "file_tools.py",
- "old": "text = dict(text=result['stdout'], truncated=result['truncated'], start_page=first)",
- "new": "text = dict(text='', truncated=result['truncated'], start_page=first)"
-}
+[
+  {
+    "id": "initial",
+    "file": "file_tools.py",
+    "edits": [
+      {
+        "old": "text = dict(text=result['stdout'], truncated=result['truncated'], start_page=first)",
+        "new": "text = dict(text='', truncated=result['truncated'], start_page=first)"
+      }
+    ]
+  },
+  {
+    "id": "B1-truncated-only",
+    "file": "file_tools.py",
+    "edits": [
+      {
+        "old": "if 'stdout_base64' in result:\n                text.update(encoding",
+        "new": "if result['truncated'] and 'stdout_base64' in result:\n                text.update(encoding"
+      }
+    ],
+    "note": "non-truncated binary text lost"
+  }
+]

@@ -1,5 +1,34 @@
-{
- "file": "cloud.py",
- "old": "if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:",
- "new": "if False:"
-}
+[
+  {
+    "id": "initial",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "            if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:\n                return None\n",
+        "new": ""
+      }
+    ]
+  },
+  {
+    "id": "D1-nonneg-delta",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:",
+        "new": "if latest and 0 <= now - latest < item.get('min_interval_seconds', 0):"
+      }
+    ],
+    "note": "clock rewind bypasses an enabled interval"
+  },
+  {
+    "id": "D2-abs",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "if latest and item.get('min_interval_seconds', 0) and now - latest < item['min_interval_seconds']:",
+        "new": "if latest and abs(now - latest) < item.get('min_interval_seconds', 0):"
+      }
+    ],
+    "note": "D2-abs"
+  }
+]

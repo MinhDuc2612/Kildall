@@ -1,5 +1,23 @@
-{
- "file": "kildall.py",
- "old": "def owns_server(record):\n",
- "new": "def owns_server(record):\n    return False\n"
-}
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "def owns_server(record):\n",
+        "new": "def owns_server(record):\n    return False\n"
+      }
+    ]
+  },
+  {
+    "id": "O1-substring",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "and (\"port\" not in record or (port is not None and int(port[1]) == record[\"port\"])))",
+        "new": "and f\"--port {record['port']}\" in result.stdout)"
+      }
+    ],
+    "note": "KeyError on legacy record; --port 81239 matches 8123"
+  }
+]

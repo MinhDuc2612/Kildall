@@ -1,5 +1,23 @@
-{
- "file": "kildall.py",
- "old": "    def __init__(self, path, session, *, parent=None):\n",
- "new": "    def __init__(self, path, session, *, parent=None):\n        raise RuntimeError('Session no longer exists')\n"
-}
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "    def __init__(self, path, session, *, parent=None):\n",
+        "new": "    def __init__(self, path, session, *, parent=None):\n        raise RuntimeError('Session no longer exists')\n"
+      }
+    ]
+  },
+  {
+    "id": "S1-top-level-only",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "if not db.execute(\"SELECT 1 FROM orbi_sessions WHERE id=?\", (session,)).fetchone():",
+        "new": "if parent is None and not db.execute(\"SELECT 1 FROM orbi_sessions WHERE id=?\", (session,)).fetchone():"
+      }
+    ],
+    "note": "children unguarded"
+  }
+]

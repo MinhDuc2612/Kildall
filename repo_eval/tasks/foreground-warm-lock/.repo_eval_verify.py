@@ -24,3 +24,9 @@ calls=[]
 with patch.object(warmth,'files',return_value=base),patch.object(warmth,'notify'),patch.object(warmth.system(),'lock',side_effect=lambda fd,*,exclusive=True,nonblocking=False:calls.append('lock')),patch.object(warmth.system(),'unlock',side_effect=lambda fd:calls.append('unlock')):
  with warmth.foreground('http://127.0.0.1:8123/completion'):calls.append('body')
 assert calls==['lock','body','unlock'],calls
+
+
+seen=[]
+with patch.object(warmth,'files',return_value=base),patch.object(warmth,'notify') as note,patch.object(warmth.system(),'lock',side_effect=lambda fd,*,exclusive=True,nonblocking=False:seen.append(exclusive)),patch.object(warmth.system(),'unlock'):
+ with warmth.foreground('http://127.0.0.1:8123/completion'):pass
+assert seen==[False] and note.called
