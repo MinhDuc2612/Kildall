@@ -6,8 +6,7 @@
   "difficulty": "medium",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_router_warmth.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md 2026-10-08 router warmth review: blocking foreground lock",
     "fixed_hunk_sha256": "d525fc5534c796d170a5877721d66f3dc9528c28a06c76708493ea3fe14a549d"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_router_warmth.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

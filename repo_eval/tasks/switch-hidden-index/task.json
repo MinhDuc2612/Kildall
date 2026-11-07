@@ -6,8 +6,7 @@
   "difficulty": "hard",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_phase42.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md:1700 hidden assume-unchanged and skip-worktree review correction",
     "fixed_hunk_sha256": "2839e528577a5a391b5e2541cf2cd4512aa7444c5fb783b3f8f08ab45b62c587"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_phase42.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

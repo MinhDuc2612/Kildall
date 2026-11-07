@@ -6,8 +6,7 @@
   "difficulty": "easy",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_cloud.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "BENCHMARKS.md:2251; CLAUDE.md cloud anonymous None-key correction",
     "fixed_hunk_sha256": "01805e937328314944ef1f1e9bb456dbd750bfdcd66e87331300fca11e71f857"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_cloud.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

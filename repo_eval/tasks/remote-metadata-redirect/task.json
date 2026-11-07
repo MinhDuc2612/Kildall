@@ -6,8 +6,7 @@
   "difficulty": "medium",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_phase42.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md:1700; BENCHMARKS.md Phase4.2 redirected stores regression",
     "fixed_hunk_sha256": "2a8bc402d0f6db6e3e124a65405f82bfcbf1c432ae373fedf7b68d2789ac6974"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_phase42.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

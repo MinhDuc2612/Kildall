@@ -6,8 +6,7 @@
   "difficulty": "easy",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_cli.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "Public commit e638df0 runtime ownership fix",
     "fixed_hunk_sha256": "f4a2462c934545a205e5034c51737b87ee4544f6c1b621436163430854dab4bc"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_cli.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

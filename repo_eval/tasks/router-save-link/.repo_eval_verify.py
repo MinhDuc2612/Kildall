@@ -15,7 +15,9 @@ root=WORK/'runtime';directory=root/'.session/router-prefix';directory.mkdir(pare
 sentinel=WORK/'sentinel';sentinel.write_bytes(b'preserve')
 (directory/'prefix-fixed.pending').symlink_to(sentinel)
 def request(endpoint,body):
- if endpoint.endswith('action=save'):(directory/body['filename']).write_bytes(b'overwritten')
+ if endpoint.endswith('action=save'):
+  assert body['filename']=='prefix-fixed.pending'
+  (directory/body['filename']).write_bytes(b'overwritten')
  return {}
 cfg={'paths':{'code_dir':root},'runtime':{'port':8123,'parallel':3,'context_size':4096}}
 with patch.object(warmth,'cache_key',return_value={}),patch.object(warmth,'prefix',return_value=[1]),patch.object(warmth,'valid_file',return_value=False),patch.object(warmth,'warm',return_value={}),patch.object(warmth.uuid,'uuid4',return_value=SimpleNamespace(hex='fixed')),patch.object(subagents,'router_slot',side_effect=lambda cfg:contextlib.nullcontext()),patch.object(kildall,'json_request',side_effect=request):

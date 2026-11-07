@@ -6,8 +6,7 @@
   "difficulty": "medium",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_phase43.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md:1736 oversized-hook event audit correction",
     "fixed_hunk_sha256": "fb860d2ef6d6dca0bfd9cdcce029518603192a7635b504742e22a06e8795343f"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_phase43.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

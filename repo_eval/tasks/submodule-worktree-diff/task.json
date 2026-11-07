@@ -6,8 +6,7 @@
   "difficulty": "medium",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_phase42.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md:1700 gitlink visibility and worktree diff review correction",
     "fixed_hunk_sha256": "8e991191c112897d22c38c08dba4f339e98708eaccaba3282831b982481012ba"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_phase42.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

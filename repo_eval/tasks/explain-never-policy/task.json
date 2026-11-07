@@ -8,8 +8,7 @@
   "trap": true,
   "trap_kind": "no-code-change",
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_permissions.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -33,5 +32,9 @@
   "selection_frozen": false,
   "review_note": "Unscored explanation exercise for Claude review; the keyword checklist is only a deterministic smoke check, not semantic grading.",
   "scored": false,
-  "graded_by": "claude"
+  "graded_by": "claude",
+  "removed_hidden_suites": [
+    "test_permissions.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

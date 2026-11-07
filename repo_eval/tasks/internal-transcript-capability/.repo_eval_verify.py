@@ -12,7 +12,7 @@ def rejected(call, kind=Exception):
 
 import subagents
 db=WORK/'audit.db';kildall.initialize(db)
-manager=object.__new__(subagents.Manager);manager.config={'paths':{'db_path':db}};manager.project=str(WORK);manager.memory=Mock();manager.hooks=None;manager.parent=SimpleNamespace(path=db);manager.requested=()
+manager=subagents.Manager.__new__(subagents.Manager);manager.config={'paths':{'db_path':db}};manager.project=str(WORK);manager.memory=Mock();manager.hooks=None;manager.parent=SimpleNamespace(path=db);manager.requested=()
 child={'task':SimpleNamespace(id='child'),'memory':Mock(),'project':str(WORK)}
 @contextlib.contextmanager
 def decision(*a,**k):

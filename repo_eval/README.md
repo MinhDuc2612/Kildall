@@ -2,8 +2,8 @@
 
 Unfrozen review pool: **32 validated Kildall bug tasks** (12 easy, 11 medium,
 9 hard), plus **one separate explanation/empty-diff trap**. No model inference,
-baseline, or final task selection has run. Claude reviews this list before a
-final 8 easy / 8 medium / 4 hard selection or any baseline runs.
+baseline, or task freeze has run. The user accepted the 8 easy / 8 medium /
+4 hard proposal; it remains unfrozen and subject to Claude review.
 
 `candidates.json` contains each source fix, difficulty estimate, trap, task link,
 validity result and deterministic agent results. Task issues describe symptoms;
@@ -56,10 +56,13 @@ The harness approves Confirm only for in-copy typed writes/edits and the exact
 manifest verification command. Other commands and operations are declined;
 production permissions are unchanged. Never remains Never. Every decision is
 logged. Each trial has a 40-call / 900-second cap; verification subprocesses
-also have a 60-second bound. The verifier uses a separate copy, injects hidden
-tests only there, denies network and access to control/source/credential data,
-and returns only scoring booleans and failed regression-test names. Raw output
-stays in controller evidence. macOS setuid `ps` is unavailable under Seatbelt,
+also have a 60-second bound. Candidate code runs in a sandboxed worker. Trusted
+assertions run in a separate sandboxed process and access product objects through
+a JSON bridge; they never import candidate Python. Only the verifier receives
+the private result channel. The controller persists its report outside the copy
+and returns scoring booleans and failed regression-test names. Worker exit codes,
+stdout and files cannot supply a passing result. Raw output stays in controller
+evidence. macOS setuid `ps` is unavailable under Seatbelt,
 so the isolated verifier uses a fixed process-start fixture. Host control suites
 run separately without that fixture.
 
@@ -125,43 +128,9 @@ from the proposal and any automatic score. Its keyword checklist remains
 only a smoke test. Each row below has successful real-fix/fix-agent checks,
 a failing no-op, and a flagged test-edit cheat.
 
-| Task | Difficulty | Proposed 20 | Lazy mutants rejected | Valid alternatives |
-|---|---|---|---|---|
-| [action-background-outcome](tasks/action-background-outcome/lazy.json) | medium | yes | 2/2 | — |
-| [child-background-outcome](tasks/child-background-outcome/lazy.json) | hard | yes | 2/2 | — |
-| [cloud-anonymous-key](tasks/cloud-anonymous-key/lazy.json) | easy | no | 1/1 | — |
-| [cloud-duplicate-fields](tasks/cloud-duplicate-fields/lazy.json) | medium | no | 1/1 | — |
-| [cloud-null-calls](tasks/cloud-null-calls/lazy.json) | easy | yes | 2/2 | — |
-| [disabled-interval-clock](tasks/disabled-interval-clock/lazy.json) | easy | yes | 3/3 | — |
-| [explain-never-policy](tasks/explain-never-policy/lazy.json) | medium | no | 1/1 | — |
-| [foreground-warm-lock](tasks/foreground-warm-lock/lazy.json) | medium | yes | 3/3 | — |
-| [internal-transcript-capability](tasks/internal-transcript-capability/lazy.json) | hard | no | 1/1 | — |
-| [local-common-directory](tasks/local-common-directory/lazy.json) | medium | yes | 3/3 | — |
-| [metadata-case-alias](tasks/metadata-case-alias/lazy.json) | medium | yes | 3/3 | — |
-| [missing-message-write](tasks/missing-message-write/lazy.json) | easy | no | 1/1 | — |
-| [missing-session-admission](tasks/missing-session-admission/lazy.json) | medium | yes | 2/2 | 1/1 |
-| [missing-task-outcome](tasks/missing-task-outcome/lazy.json) | easy | yes | 3/3 | — |
-| [missing-task-state](tasks/missing-task-state/lazy.json) | easy | no | 1/1 | — |
-| [nuke-sidecar-before-open](tasks/nuke-sidecar-before-open/lazy.json) | hard | no | 1/1 | — |
-| [oversized-hook-audit](tasks/oversized-hook-audit/lazy.json) | medium | yes | 2/2 | — |
-| [partial-router-warm](tasks/partial-router-warm/lazy.json) | easy | yes | 3/3 | 1/1 |
-| [pdf-byte-boundary](tasks/pdf-byte-boundary/lazy.json) | medium | yes | 2/2 | — |
-| [post-hook-status](tasks/post-hook-status/lazy.json) | hard | yes | 3/3 | — |
-| [remote-hook-execution](tasks/remote-hook-execution/lazy.json) | hard | no | 1/1 | — |
-| [remote-macos-config](tasks/remote-macos-config/lazy.json) | easy | yes | 2/2 | — |
-| [remote-metadata-redirect](tasks/remote-metadata-redirect/lazy.json) | medium | no | 1/1 | — |
-| [remote-symbolic-ref](tasks/remote-symbolic-ref/lazy.json) | hard | no | 1/1 | — |
-| [router-save-link](tasks/router-save-link/lazy.json) | hard | no | 1/1 | — |
-| [scanner-word-boundary](tasks/scanner-word-boundary/lazy.json) | easy | yes | 4/4 | — |
-| [server-port-ownership](tasks/server-port-ownership/lazy.json) | easy | yes | 2/2 | — |
-| [shell-binary-output](tasks/shell-binary-output/lazy.json) | medium | yes | 3/3 | — |
-| [shell-poll-completion](tasks/shell-poll-completion/lazy.json) | hard | yes | 4/4 | — |
-| [submodule-worktree-diff](tasks/submodule-worktree-diff/lazy.json) | medium | no | 1/1 | — |
-| [switch-hidden-index](tasks/switch-hidden-index/lazy.json) | hard | yes | 3/3 | 1/1 |
-| [terminal-nonseekable](tasks/terminal-nonseekable/lazy.json) | easy | yes | 3/3 | 2/2 |
-| [unsupported-keys-diagnostic](tasks/unsupported-keys-diagnostic/lazy.json) | easy | no | 1/1 | — |
+The latest per-task matrix, including check counts, is below.
 
-### Proposed 20 — not frozen
+### Accepted 20 — not frozen
 
 - Easy (8): cloud-null-calls, disabled-interval-clock, missing-task-outcome,
   partial-router-warm, remote-macos-config, scanner-word-boundary,
@@ -175,11 +144,128 @@ a failing no-op, and a flagged test-edit cheat.
 That is one rowcount task, one `git_tools.origin` task, and two `cloud.py`
 tasks. Difficulty labels are estimates pending Claude review, not model results.
 
-### Remaining review limits
+## Verifier isolation review (2026-11-07)
 
-These finite mutants do not establish resistance to every shortcut. Claude's
-latest review also found verifier-preload/exit spoofing, unexecuted hidden
-module suites, and answer hints in other base tests/docs. Those findings remain
-open: the executed isolated regression suite is `test_tool_validation.py`,
-while the full product controls run separately. This round does not claim an
-adversarially secure scoring harness or authorize a baseline or freeze.
+The three review findings are addressed for Claude's review. PR #15 remains
+unchanged and awaits the user's merge word. Product files still match main
+`f98b4a2`; this change is confined to evaluation code, fixtures and reports.
+
+### Independent scoring
+
+Both processes use `python -I -S -B`, an explicit environment and Seatbelt
+profiles that deny network and writes outside candidate home. The worker cannot
+read verifier suites or configuration. The verifier cannot follow a fixture
+symlink into a writable controller file. The JSON bridge exposes only supplied
+fixture capabilities: private attributes, mock bookkeeping and fixture mutation
+are refused. Callback assertion failures remain failures even when candidate
+code catches them. No candidate pickle or Python source is evaluated in the
+assertion process.
+
+Only the verifier writes the private report pipe; the worker never inherits
+that descriptor. The controller stores the report in `verify-*/trusted/`, outside
+both source copies, and requires completion, every collected check executed,
+no skips, positive collection and no assertion failure. Exit zero alone is
+insufficient. Inputs record hashes of the harness, both runtime files, task
+assets and source copy.
+
+`test_repo_eval.py` passes nine adversarial routes: runpy preload, fake exit and
+stdout markers, copy-side verifier replacement, copy-side result JSON,
+sitecustomize/usercustomize/pth, conftest/pytest configuration, stdlib shadow
+files, environment poisoning, and attempted controller-result writes. Startup
+and environment attacks also preserve valid repairs. Separate controls reject
+zero checks, skips, uncalled assertion/exception/mock checks, and premature
+exit zero. Fixture controls reject private/mock access, host writes through a
+symlink, swallowed assertions and forged non-exception decoder types.
+
+### Executed suites and removed suites
+
+Every trial executes its explicit `.repo_eval_verify.py` and the base version
+of `test_tool_validation.py`. Collection counts assertion sites, expected-
+exception checks and mock assertions; these script suites have no pytest
+discovery step. A passing repair must execute every collected site. Candidate
+admission also refuses any skipped or zero-check suite in its control matrix.
+There are 140 probe sites across the 33 tasks and 37 regression sites per trial.
+
+The following 11 distinct suites were removed from `hidden_test_files` and
+recorded in `removed_hidden_suites` with a reason:
+
+`test_phase41.py`, `test_shell_lifecycle.py`, `test_phase44.py`, `test_cloud.py`,
+`test_permissions.py`, `test_router_warmth.py`, `test_cli.py`, `test_nuke.py`,
+`test_phase43.py`, `test_phase42.py`, `test_platform_keys.py`.
+
+Their host integration fixtures are not supported by this restricted object
+bridge. They no longer count as isolated checks. All eleven really ran among
+the **28/28 passing standing controls** at the actual product root, without a
+HOME/root override. Those host results do not claim per-candidate coverage.
+Manifests retain the exact removal list for each task.
+
+### Base hints
+
+Only the accepted 20 task copies omit all remaining base `test_*` files and
+Markdown documents (the base has README, BASELINE and BENCHMARKS). Hidden suites
+and BENCHMARKS were already withheld. Each copy records its additional removals
+in `redactions.json`; product files and behavior are preserved. The other 13
+tasks retain their earlier visibility. The explanation exercise stays unscored.
+
+### Final controls and retained failures
+
+Evidence: `.session/repo-eval-isolation-20261107T071400/`.
+Validation02 passes all **33 candidate matrices / 237 trials / 474 suite
+invocations**: real fixes and fix-agents pass, no-ops fail, cheats are flagged,
+**67/67 lazy mutants fail their probe and 5/5 alternatives pass**. All 67 lazy
+and five alternative definitions are byte-identical to `dd356af`. The cheat
+agent edits protected configuration because selected copies no longer expose
+base tests; direct test-edit attempts remain covered by harness controls.
+Harness07 and all 28 standing controls pass. `check.sh` exits 0. The live nuke
+dry-run reports 389,883 entries, zero outside and zero rejected. Two reporting
+parser errors are retained; the result was recovered from the existing raw log
+without repeating the dry-run. There was no inference, baseline or freeze.
+
+All failures remain in the evidence directory: startup dependency/exception
+transport failures, constructor proxy and fixture audit failures in golden01,
+the mock-guard syntax failure, fake-exit cleanup failure, trusted-runtime access
+failure, and validation01's nuke fixture symlink audit failure (32/33 accepted).
+The corrected audit uses no-follow descriptors for protected paths, without
+rejecting intentional fixture links. Earlier review and slot-cancellation
+failures are retained too. These finite tests do not prove resistance to every
+possible shortcut; stop at the draft PR for Claude review.
+
+The table below reports the latest run. Every row has passing real-fix and
+fix-agent controls, a failing no-op and a flagged cheat. Probe counts are from
+the real repair; its regression suite also executes **37/37** sites.
+
+| Task | Difficulty | Accepted 20 | Probe checks executed | Lazy rejected | Alternatives |
+|---|---|---|---|---|---|
+| [action-background-outcome](tasks/action-background-outcome/lazy.json) | medium | yes | 3/3 | 2/2 | — |
+| [child-background-outcome](tasks/child-background-outcome/lazy.json) | hard | yes | 5/5 | 2/2 | — |
+| [cloud-anonymous-key](tasks/cloud-anonymous-key/lazy.json) | easy | no | 4/4 | 1/1 | — |
+| [cloud-duplicate-fields](tasks/cloud-duplicate-fields/lazy.json) | medium | no | 3/3 | 1/1 | — |
+| [cloud-null-calls](tasks/cloud-null-calls/lazy.json) | easy | yes | 4/4 | 2/2 | — |
+| [disabled-interval-clock](tasks/disabled-interval-clock/lazy.json) | easy | yes | 7/7 | 3/3 | — |
+| [explain-never-policy](tasks/explain-never-policy/lazy.json) | medium | no | 5/5 | 1/1 | — |
+| [foreground-warm-lock](tasks/foreground-warm-lock/lazy.json) | medium | yes | 4/4 | 3/3 | — |
+| [internal-transcript-capability](tasks/internal-transcript-capability/lazy.json) | hard | no | 4/4 | 1/1 | — |
+| [local-common-directory](tasks/local-common-directory/lazy.json) | medium | yes | 4/4 | 3/3 | — |
+| [metadata-case-alias](tasks/metadata-case-alias/lazy.json) | medium | yes | 5/5 | 3/3 | — |
+| [missing-message-write](tasks/missing-message-write/lazy.json) | easy | no | 3/3 | 1/1 | — |
+| [missing-session-admission](tasks/missing-session-admission/lazy.json) | medium | yes | 4/4 | 2/2 | 1/1 |
+| [missing-task-outcome](tasks/missing-task-outcome/lazy.json) | easy | yes | 4/4 | 3/3 | — |
+| [missing-task-state](tasks/missing-task-state/lazy.json) | easy | no | 3/3 | 1/1 | — |
+| [nuke-sidecar-before-open](tasks/nuke-sidecar-before-open/lazy.json) | hard | no | 5/5 | 1/1 | — |
+| [oversized-hook-audit](tasks/oversized-hook-audit/lazy.json) | medium | yes | 5/5 | 2/2 | — |
+| [partial-router-warm](tasks/partial-router-warm/lazy.json) | easy | yes | 5/5 | 3/3 | 1/1 |
+| [pdf-byte-boundary](tasks/pdf-byte-boundary/lazy.json) | medium | yes | 3/3 | 2/2 | — |
+| [post-hook-status](tasks/post-hook-status/lazy.json) | hard | yes | 5/5 | 3/3 | — |
+| [remote-hook-execution](tasks/remote-hook-execution/lazy.json) | hard | no | 2/2 | 1/1 | — |
+| [remote-macos-config](tasks/remote-macos-config/lazy.json) | easy | yes | 3/3 | 2/2 | — |
+| [remote-metadata-redirect](tasks/remote-metadata-redirect/lazy.json) | medium | no | 2/2 | 1/1 | — |
+| [remote-symbolic-ref](tasks/remote-symbolic-ref/lazy.json) | hard | no | 2/2 | 1/1 | — |
+| [router-save-link](tasks/router-save-link/lazy.json) | hard | no | 8/8 | 1/1 | — |
+| [scanner-word-boundary](tasks/scanner-word-boundary/lazy.json) | easy | yes | 5/5 | 4/4 | — |
+| [server-port-ownership](tasks/server-port-ownership/lazy.json) | easy | yes | 4/4 | 2/2 | — |
+| [shell-binary-output](tasks/shell-binary-output/lazy.json) | medium | yes | 5/5 | 3/3 | — |
+| [shell-poll-completion](tasks/shell-poll-completion/lazy.json) | hard | yes | 4/4 | 4/4 | — |
+| [submodule-worktree-diff](tasks/submodule-worktree-diff/lazy.json) | medium | no | 3/3 | 1/1 | — |
+| [switch-hidden-index](tasks/switch-hidden-index/lazy.json) | hard | yes | 5/5 | 3/3 | 1/1 |
+| [terminal-nonseekable](tasks/terminal-nonseekable/lazy.json) | easy | yes | 5/5 | 3/3 | 2/2 |
+| [unsupported-keys-diagnostic](tasks/unsupported-keys-diagnostic/lazy.json) | easy | no | 7/7 | 1/1 | — |

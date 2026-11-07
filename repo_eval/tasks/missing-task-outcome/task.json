@@ -6,8 +6,7 @@
   "difficulty": "easy",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_cli.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "Public commit e638df0 and its lost-row regressions",
     "fixed_hunk_sha256": "2099d74c3b67723f04029fb4ba201012264f7b44533734bfdd12054954c2983e"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_cli.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

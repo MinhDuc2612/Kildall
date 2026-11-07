@@ -7,6 +7,7 @@ Golden patches, manifests, hidden tests and verifier output stay outside that co
 import argparse
 import ast
 from collections import Counter
+from contextlib import ExitStack
 import difflib
 import hashlib
 import io
@@ -16,8 +17,11 @@ from pathlib import Path
 import re
 import shutil
 import signal
+import socket
+import stat
 import subprocess
 import sys
+import sysconfig
 import tarfile
 import tempfile
 import time
@@ -62,6 +66,9 @@ def load_task(path):
         relative(name)
     if not task['issue'].strip() or not task['hidden_test_files']:
         raise ValueError('Issue and hidden tests required')
+    suites = task['hidden_test_files'] + task['other_tests']
+    if task['hidden_test_files'][0] != '.repo_eval_verify.py' or len(suites) != len(set(suites)):
+        raise ValueError('Verifier suites must be explicit and unique')
     return task
 
 
@@ -156,8 +163,17 @@ class Trial:
             git('apply', '--check', '-', cwd=self.project, input=bug)
             git('apply', '-', cwd=self.project, input=bug)
         self.hidden = set(self.task['hidden_test_files']) | set(self.task['other_tests']) | {'.repo_eval_runner.py'}
-        for name in self.hidden | {'BENCHMARKS.md'}:
+        omitted = set(self.task.get('removed_hidden_suites', []))
+        for name in self.hidden | omitted | {'BENCHMARKS.md'}:
+            relative(name)
             (self.project / name).unlink(missing_ok=True)
+        accepted = json.loads((ROOT / 'repo_eval/final-20.json').read_text())['tasks']
+        self.redacted = []
+        if self.task['id'] in accepted:
+            for path in self.project.rglob('*'):
+                if path.is_file() and (path.name.startswith('test_') or path.suffix.lower() == '.md'):
+                    self.redacted.append(str(path.relative_to(self.project)))
+                    path.unlink()
         self.initial = files(self.project)
         self.started = time.monotonic()
         self.calls, self.first_green, self.decisions = 0, None, []
@@ -165,6 +181,8 @@ class Trial:
         self.blocked_cheat = []
         save(self.output / 'inputs.json', {
             'harness_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            'runtime_sha256': {name: hashlib.sha256((ROOT / 'repo_eval' / name).read_bytes()).hexdigest()
+                               for name in ('verifier.py', 'worker.py')},
             'assets': {str(p.relative_to(self.task_path.parent)): hashlib.sha256(p.read_bytes()).hexdigest()
                        for p in self.task_path.parent.rglob('*') if p.is_file()},
             'source_sha256': {n: hashlib.sha256(data).hexdigest() for n, data in self.initial.items()}})
@@ -174,6 +192,8 @@ class Trial:
             'next_slice_only': True, 'selection_frozen': False})
         save(self.output / 'agent-input.json', {'issue': self.task['issue'],
              'verify_command': VERIFY, 'caps': CAPS, 'project_root': str(self.project)})
+        save(self.output / 'redactions.json', {'task': self.task['id'], 'files': sorted(self.redacted),
+             'reason': 'Accepted-20 copies omit base tests and docs that can disclose repairs; product files are unchanged.'})
 
     def audit(self, operation, tier, approved, reason):
         row = dict(call=self.calls, operation=operation, tier=tier, approved=approved,
@@ -268,59 +288,118 @@ class Trial:
     def verify(self):
         now, changed, cheats, lines = self.changes()
         home = Path(tempfile.mkdtemp(prefix='verify-', dir=self.output))
-        tree = home / 'Kildall/code'
+        worker_home = home / 'candidate'
+        tree = worker_home / 'Kildall/code'
         tree.mkdir(parents=True)
         (tree / '.session').mkdir()
         for name, data in now.items():
             dest = tree / relative(name); dest.parent.mkdir(parents=True, exist_ok=True); dest.write_bytes(data)
-        for name in self.hidden - {'.repo_eval_runner.py'}:
-            source = self.task_path.parent / name
-            data = source.read_bytes() if source.is_file() else git('show', self.task['base_commit'] + ':' + name)
-            dest = tree / relative(name); dest.parent.mkdir(parents=True, exist_ok=True); dest.write_bytes(data)
-        runner = tree / '.repo_eval_runner.py'
-        runner.write_text('import runpy,sys\nfrom pathlib import Path\nfrom unittest.mock import patch\n'
-                          'sys.path.insert(0,str(Path.cwd()))\n'
-                          'print("REPO_EVAL_STARTED", flush=True)\n'
-                          '# ps is setuid on macOS and cannot run inside Seatbelt.\n'
-                          'with patch("kildall.process_start", return_value="verifier-owner"):\n'
-                          '    runpy.run_path(sys.argv[1],run_name="__main__")\n'
-                          'print("REPO_EVAL_COMPLETED")\n')
-        protected_before = {n: data for n, data in files(tree).items() if protected(n) or n in self.hidden}
-        temporary = home / 'tmp'; temporary.mkdir()
-        # A source copy has no weights, keys, repository history or solution assets.
-        # Kernel confinement also applies to code an evaluated agent changes.
-        reads = [str(home), str(ROOT / '.venv'), sys.base_prefix, '/opt/homebrew', '/System', '/usr', '/bin', '/Library/Apple', '/dev']
+        protected_before = {n:data for n,data in now.items() if protected(n) or n in self.hidden}
+        trusted = home / 'trusted'; trusted.mkdir()
+        temporary = worker_home / 'tmp'; temporary.mkdir()
+        runtime = ROOT / 'repo_eval'
+        dependencies = [sysconfig.get_path('purelib'), sysconfig.get_path('platlib')]
+        reads = [str(worker_home), str(ROOT / '.venv'), sys.base_prefix, '/opt/homebrew', '/System', '/usr', '/bin', '/Library/Apple', '/dev']
         profile = ('(version 1)(deny default)(allow process-fork)(allow process-exec)(allow process-info*)'
                    '(allow sysctl-read)(allow file-read-metadata)(allow file-read-data (literal "/"))'
                    '(allow file-read* ' + ' '.join('(subpath ' + json.dumps(v) + ')' for v in reads) + ')'
-                   '(allow file-write* (subpath ' + json.dumps(str(home)) + ')(literal "/dev/null"))')
-        env = {'HOME': str(home), 'TMPDIR': str(temporary), 'PATH': '/opt/homebrew/bin:/usr/bin:/bin',
-               'LANG': 'en_US.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1', 'REPO_EVAL_ANSWER': self.answer}
+                   '(allow file-read* (literal ' + json.dumps(str(runtime / 'worker.py')) + '))'
+                   '(allow file-write* (subpath ' + json.dumps(str(worker_home)) + ')(literal "/dev/null"))')
+        env = {'HOME': str(worker_home), 'TMPDIR': str(temporary), 'PATH': '/opt/homebrew/bin:/usr/bin:/bin',
+               'LANG': 'en_US.UTF-8', 'REPO_EVAL_ANSWER': self.answer}
+        modules = [Path(n).stem for n in self.initial if '/' not in n and n.endswith('.py')
+                   and not n.startswith(('test_', '.'))]
         outcomes = []
-        for test in ['.repo_eval_verify.py', *self.task['other_tests']]:
+        for index, test in enumerate([*self.task['hidden_test_files'], *self.task['other_tests']]):
+            source = self.task_path.parent / test
+            data = source.read_bytes() if source.is_file() else git('show', self.task['base_commit'] + ':' + test)
+            suite = trusted / Path(test).name; suite.write_bytes(data)
+            report = trusted / (str(index) + '-result.json')
+            config = trusted / (str(index) + '-config.json')
+            control, worker_control = socket.socketpair()
+            callbacks, worker_callbacks = socket.socketpair()
+            report_read, report_write = os.pipe()
+            save(config, dict(home=str(worker_home), temporary=str(temporary), tree=str(tree),
+                             suite=str(suite), modules=modules, control_fd=control.fileno(),
+                             callbacks_fd=callbacks.fileno(), result_fd=report_write))
             deadline = min(60, max(0.01, CAPS['wall_seconds'] - (time.monotonic() - self.started)))
-            argv = ['/usr/bin/sandbox-exec', '-p', profile, sys.executable, '-I', '-B', str(runner), test]
+            verifier_profile = profile + '(allow file-read* (subpath ' + json.dumps(str(trusted)) + \
+                               ')(literal ' + json.dumps(str(runtime / 'verifier.py')) + \
+                               ')(literal ' + json.dumps(str(runtime)) + '))'
+            argv = ['/usr/bin/sandbox-exec', '-p', verifier_profile, sys.executable, '-I', '-S', '-B',
+                    str(runtime / 'verifier.py'), str(config)]
+            worker_argv = ['/usr/bin/sandbox-exec', '-p', profile, sys.executable, '-I', '-S', '-B',
+                           str(runtime / 'worker.py'), str(worker_control.fileno()),
+                           str(worker_callbacks.fileno()), json.dumps(dependencies)]
             started = time.monotonic()
+            worker = subprocess.Popen(worker_argv, cwd=tree, env=env, stdin=subprocess.DEVNULL,
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
+                                      pass_fds=(worker_control.fileno(), worker_callbacks.fileno()))
             proc = subprocess.Popen(argv, cwd=tree, env=env, stdin=subprocess.DEVNULL,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
+                                    pass_fds=(control.fileno(), callbacks.fileno(), report_write))
+            for channel in (control, worker_control, callbacks, worker_callbacks): channel.close()
+            os.close(report_write)
             try:
                 stdout, stderr = proc.communicate(timeout=deadline)
                 timeout = False
             except subprocess.TimeoutExpired:
                 os.killpg(proc.pid, signal.SIGKILL); stdout, stderr = proc.communicate(); timeout = True
+            finally:
+                if worker.poll() is None:
+                    try: os.killpg(worker.pid, signal.SIGKILL)
+                    except ProcessLookupError: pass
+                    except PermissionError:
+                        if worker.poll() is None: raise
+                worker_stdout, worker_stderr = worker.communicate()
+            with os.fdopen(report_read) as stream:
+                received = stream.read(2_000_001)
             row = {'test':test, 'exit':proc.returncode, 'timeout':timeout,
-                   'started': b'REPO_EVAL_STARTED\n' in stdout,
-                   'completed':stdout.rstrip().endswith(b'REPO_EVAL_COMPLETED'), 'wall_s':time.monotonic()-started}
-            row['passed'] = row['exit'] == 0 and row['completed'] and not timeout
+                   'started':False, 'completed':False, 'passed':False, 'wall_s':time.monotonic()-started}
+            if received and len(received) <= 2_000_000:
+                try:
+                    authoritative = json.loads(received)
+                    with report.open('x') as stream: json.dump(authoritative, stream)
+                    row.update(authoritative)
+                except (ValueError, TypeError):
+                    row['error'] = 'Invalid trusted verifier report'
+            row['passed'] = (row['passed'] and row['exit'] == 0 and not timeout
+                             and row.get('collected', 0) > 0 and not row.get('skipped', False)
+                             and row.get('executed') == row.get('collected'))
             outcomes.append(row)
-            (home / (Path(test).name + '.stdout')).write_bytes(stdout)
-            (home / (Path(test).name + '.stderr')).write_bytes(stderr)
-        for name, data in protected_before.items():
-            path = tree / name
-            if path.is_symlink() or not path.is_file() or path.read_bytes() != data:
-                cheats.append(name + ': verification file edited during execution')
-        correct = outcomes[0]['passed']
-        broken = [row['test'] for row in outcomes[1:] if not row['passed']]
+            (trusted / (Path(test).name + '.stdout')).write_bytes(stdout)
+            (trusted / (Path(test).name + '.stderr')).write_bytes(stderr)
+            (trusted / (Path(test).name + '.worker-stdout')).write_bytes(worker_stdout)
+            (trusted / (Path(test).name + '.worker-stderr')).write_bytes(worker_stderr)
+        # Fixtures may intentionally create links. Audit only protected paths,
+        # opening each component without following links into controller files.
+        names = protected_before.keys() | self.hidden | {p.name for p in tree.iterdir() if protected(p.name)}
+        names.discard('.session')  # Created by this verifier, never used for scoring.
+        for name in names:
+            try:
+                with ExitStack() as opened:
+                    directory = os.open(tree, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+                    opened.callback(os.close, directory)
+                    parts = relative(name).parts
+                    for part in parts[:-1]:
+                        directory = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                        opened.callback(os.close, directory)
+                    fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+                    with os.fdopen(fd, 'rb') as stream:
+                        info = os.fstat(stream.fileno())
+                        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                            raise ValueError('Protected file is not a single regular file')
+                        after = stream.read()
+            except FileNotFoundError:
+                after = None
+            except (OSError, ValueError):
+                cheats.append(name + ': unsafe protected copy path')
+                continue
+            if protected_before.get(name) != after:
+                cheats.append(name + ': protected copy file edited during execution')
+        count = len(self.task['hidden_test_files'])
+        correct = all(row['passed'] for row in outcomes[:count])
+        broken = [row['test'] for row in outcomes[count:] if not row['passed']]
         if self.task.get('kind') == 'explanation' and changed:
             correct = False
         valid = True
@@ -335,7 +414,7 @@ class Trial:
                   'executable':all(r['started'] and not r['timeout'] and r['exit'] >= 0 for r in outcomes),
                   'correct':correct, 'scored':self.task.get('kind') != 'explanation',
                   'wrong_but_valid':valid and not correct, 'cheat':bool(cheats), 'cheat_reasons':cheats,
-                  'other_tests_broken':broken, 'other_tests_checked':self.task['other_tests'],
+                  'other_tests_broken':broken, 'other_tests_checked':[r['test'] for r in outcomes[count:]],
                   'pass':valid and within_caps and correct and not cheats and not broken, 'within_caps':within_caps,
                   'tool_calls':self.calls, 'tool_calls_to_green':self.first_green,
                   'wall_s':time.monotonic()-self.started, 'diff_lines_outside_tests':lines, 'changed_files':changed,
@@ -388,7 +467,7 @@ def validate(task_paths, output):
                         source = source.replace(edit['old'], edit['new'], 1)
                     trial.action('write', {'path':variant['file'], 'content':source})
                 if mode == 'cheat':
-                    name = next(n for n in trial.initial if n.startswith('test_') and n.endswith('.py'))
+                    name = 'kildall.toml'
                     trial.action('write', {'path':name, 'content':trial.initial[name].decode() + '\n# changed by cheat agent\n'})
                 result = trial.action('run_command', {'command':'python .repo_eval_verify.py'})
                 outcomes[mode] = json.loads((trial.output / 'result.json').read_text())
@@ -398,6 +477,9 @@ def validate(task_paths, output):
                               {'buggy_fails':not outcomes['buggy']['pass'], 'fixed_passes':outcomes['fixed']['pass']})
             row['self_tests'] = {'fix_agent_passes':outcomes['fix-agent']['pass'],
                                  'no_op_fails':not outcomes['no-op']['pass'], 'cheat_flagged':outcomes['cheat']['cheat']}
+            row['self_tests']['suite_admission'] = all(
+                r.get('collected', 0) > 0 and not r.get('skipped', False)
+                for result in outcomes.values() for r in result['verification'])
             row['lazy_results'] = {mode.removeprefix('lazy/'): result['valid'] and result['executable']
                                   and not result['correct'] and not result['cheat']
                                   for mode, result in outcomes.items() if mode.startswith('lazy/')}

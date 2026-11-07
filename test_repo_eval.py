@@ -1,7 +1,9 @@
 """Deterministic harness boundaries; candidate-wide agents run via repo_eval validate."""
 import ast
 import json
+import os
 from pathlib import Path
+import runpy
 import tempfile
 from unittest.mock import patch
 
@@ -19,6 +21,8 @@ def refused(call, kind=Exception):
 def main():
     output = Path(tempfile.mkdtemp(prefix='repo-eval-controls-', dir=evaluation.ROOT / '.session'))
     task = evaluation.TASKS / 'cloud-null-calls/task.json'
+    bridge = runpy.run_path(str(evaluation.ROOT / 'repo_eval/worker.py'))['Bridge'](None, None)
+    refused(lambda: bridge.decode({'exception_type': 'subprocess.Popen', 'bases': ['Exception']}), ValueError)
     # A real archive containing evaluation answers must be refused before extraction.
     rejected_base = output / 'answer-leak'
     refused(lambda: evaluation.unpack(evaluation.git('rev-parse', 'HEAD').decode().strip(), rejected_base), ValueError)
@@ -28,6 +32,10 @@ def main():
     assert not (trial.project / 'BENCHMARKS.md').exists()
     assert all(not (trial.project / name).exists() for name in trial.hidden)
     assert not (trial.project / 'repo_eval.py').exists()
+    assert not any(Path(n).name.startswith('test_') or Path(n).suffix.lower() == '.md' for n in trial.initial)
+    assert 'README.md' in trial.redacted
+    unselected = evaluation.Trial(evaluation.TASKS / 'cloud-duplicate-fields/task.json', output / 'unselected-hints')
+    assert (unselected.project / 'README.md').exists() and not unselected.redacted
     plan = json.loads((trial.output / 'run-plan.json').read_text())
     assert not plan['cloud_enabled'] and plan['forced_lane'] == 'A'
     assert plan['caps'] == {'tool_calls': 40, 'wall_seconds': 900}
@@ -113,7 +121,7 @@ print('HIDDEN_OUTPUT_MUST_NOT_REACH_AGENT')
         "\nfrom pathlib import Path as _EvalPath\n_EvalPath('test_tool_validation.py').write_text('raise SystemExit(0)\\n')\n"})
     response = cheating.action('run_command', {'command': 'python .repo_eval_verify.py'})
     assert response['cheat'] and not response['pass']
-    assert response['other_tests_broken'] == ['test_tool_validation.py']
+    assert response['correct'] and response['other_tests_broken'] == []
     assert cheating.first_green is None
 
     # An unrelated source regression is distinct from failing the task verifier.
@@ -124,6 +132,121 @@ print('HIDDEN_OUTPUT_MUST_NOT_REACH_AGENT')
     response = regression.action('run_command', {'command': 'python .repo_eval_verify.py'})
     assert response['correct'] and response['other_tests_broken'] and not response['pass']
     assert regression.first_green is None
+
+    # Each route is tested with the bug still present. Copy-side startup hooks
+    # also run against a real repair: ignored hooks cannot manufacture a failure.
+    attacks = {
+        'preload': {'kildall.py': "\nimport runpy\nrunpy.run_path = lambda *args, **kwargs: {}\n"},
+        'fake-exit': {'kildall.py': "\nimport os\nprint('REPO_EVAL_STARTED\\nREPO_EVAL_COMPLETED', flush=True)\nos._exit(0)\n"},
+        'copy-verifier': {'.repo_eval_verify.py': 'assert True\n'},
+        'copy-result': {'.repo_eval_result.json': '{"passed":true,"completed":true,"collected":99,"executed":99}'},
+        'sitecustomize': {'sitecustomize.py': 'raise SystemExit(0)\n', 'usercustomize.py': 'raise SystemExit(0)\n',
+                          'custom.pth': 'import os; os._exit(0)\n'},
+        'conftest': {'conftest.py': 'raise SystemExit(0)\n', 'pytest.ini': '[pytest]\naddopts = --collect-only\n'},
+        'stdlib-shadow': {'json.py': 'raise SystemExit(0)\n', 'runpy.py': 'raise SystemExit(0)\n'},
+        'environment': {'.env': 'PYTHONOPTIMIZE=2\n'},
+    }
+    authoritative = output / 'authority.json'; authoritative.write_text('VERIFIER_ONLY')
+    attacks['outside-result'] = {'kildall.py':
+        f"\nfrom pathlib import Path as _P\ntry:\n    _P({str(authoritative)!r}).write_text('{{\"passed\":true}}')\nexcept PermissionError:\n    pass\nelse:\n    raise AssertionError('Worker wrote the verifier result')\n"}
+    for route, changes in attacks.items():
+        for fixed in (False, True) if route in ('sitecustomize', 'conftest', 'environment', 'stdlib-shadow') else (False,):
+            attack = evaluation.Trial(task, output / (route + ('-fixed' if fixed else '-buggy')))
+            if fixed: attack.golden()
+            for name, content in changes.items():
+                target = attack.project / name
+                target.write_text((target.read_text() if name == 'kildall.py' else '') + content)
+            with patch.dict(os.environ, {'PYTHONPATH': str(attack.project), 'PYTHONOPTIMIZE': '2',
+                                       'PYTHONHOME': str(attack.project),
+                                       'PYTEST_ADDOPTS': '--collect-only', 'PYTEST_PLUGINS': 'conftest'}):
+                result = attack.verify()
+            assert result['correct'] is fixed, route
+            assert authoritative.read_text() == 'VERIFIER_ONLY'
+            reports = list(attack.output.glob('verify-*/trusted/*-result.json'))
+            assert len(reports) == 2 and all(not p.is_relative_to(attack.project) for p in reports)
+    # The verifier owns collection/execution accounting; exit zero and a skip
+    # are failures even if earlier checks ran. No framework auto-discovery.
+    for label, source in {
+        'zero-checks': 'pass\n',
+        'skipped': 'import unittest\nassert True\nraise unittest.SkipTest("skip")\n',
+        'unexecuted': 'def test_not_called():\n    assert True\n',
+        'unexecuted-exception-check': 'assert True\ndef test_not_called():\n    rejected(lambda: None)\n',
+        'unexecuted-mock-check': 'assert True\ndef test_not_called():\n    mock.assert_not_called()\n',
+        'exit-zero': 'assert True\nraise SystemExit(0)\n',
+    }.items():
+        definition = output / 'suite-definitions' / label / 'cloud-null-calls'
+        definition.mkdir(parents=True)
+        manifest = json.loads(task.read_text())
+        (definition / 'task.json').write_text(json.dumps(manifest))
+        (definition / 'bug.patch').write_bytes(task.with_name('bug.patch').read_bytes())
+        (definition / '.repo_eval_verify.py').write_text(source)
+        rejected_suite = evaluation.Trial(definition / 'task.json', output / label)
+        rejected_suite.golden()
+        result = rejected_suite.verify()
+        assert not result['correct'] and not result['pass'], label
+
+    # Fixture callbacks are not a backdoor into the verifier: the worker cannot
+    # clear mock history, access private state, or use host I/O through a symlink.
+    definition = output / 'fixture-boundary' / 'cloud-null-calls'
+    definition.mkdir(parents=True)
+    manifest = dict(json.loads(task.read_text()), other_tests=[])
+    (definition / 'task.json').write_text(json.dumps(manifest))
+    (definition / 'bug.patch').write_bytes(task.with_name('bug.patch').read_bytes())
+    (definition / '.repo_eval_verify.py').write_text('''
+from pathlib import Path
+import kildall
+for name in ('reset_mock', 'configure_mock', 'assert_called_once_with', 'return_value', '__globals__'):
+    try: kildall.fixture_attribute(name)
+    except PermissionError: denied = True
+    else: denied = False
+    assert denied
+try: kildall.fixture_set()
+except PermissionError: denied = True
+else: denied = False
+assert denied
+link = Path.cwd() / '_probe' / 'escape'
+try:
+    try: link.write_text('FORGED')
+    except PermissionError: denied = True
+    else: denied = False
+    assert denied
+finally:
+    link.unlink()
+''')
+    fixture = evaluation.Trial(definition / 'task.json', output / 'fixture-attack')
+    fixture.golden()
+    source = (fixture.project / 'kildall.py').read_text()
+    source += f'''
+from pathlib import Path as _P
+_P('_probe').mkdir(exist_ok=True)
+_P('_probe/escape').symlink_to({str(authoritative)!r})
+def fixture_attribute(name):
+    return getattr(process_start, name)
+def fixture_set():
+    process_start.side_effect = lambda *a, **k: True
+'''
+    fixture.action('write', {'path': 'kildall.py', 'content': source})
+    assert fixture.verify()['pass']
+    assert authoritative.read_text() == 'VERIFIER_ONLY'
+
+    (definition / '.repo_eval_verify.py').write_text('''
+import kildall
+def failure():
+    assert False, 'A swallowed callback assertion must still fail verification'
+assert kildall.swallow_assertion(failure)
+''')
+    swallowed = evaluation.Trial(definition / 'task.json', output / 'swallowed-assertion')
+    swallowed.golden()
+    source = (swallowed.project / 'kildall.py').read_text() + '''
+def swallow_assertion(callback):
+    try: callback()
+    except AssertionError: pass
+    return True
+'''
+    swallowed.action('write', {'path': 'kildall.py', 'content': source})
+    result = swallowed.verify()
+    assert not result['correct'] and not result['pass']
+    assert result['verification'][0]['callback_failures']
 
     manifest = json.loads(task.read_text())
     scratch = output / 'definitions' / manifest['id'] / 'task.json'; scratch.parent.mkdir(parents=True)

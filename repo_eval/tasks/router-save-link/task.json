@@ -6,8 +6,7 @@
   "difficulty": "hard",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_router_warmth.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "CLAUDE.md 2026-10-08 router warmth review: pending-save symlink exposure",
     "fixed_hunk_sha256": "99e1aa748fb7f580e1fafc01339a4bf25d8b721dff03d93ef2ae0c4781b34ab9"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_router_warmth.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

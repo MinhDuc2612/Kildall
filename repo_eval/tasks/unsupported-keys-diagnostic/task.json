@@ -6,8 +6,7 @@
   "difficulty": "easy",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_platform_keys.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "BENCHMARKS.md:2493 unsupported key CLI diagnostic correction",
     "fixed_hunk_sha256": "976095bc4ba72351560715cc73941274cd1af056c32e4ae558f8aa32acac1e3f"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_platform_keys.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

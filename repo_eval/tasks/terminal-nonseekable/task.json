@@ -2,12 +2,11 @@
   "id": "terminal-nonseekable",
   "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
   "bug_patch": "bug.patch",
-  "issue": "Approving a file edit from a real terminal fails with \u201cFile or stream is not seekable\u201d before I can enter my answer.",
+  "issue": "Approving a file edit from a real terminal fails with “File or stream is not seekable” before I can enter my answer.",
   "difficulty": "easy",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_permissions.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -30,5 +29,9 @@
     "evidence": "BENCHMARKS.md:1484; real PTY confirmation failure",
     "fixed_hunk_sha256": "846a5895730187353005c0041093e79dda9b8999af21b80954a21cfae02824b6"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_permissions.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

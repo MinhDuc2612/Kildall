@@ -6,8 +6,7 @@
   "difficulty": "medium",
   "trap": true,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_phase41.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -31,5 +30,9 @@
     "fixed_hunk_sha256": "407402156e9ba1542b3a4bde0f98b18d8b16a7376e5ff7d70cdfab9c52df7e29"
   },
   "selection_frozen": false,
-  "trap_kind": "cross-file-cause"
+  "trap_kind": "cross-file-cause",
+  "removed_hidden_suites": [
+    "test_phase41.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

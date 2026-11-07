@@ -6,9 +6,7 @@
   "difficulty": "hard",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_shell_lifecycle.py",
-    "test_phase41.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -31,5 +29,10 @@
     "evidence": "BENCHMARKS.md:1616-1618 shell poll completion race",
     "fixed_hunk_sha256": "21d669bb70bd96cacd66ce89eac1796ebfff41afe98ecbaeb8e8d5e1f5776b3f"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_shell_lifecycle.py",
+    "test_phase41.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }

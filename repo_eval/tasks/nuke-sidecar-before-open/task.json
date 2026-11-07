@@ -6,9 +6,7 @@
   "difficulty": "hard",
   "trap": false,
   "hidden_test_files": [
-    ".repo_eval_verify.py",
-    "test_permissions.py",
-    "test_nuke.py"
+    ".repo_eval_verify.py"
   ],
   "verify_command": [
     "python",
@@ -31,5 +29,10 @@
     "evidence": "CLAUDE.md 2026-09-21 pre-initialization database/sidecar outward-symlink correction",
     "fixed_hunk_sha256": "47a56bde42148b2908f6c9d21a2e68f16c8339882c1b723dd784cc5b49618dd4"
   },
-  "selection_frozen": false
+  "selection_frozen": false,
+  "removed_hidden_suites": [
+    "test_permissions.py",
+    "test_nuke.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
 }
