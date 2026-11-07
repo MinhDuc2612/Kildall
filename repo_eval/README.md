@@ -3,7 +3,7 @@
 The accepted **20 tasks (8 easy / 8 medium / 4 hard) are frozen** in
 [`frozen-20.json`](frozen-20.json), following review of `e8c8e60`. The manifest
 pins their order, every task asset and the reviewed harness/runtime hashes.
-Task assets and harness code are unchanged. `final-20.json`, task manifests and
+Task assets and harness code are unchanged. [Baseline attempt](BASELINE.md): stopped at run 1 admission; both runs NOT RUN. `final-20.json`, task manifests and
 `candidates.json` retain their original pre-freeze metadata as hashed review
 inputs; `frozen-20.json` is the authoritative freeze record.
 
