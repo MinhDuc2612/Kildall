@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "def initialize(config, record, command):\n",
+        "new": "def initialize(config, record, command):\n    raise ValueError(\"Router save destination already exists\")\n"
+      }
+    ]
+  }
+]

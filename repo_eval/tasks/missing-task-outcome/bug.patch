@@ -1,0 +1,13 @@
+--- a/kildall.py
++++ b/kildall.py
+@@ -461,9 +461,7 @@
+         self.set("waiting" if outcome in ("deferred", "not_installed") else
+                  "done" if outcome == "done" else "error")
+         with database(self.path) as db:
+-            if db.execute("UPDATE orbi_tasks SET outcome=?,updated=? WHERE id=?",
+-                          (outcome, time.time(), self.id)).rowcount != 1:
+-                raise RuntimeError("Task disappeared while saving its outcome")
++            db.execute("UPDATE orbi_tasks SET outcome=?,updated=? WHERE id=?", (outcome,time.time(),self.id))
+         if self.tty:
+             print(file=sys.stderr)
+ 

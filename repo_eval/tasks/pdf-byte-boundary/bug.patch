@@ -1,0 +1,11 @@
+--- a/file_tools.py
++++ b/file_tools.py
+@@ -80,8 +80,6 @@
+             if result['exit_code'] or result['timed_out']:
+                 raise OSError(f"PDF reader failed ({result['exit_code']}): {result['stderr']}")
+             text = dict(text=result['stdout'], truncated=result['truncated'], start_page=first)
+-            if 'stdout_base64' in result:
+-                text.update(encoding='base64', data=result['stdout_base64'])
+             return text
+         first, count = args.get('start_line', 1), args.get('max_lines', 100)
+         lines, total, index = [], 0, 0

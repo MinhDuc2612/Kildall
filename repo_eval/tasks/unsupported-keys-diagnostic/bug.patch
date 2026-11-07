@@ -1,0 +1,12 @@
+--- a/kildall.py
++++ b/kildall.py
+@@ -975,9 +975,6 @@
+         for row in rows:
+             print(f"{row['name']}: {row['status']}")
+         return int(any(row['status'] in ('failed', 'unreadable') for row in rows))
+-    except UnsupportedPlatform as error:
+-        print(f'kildall: {error}', file=sys.stderr)
+-        return 1
+     except (OSError, ValueError, RuntimeError, sqlite3.Error):
+         print('kildall: credential/provider operation failed; no secret details logged', file=sys.stderr)
+         return 1

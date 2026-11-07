@@ -1,0 +1,11 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -83,7 +83,7 @@
+         '--no-includes', '--null', '--list'], capture_output=True, check=True, timeout=10,
+         env={'PATH': '/usr/bin:/bin'}).stdout
+     allowed = {'core.repositoryformatversion', 'core.filemode', 'core.bare', 'core.logallrefupdates',
+-               'core.ignorecase', 'core.precomposeunicode'}
++               'core.ignorecase'}
+     if any(entry and entry.split(b'\n', 1)[0].decode() not in allowed for entry in config.split(b'\0')):
+         raise PermissionError('Unsupported local remote configuration')
+     values = {entry.partition(b'\n')[0]: entry.partition(b'\n')[2] for entry in config.split(b'\0') if entry}

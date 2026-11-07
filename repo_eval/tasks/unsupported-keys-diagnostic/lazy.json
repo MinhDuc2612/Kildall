@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "def cloud_main(argv):\n",
+        "new": "def cloud_main(argv):\n    print('kildall: Secure key store not implemented on linux', file=sys.stderr)\n    return 1\n"
+      }
+    ]
+  }
+]

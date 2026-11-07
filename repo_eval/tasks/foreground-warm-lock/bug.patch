@@ -1,0 +1,11 @@
+--- a/router_warmth.py
++++ b/router_warmth.py
+@@ -50,7 +50,7 @@
+     with base.with_suffix('.activity').open('a') as lock:
+         notify(endpoint)
+         try:
+-            system().lock(lock, exclusive=False, nonblocking=True)
++            system().lock(lock, exclusive=False)
+         except BlockingIOError:
+             # The worker's probe cannot delay the user, even if it is descheduled.
+             pass

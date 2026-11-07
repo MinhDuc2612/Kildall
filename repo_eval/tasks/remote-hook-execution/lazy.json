@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "def origin(repo):\n",
+        "new": "def origin(repo):\n    raise PermissionError(\"Unsupported origin\")\n"
+      }
+    ]
+  }
+]

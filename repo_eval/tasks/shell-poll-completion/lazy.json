@@ -1,0 +1,45 @@
+[
+  {
+    "id": "initial",
+    "file": "shell_tools.py",
+    "edits": [
+      {
+        "old": "if result is None and process_start(row['pid']) != row['owner_start']:",
+        "new": "if result is None:"
+      }
+    ]
+  },
+  {
+    "id": "Q1-no-interrupted",
+    "file": "shell_tools.py",
+    "edits": [
+      {
+        "old": "                db.execute(\"UPDATE orbi_permissions SET status='interrupted',reason='Worker ended without a result',updated=? WHERE id=? AND EXISTS (SELECT 1 FROM orbi_shell_jobs WHERE id=? AND result IS NULL)\", (time.time(), row['id'], row['id']))\n",
+        "new": ""
+      }
+    ],
+    "note": "dead worker polls as background forever"
+  },
+  {
+    "id": "Q2-no-kill",
+    "file": "shell_tools.py",
+    "edits": [
+      {
+        "old": "                if result is None:\n                    stop_owned_child(row['child_pid'], row['child_start'])\n",
+        "new": ""
+      }
+    ],
+    "note": "orphan child never killed"
+  },
+  {
+    "id": "Q3-status-only",
+    "file": "shell_tools.py",
+    "edits": [
+      {
+        "old": "return dict(id=row['id'], status=row['status'], result=result)",
+        "new": "return dict(id=row['id'], status=row['status'] if result is None else 'done', result=result)"
+      }
+    ],
+    "note": "Q3-status-only"
+  }
+]

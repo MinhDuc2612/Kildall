@@ -1,0 +1,10 @@
+--- a/subagents.py
++++ b/subagents.py
+@@ -472,7 +472,6 @@
+                     jobs = stop_jobs(self.parent.path, child['task'].id)
+                     if jobs:
+                         child['cancelled_jobs'] = jobs
+-                        child.setdefault('error', 'Unfinished child background jobs were cancelled')
+                     if not child['task'].finished.is_set():
+                         outcome = 'error' if child.get('error') else 'done'
+                         child['task'].finish(outcome if child.get('completed') else 'cancelled')

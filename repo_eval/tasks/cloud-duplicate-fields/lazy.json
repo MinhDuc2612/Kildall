@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "def decode(text):\n",
+        "new": "def decode(text):\n    raise ValueError(\"Duplicate response field\")\n"
+      }
+    ]
+  }
+]

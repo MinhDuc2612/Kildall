@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "subagents.py",
+    "edits": [
+      {
+        "old": "if automatic and operation == '_agent_memory':",
+        "new": "if automatic and operation == '_disabled_agent_memory':"
+      }
+    ]
+  }
+]

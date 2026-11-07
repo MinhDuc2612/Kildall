@@ -1,0 +1,11 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -169,8 +169,6 @@
+             return dict(branch=args['name'], commit=head)
+         target = revision(repo, ref)
+         def clean():
+-            if any(e and (e[:1].islower() or e[:1] == b'S') for e in git(repo, 'ls-files', '-v', '-z').split(b'\0')):
+-                raise PermissionError('Switch refuses assume-unchanged or skip-worktree index entries')
+             if any(e.startswith(b'160000 ') for e in git(repo, 'ls-files', '--stage', '-z').split(b'\0')):
+                 raise PermissionError('Switching submodule indexes is unsupported')
+             for rev in (head, target):

@@ -1,0 +1,24 @@
+[
+  {
+    "id": "FF2-reversed-open",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "with open(\"/dev/tty\", \"r\") as response, open(\"/dev/tty\", \"w\") as terminal:",
+        "new": "with open(\"/dev/tty\", \"w\") as terminal, open(\"/dev/tty\", \"r\") as response:"
+      }
+    ],
+    "note": "same handles, other order"
+  },
+  {
+    "id": "FF3-encoding-kw",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "with open(\"/dev/tty\", \"r\") as response, open(\"/dev/tty\", \"w\") as terminal:",
+        "new": "with open(\"/dev/tty\", \"r\", encoding=\"utf-8\") as response, open(\"/dev/tty\", \"w\", encoding=\"utf-8\") as terminal:"
+      }
+    ],
+    "note": "adds encoding"
+  }
+]

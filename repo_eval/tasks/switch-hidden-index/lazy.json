@@ -1,0 +1,34 @@
+[
+  {
+    "id": "initial",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "    if operation in ('git_branch', 'git_switch'):\n",
+        "new": "    if operation == 'git_switch':\n        raise PermissionError('Hidden index edits are unsupported')\n    if operation in ('git_branch', 'git_switch'):\n"
+      }
+    ]
+  },
+  {
+    "id": "I1-assume-unchanged-only",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "if any(e and (e[:1].islower() or e[:1] == b'S') for e in",
+        "new": "if any(e and e[:1].islower() for e in"
+      }
+    ],
+    "note": "skip-worktree edits overwritten"
+  },
+  {
+    "id": "I2-h-and-S-only",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "if any(e and (e[:1].islower() or e[:1] == b'S') for e in",
+        "new": "if any(e and e[:1] in (b'h', b'S') for e in"
+      }
+    ],
+    "note": "I2-h-and-S-only"
+  }
+]

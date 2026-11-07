@@ -1,0 +1,34 @@
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "    def finish(self, outcome):\n",
+        "new": "    def finish(self, outcome):\n        raise RuntimeError('Task disappeared')\n"
+      }
+    ]
+  },
+  {
+    "id": "T1-done-only",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "if db.execute(\"UPDATE orbi_tasks SET outcome=?,updated=? WHERE id=?\",\n                          (outcome, time.time(), self.id)).rowcount != 1:",
+        "new": "if db.execute(\"UPDATE orbi_tasks SET outcome=?,updated=? WHERE id=?\",\n                          (outcome, time.time(), self.id)).rowcount != 1 and outcome == \"done\":"
+      }
+    ],
+    "note": "lost error/cancelled outcomes stay silent"
+  },
+  {
+    "id": "T2-constant-done",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "\"UPDATE orbi_tasks SET outcome=?,updated=? WHERE id=?\",\n                          (outcome, time.time(), self.id)",
+        "new": "\"UPDATE orbi_tasks SET outcome='done',updated=? WHERE id=?\",\n                          (time.time(), self.id)"
+      }
+    ],
+    "note": "T2-constant-done"
+  }
+]

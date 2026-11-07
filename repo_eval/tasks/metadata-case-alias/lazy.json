@@ -1,0 +1,34 @@
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "if \".git\" in (part.casefold() for part in path.relative_to(CODE_ROOT).parts):",
+        "new": "if True:"
+      }
+    ]
+  },
+  {
+    "id": "M1-two-spellings",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "if \".git\" in (part.casefold() for part in path.relative_to(CODE_ROOT).parts):",
+        "new": "if any(part in (\".git\", \".GIT\") for part in path.relative_to(CODE_ROOT).parts):"
+      }
+    ],
+    "note": ".Git bypass"
+  },
+  {
+    "id": "M2-parent-only",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "if \".git\" in (part.casefold() for part in path.relative_to(CODE_ROOT).parts):",
+        "new": "if \".git\" in path.relative_to(CODE_ROOT).parts or path.parent.name.casefold() == \".git\":"
+      }
+    ],
+    "note": ".GIT/hooks/x bypass"
+  }
+]

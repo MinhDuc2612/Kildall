@@ -1,0 +1,34 @@
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "run_stage(hooks, 'after', operation, arguments, row, project)",
+        "new": "pass"
+      }
+    ]
+  },
+  {
+    "id": "PH1-background-only",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "        if after_action:\n            raise  # Preserve the completed/background action and the failed child hook.\n",
+        "new": "        if row[\"status\"] == \"background\":\n            raise\n"
+      }
+    ],
+    "note": "completed action still recorded failed"
+  },
+  {
+    "id": "PH2-swallow",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "            run_stage(hooks, 'after', operation, arguments, row, project)\n    except BaseException",
+        "new": "            try:\n                run_stage(hooks, 'after', operation, arguments, row, project)\n            except Exception:\n                pass\n    except BaseException"
+      }
+    ],
+    "note": "post-hook failure swallowed, turn never stops"
+  }
+]

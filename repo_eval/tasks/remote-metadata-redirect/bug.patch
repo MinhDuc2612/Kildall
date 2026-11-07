@@ -1,0 +1,11 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -64,8 +64,6 @@
+     path = guard_path(path)
+     if not (path / 'HEAD').is_file() or not (path / 'objects').is_dir():
+         raise PermissionError('Local origin must be a bare repository')
+-    if any(os.path.lexists(path / name) for name in ('.git', 'commondir', 'objects/info/alternates')):
+-        raise PermissionError('Redirected local remote stores are forbidden')
+     for folder, dirs, files in os.walk(path, followlinks=False, onerror=lambda e: (_ for _ in ()).throw(e)):
+         for name in dirs + files:
+             entry = Path(folder) / name

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "initial",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "    allowed = {'core.repositoryformatversion',",
+        "new": "    return str(path), None\n    allowed = {'core.repositoryformatversion',"
+      }
+    ]
+  },
+  {
+    "id": "R1-denylist",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "if any(entry and entry.split(b'\\n', 1)[0].decode() not in allowed for entry in config.split(b'\\0')):",
+        "new": "if any(entry.startswith(b'core.sshcommand') for entry in config.split(b'\\0')):"
+      }
+    ],
+    "note": "allow-list replaced by one-key deny-list"
+  }
+]

@@ -1,0 +1,11 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -173,7 +173,7 @@
+         update(status="declined" if row["status"] == "declined" else status, reason=str(error))
+         raise
+     else:
+-        if row["status"] not in ("rejected", "authorized", "done", "failed", "timed_out", "background", "interrupted"):
++        if row["status"] not in ("rejected", "authorized"):
+             update(status="done")
+ 
+ 

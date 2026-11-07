@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "    refuse_computer(\"Action is outside the closed executor; \")",
+        "new": "    return {\"accepted\": True}"
+      }
+    ]
+  }
+]

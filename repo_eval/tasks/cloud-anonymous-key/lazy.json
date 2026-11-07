@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "keys = {name: (credentials[item['key_name']] or '') if item['key_name'] else ''",
+        "new": "keys = {name: ''"
+      }
+    ]
+  }
+]

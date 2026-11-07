@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "permissions.py",
+    "edits": [
+      {
+        "old": "def nuke_database(root=CODE_ROOT):\n",
+        "new": "def nuke_database(root=CODE_ROOT):\n    raise PermissionError(\"Unsafe audit database\")\n"
+      }
+    ]
+  }
+]
