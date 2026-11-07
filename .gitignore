@@ -8,6 +8,33 @@ code/
 # Orbi runtime output
 backups/
 
+# Private runtime state and model artifacts never belong on workspace.
+*.gguf
+*.safetensors
+*.bin
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+.session/
+.venv/
+.remember/
+.claude/worktrees/
+.claude/settings.local.json
+keys.env
+.env
+*.keychain
+*.keychain-db
+*.p12
+*.pfx
+*keychain*export*
+
 # macOS
 .DS_Store
 ._*

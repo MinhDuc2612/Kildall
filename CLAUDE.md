@@ -4082,3 +4082,281 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-06 — `code_1.24` defect found by live routing: ComfyUI under SwarmUI keeps up to 19 GB after an image or video job, idle, so swap reached 15.9 GB of 16.4 GB. Fixed: `local_media.swarm` calls `/API/FreeBackendMemory` with `system_ram` after each job, even on error (test added, `test_local_media` passes). Same API freed it by hand: 19 GB → 4.3 GB in about 20 s, memory free 15% → 82%. First live routing run hit my 560 s limit at 12 of 20 (12 of 12 right on category and lane). Rerun of all 20 in `.session/routing-20261106c`.
 - 2026-11-06 — **Independent review of PR #13 at pushed head `0b948bd` (fresh Claude agent, not the author): DO NOT FREEZE.** Re-ran: validation 2 passes 20/20, author's lazy mutants 19/19 fail, `test_repo_eval.py` pass, cluster limits and 8/8/4 mix hold, sandbox denials hold (real syscalls), no keys or private paths in the PR, merges clean with `f98b4a2`. 🔴 **All 20 tasks still pass at least one new lazy fix: 28 of 28 tried passed**, and 6 of 6 in a second round against stronger probes, so one more hardening round is not enough. Patches: `code/.session/pr13-review-2/scripts/mutants.py`, stronger probes: `scripts/extras.py` (scratch copy at `~/.claude/jobs/dc59a1e8/tmp/pr13-review-2`). Worst: `action-background-outcome` records failed commands as done; `post-hook-status` swallows the hook error; `shell-poll-completion` drops the `interrupted` update; `scanner-word-boundary` deletes 4 of 5 patterns. HIGH: `repo_eval.py:299` runs only the probe and `test_tool_validation.py`, so declared module suites never run and the regression check caught 0 of 28. HIGH: correct fixes rejected 5 of 5 tried (`partial-router-warm`, `terminal-nonseekable`, `switch-hidden-index`, `missing-session-admission`): probes match exact exception type and argv order, so a baseline would undercount. MEDIUM: `repo_eval.py:280-284` loads product code before the probe, so 4 added lines pass on unfixed code. MEDIUM: answers leak in base files (`test_phase42.py:198-201`, `README.md:311,455`, `test_secret_scanner.py:45`). LOW: all 20 are 1-5 line reverts in one file, so "hard" is nominal; `candidates.json` stale. Not checked: no agent or model run. Review covers `0b948bd` only, not Codex's uncommitted edits in `code` (merge `ed045ec`, positive paths and lazy mutants for all 33), which are unreviewed. Selection stays unfrozen, no baseline.
 - 2026-11-06 — `code_1.24` live routing, all 20 on final code: lane 20/20, category 20/20, r15 right, 0 misses (`.session/routing-8db92f265ca64ec18b78ea4921c8fbd1`). Test prints 12/20 only because it expects exit 3 on specialist lanes, which run for real here. Memory fix on real jobs: ComfyUI back to about 1 GB after media jobs, memory free 78% and swap 7.6 GB at the end; it still peaked at 19.4 GB and swap at 15.9 GB during a job. README updated. Committing fix port and memory fix to vault `reroot-usb`.
+
+- 2026-11-06T23:12:50+07:00 Re-root USB secret scan code-1.24-port: {"at": "2026-11-06T23:12:43.897009+07:00", "mode": "history-vault", "history": {"objects": 1008, "bytes": 41458670, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+- 2026-11-06 — `code_1.24` commit `8db691f` pushed to private `workstation` branch `reroot-usb`, history scan passed. Final code: 6 tests, `test_permissions`, `test_phase44`, `test_slot_isolation`, `test_cli` run after the push (results in the session report). Open for the user: PR #15 versus Codex `53916e1`; who fixes PR #13.
+
+- 2026-11-06T23:34:47+07:00 PR13 resume after usage interruption: other session created draft PR15 ec3b17e with equivalent cancellation guard; will use that existing PR, not publish duplicate 53916e1. New Claude review against 0b948bd has34 more lazy fixes/5 valid alternatives. Reproduced all34 lazy false passes and5 valid false rejects on current probes in review-before; evidence retained. Extending per-task multiple-mutant self-tests and semantic good-path controls before delivery. Existing validation01 33/33 and28 controls remain historical, not sufficient new-review proof.
+- 2026-11-06 — User read as: Claude does PR #13 work, then at 23:34 "wait til codex complete just sit there": stopped. Partial, uncommitted, not pushed: worktree `~/.claude/jobs/dc59a1e8/tmp/pr13-fix` on local branch `repo-eval-hard`, from Codex's `ed045ec` plus a copy of its uncommitted edits (patch `~/.claude/jobs/dc59a1e8/tmp/codex-pr13.patch`). In it, `repo_eval.py` only: per-run completion proof, runner bound before product code, verifier reference flag, list of lazy and correct variants, verifier home on the system temp disk, loopback, signals, `.tools` link, no nested sandbox. On a real fix 9 suites run in the sandbox (`test_phase42`, `test_cloud`, `test_slot_isolation`, `test_secret_scanner`, `test_routing`, `test_memory`, `test_nuke`, `test_tool_runtime`, `test_prompt_reuse`); `test_permissions`, `test_phase41`, `test_phase43`, `test_phase44`, `test_shell_lifecycle`, `test_router_warmth` do not. Not done: probes, variants, leaks, suites per task. `code` checkout and Codex's edits untouched; PR #15 and PR #13 unchanged.
+
+- 2026-11-06T23:37:02+07:00 PR13 harness02 PASS; validation02 running all33 tasks with67 lazy variants and5 valid alternatives. Expanded controls preserve errors/statuses, shared locks/notify, Unicode/binary stderr, all scanner families, declined terminal inputs, stream warmup and other review boundaries. Original34 false passes/5 false rejects retained; no inference or production change.
+
+- 2026-11-06T23:39:09+07:00 PR13 validation02 PASS all33;67/67 lazy mutants rejected by probes and5/5 valid alternatives pass. Updated candidates.json and per-task README/proposed8/8/4 list, trap unscored. Recorded new review limitations (verifier bypass, unexecuted module suites, base hints) explicitly; no freeze/baseline authorized. Historical false passes/rejects retained.
+
+- 2026-11-06T23:41:06+07:00 PR13 hardening committed dd356afb790065dd6db7e6e22750ea6d2edf5941 through normal pre-commit hook; product diff against main empty and all validated asset hashes match. Switching fixed code checkout temporarily to existing PR15 ec3b17e for full unmodified-root controls.
+
+- 2026-11-06T23:41:45+07:00 pr15-controls: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-06T23:41:45+07:00 pr15-controls: test_platform_system.py exit=0; raw log retained
+
+- 2026-11-06T23:41:45+07:00 pr15-controls: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-06T23:41:45+07:00 pr15-controls: test_platform_keys.py exit=0; raw log retained
+
+- 2026-11-06T23:41:45+07:00 pr15-controls: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-06T23:41:46+07:00 pr15-controls: test_platform_jobs.py exit=0; raw log retained
+
+- 2026-11-06T23:41:46+07:00 pr15-controls: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-06T23:41:46+07:00 pr15-controls: test_long_context.py exit=0; raw log retained
+
+- 2026-11-06T23:41:46+07:00 pr15-controls: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-06T23:41:55+07:00 pr15-controls: test_router_warmth.py exit=0; raw log retained
+
+- 2026-11-06T23:41:55+07:00 pr15-controls: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-06T23:41:57+07:00 pr15-controls: test_slot_isolation.py exit=0; raw log retained
+
+- 2026-11-06T23:41:57+07:00 pr15-controls: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-06T23:42:00+07:00 pr15-controls: test_phase44.py exit=0; raw log retained
+
+- 2026-11-06T23:42:00+07:00 pr15-controls: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: test_tool_runtime.py exit=0; raw log retained
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: test_benchmark.py exit=0; raw log retained
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: test_routing.py exit=0; raw log retained
+
+- 2026-11-06T23:42:01+07:00 pr15-controls: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-06T23:42:02+07:00 pr15-controls: test_permissions.py exit=0; raw log retained
+
+- 2026-11-06T23:42:02+07:00 pr15-controls: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-06T23:42:06+07:00 pr15-controls: test_phase41.py exit=0; raw log retained
+
+- 2026-11-06T23:42:06+07:00 pr15-controls: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-06T23:42:10+07:00 pr15-controls: test_phase42.py exit=0; raw log retained
+
+- 2026-11-06T23:42:10+07:00 pr15-controls: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-06T23:42:16+07:00 pr15-controls: test_phase43.py exit=0; raw log retained
+
+- 2026-11-06T23:42:16+07:00 pr15-controls: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-06T23:42:16+07:00 pr15-controls: test_tool_grammar.py exit=0; raw log retained
+
+- 2026-11-06T23:42:16+07:00 pr15-controls: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: test_shell_lifecycle.py exit=0; raw log retained
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: test_image_reader.py exit=0; raw log retained
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: test_nuke.py exit=0; raw log retained
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: test_rename.py exit=0; raw log retained
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: starting test_check.py (deterministic, no inference)
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: test_check.py exit=0; raw log retained
+
+- 2026-11-06T23:42:18+07:00 pr15-controls: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-06T23:42:19+07:00 pr15-controls: test_tool_validation.py exit=0; raw log retained
+
+- 2026-11-06T23:42:19+07:00 pr15-controls: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: test_memory.py exit=0; raw log retained
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: test_cloud_keys.py exit=0; raw log retained
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: test_backup_ops.py exit=0; raw log retained
+
+- 2026-11-06T23:42:20+07:00 pr15-controls: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-06T23:42:22+07:00 PR15 exact product ec3b17e at fixed code root: real loopback delayed-body cancellation plus original slot assertions 20/20, no root/HOME/source overrides. Raw run logs retained.
+
+- 2026-11-06T23:42:22+07:00 pr15-controls: test_secret_scanner.py exit=0; raw log retained
+
+- 2026-11-06T23:42:22+07:00 pr15-controls: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-06T23:42:22+07:00 pr15-controls: test_prompt_reuse.py exit=0; raw log retained
+
+- 2026-11-06T23:42:22+07:00 pr15-controls: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-06T23:42:23+07:00 pr15-controls: test_cloud.py exit=0; raw log retained
+
+- 2026-11-06T23:42:23+07:00 pr15-controls: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-06T23:42:23+07:00 pr15-controls: test_usb_mount.py exit=0; raw log retained
+
+- 2026-11-06T23:42:55+07:00 Re-root USB secret scan code-history-before-push: {"at": "2026-11-06T23:42:51.179162+07:00", "mode": "history-code", "history": {"objects": 767, "bytes": 10678981, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-06T23:45:36+07:00 PR13 final nuke-dry-run: {"exit": 0, "seconds": 96.70480620895978, "entries": 300799, "outside": 0, "rejected": 0}; raw log retained.
+
+- 2026-11-06T23:45:37+07:00 PR13 final check-final: {"exit": 0, "seconds": 0.31121329206507653}; raw log retained.
+
+- 2026-11-06T23:46:53+07:00 Re-root USB secret scan private-final: {"at": "2026-11-06T23:43:58.071359+07:00", "mode": "private", "artifacts": {"files": 263030, "bytes": 21464619511, "hits_by_name": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "sqlite_databases": 1773, "logical_db_hits": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "unreadable_logical_databases": 0, "live_integrity": "ok", "symlinks_skipped": 40, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-06T23:47:37+07:00 PR13/15 delivery audits PASS: full code history767 objects0findings; private263030 files/1773SQLite DBs0hits, live integrityOK; nuke300799entries0outside0rejected; check0. Pushing only repo-eval normally (no force), then updating existing draft13/15 descriptions through authenticated gh because connector write permission is unavailable. Existing PR15 product/source left unchanged; duplicate53916e1 stays local.
+
+- 2026-11-06T23:49:04+07:00 STOP at drafts for Claude: PR13 dd356af pushed normally and PR15 ec3b17e reused; GitHub verifies both OPEN/DRAFT/unmerged and bodies exactly match prepared reports. Remote main remains f98b4a2; repo-eval clean/tracking. PR13 has no product changes,67/67 lazy mutants rejected,5/5 valid alternatives,33 candidate control matrices,28 standing controls. PR15 before1/25failure+deterministic JSONDecodeError, after20/20realHTTP and28/28actual-root controls; no source overlays. Per-task results/proposed20 and unresolved verifier/module-suite/base-hint review findings in PR13. All failed evidence retained, all audits pass. No merge/inference/baseline/freeze/HF/sudo. Final record code/.session/repo-eval-review-20261106T193139/final-delivery.json.
+
+- 2026-11-07T07:14:00+07:00 PR13 round3 started at clean dd356af. User accepted20 (not frozen) and PR15 (wait for merge word). Scope: independent verifier/worker trust boundary, actual suite execution accounting, base test/doc hint removal for20 only. Keep67 lazy/5 valid alternatives and all failures; no inference/baseline/freeze/merge/HF/sudo. Evidence .session/repo-eval-isolation-20261107T071400. Read-only design review confirmed same-process result relocation is insufficient; trusted verifier will own assertions/results and never import mutable copy code.
+
+- 2026-11-07T16:54:19+07:00 PR13 isolation implementation: trusted assertions and sandboxed product worker communicate via JSON object bridge; separate sibling sandbox profiles, fixture I/O confined to candidate home, private report FD not inherited by worker, authoritative reports outside copy. First goldens exposed constructor proxy/exception transport/protected-fixture accounting bugs, retained in smoke01-05/golden01-02. All33 golden paths now pass across those runs; full final matrix pending. All67 lazy mutants and5 alternatives byte-identical to dd356af. Hidden host suites removed from active manifests with reasons; explicit probe+tool-validation checks really execute. Base docs/tests stripped only from accepted20 copies. PR15 untouched.
+
+- 2026-11-07T17:05:35+07:00 PR13 isolation matrix01:32/33 accepted, nuke-sidecar negative fixture hit overbroad symlink audit. Preserved failed run. Audit now checks only protected paths with no-follow descriptors; trusted suite accounting also counts expected-exception and mock checks. Nine adversarial routes plus fixture isolation; starting harness06 and matrix02,67 lazy/5 alternatives unchanged.
+
+- 2026-11-07T17:06:23+07:00 standing-controls-01: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: test_platform_system.py exit=0; raw log retained
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: test_platform_keys.py exit=0; raw log retained
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: test_platform_jobs.py exit=0; raw log retained
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: test_long_context.py exit=0; raw log retained
+
+- 2026-11-07T17:06:24+07:00 standing-controls-01: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-07T17:06:34+07:00 standing-controls-01: test_router_warmth.py exit=0; raw log retained
+
+- 2026-11-07T17:06:34+07:00 standing-controls-01: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-07T17:06:35+07:00 standing-controls-01: test_slot_isolation.py exit=0; raw log retained
+
+- 2026-11-07T17:06:35+07:00 standing-controls-01: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: test_phase44.py exit=0; raw log retained
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: test_tool_runtime.py exit=0; raw log retained
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: test_benchmark.py exit=0; raw log retained
+
+- 2026-11-07T17:06:39+07:00 standing-controls-01: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-07T17:06:40+07:00 standing-controls-01: test_routing.py exit=0; raw log retained
+
+- 2026-11-07T17:06:40+07:00 standing-controls-01: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-07T17:06:41+07:00 standing-controls-01: test_permissions.py exit=0; raw log retained
+
+- 2026-11-07T17:06:41+07:00 standing-controls-01: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-07T17:06:45+07:00 standing-controls-01: test_phase41.py exit=0; raw log retained
+
+- 2026-11-07T17:06:45+07:00 standing-controls-01: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-07T17:06:49+07:00 standing-controls-01: test_phase42.py exit=0; raw log retained
+
+- 2026-11-07T17:06:49+07:00 standing-controls-01: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-07T17:06:55+07:00 standing-controls-01: test_phase43.py exit=0; raw log retained
+
+- 2026-11-07T17:06:55+07:00 standing-controls-01: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-07T17:06:55+07:00 standing-controls-01: test_tool_grammar.py exit=0; raw log retained
+
+- 2026-11-07T17:06:55+07:00 standing-controls-01: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: test_shell_lifecycle.py exit=0; raw log retained
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: test_image_reader.py exit=0; raw log retained
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: test_nuke.py exit=0; raw log retained
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: test_rename.py exit=0; raw log retained
+
+- 2026-11-07T17:06:57+07:00 standing-controls-01: starting test_check.py (deterministic, no inference)
+
+- 2026-11-07T17:06:58+07:00 standing-controls-01: test_check.py exit=0; raw log retained
+
+- 2026-11-07T17:06:58+07:00 standing-controls-01: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-07T17:06:58+07:00 standing-controls-01: test_tool_validation.py exit=0; raw log retained
+
+- 2026-11-07T17:06:58+07:00 standing-controls-01: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: test_memory.py exit=0; raw log retained
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: test_cloud_keys.py exit=0; raw log retained
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: test_backup_ops.py exit=0; raw log retained
+
+- 2026-11-07T17:06:59+07:00 standing-controls-01: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-07T17:07:02+07:00 standing-controls-01: test_secret_scanner.py exit=0; raw log retained
+
+- 2026-11-07T17:07:02+07:00 standing-controls-01: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-07T17:07:02+07:00 standing-controls-01: test_prompt_reuse.py exit=0; raw log retained
+
+- 2026-11-07T17:07:02+07:00 standing-controls-01: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-07T17:07:03+07:00 standing-controls-01: test_cloud.py exit=0; raw log retained
+
+- 2026-11-07T17:07:03+07:00 standing-controls-01: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-07T17:07:03+07:00 standing-controls-01: test_usb_mount.py exit=0; raw log retained
+
+- 2026-11-07T17:10:22+07:00 PR13 matrix02 PASS:33/33 candidate controls,67/67 lazy variants rejected,5/5 alternatives pass;237 trials/474 declared suite invocations,140 task assertion sites plus37 regression sites per suite. All33 real fixes execute every collected check; no skipped/zero suites. Standing controls28/28 PASS at unchanged real USB root. Harness06 PASS; adding two focused callback/decoder guards to harness07. Product and lazy/alternative files unchanged.
+
+- 2026-11-07T17:13:40+07:00 PR13 final report prepared:9 spoofing routes,6 suite-admission negatives,fixture capability/decoder/swallowed-assertion controls all PASS (harness07). Updated repo_eval README and candidate records with per-task check/lazy counts,11 removed-suite rationale and accepted20-only test/doc redactions. No product diff against main;67/5 definitions unchanged. Final dry-run and private audit running.
+
+- 2026-11-07T17:14:54+07:00 Re-root USB secret scan private-final: {"at": "2026-11-07T17:10:57.754610+07:00", "mode": "private", "artifacts": {"files": 340103, "bytes": 23763446009, "hits_by_name": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "sqlite_databases": 2451, "logical_db_hits": {"GEMINI_API_KEY": 0, "GROQ_API_KEY": 0, "NVIDIA_API_KEY": 0, "keychain-0": 0}, "unreadable_logical_databases": 0, "live_integrity": "ok", "symlinks_skipped": 50, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-07T17:15:12+07:00 PR13 nuke dry-run exit0; two reporting failures retained (wrong key, then integer count treated as list). Recovered existing JSON without repeating nuke: {"exit": 0, "entries": 389883, "outside": 0, "rejected": 0, "wrapper_exit": 1, "recovery_parser_exit": 1, "parser_recovered_from_existing_log": true}
+
+- 2026-11-07T17:15:12+07:00 PR13 check-final: {"exit": 0, "seconds": 0.5456976670539007}; raw log retained.
+
+- 2026-11-07T17:16:13+07:00 PR13 ready to commit: final237 trial input hashes match, accepted20 hint removals verified, private auditPASS (340103 files/2451 SQLite DBs,0hits), live integrityOK. No product changes or variant edits. Committing evaluation files through normal hooks; full-history scan will precede normal push.
+
+- 2026-11-07T17:16:43+07:00 Re-root USB secret scan code-history-before-push: {"at": "2026-11-07T17:16:38.523521+07:00", "mode": "history-code", "history": {"objects": 848, "bytes": 11045957, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-07T17:17:17+07:00 PR13 committed e8c8e60e9fcfa8477c6ba54723283a6622826b9d via normal hooks. Prepared updated draft body with all per-task counts, explicit suite removals, no-freeze status and retained failures. Full-history scan in progress before push.
+
+- 2026-11-07T17:17:36+07:00 PR13 push admission:full-history 848 objects0findings, staged0; clean repo-eval e8c8e60, product diff against main empty. Pushing branch normally and updating only draft13 body via gh (connector lacks write permission). No merge/force/PR15 changes.
+
+- 2026-11-07T17:19:33+07:00 STOP at draft PR13 for Claude: e8c8e60 pushed normally; GitHub body exactly matches prepared per-task report. PR13 OPEN/DRAFT/unmerged; PR15 unchanged at ec3b17e OPEN/DRAFT/unmerged, waits for user merge word. Remote main f98b4a2 unchanged, repo-eval clean. Three findings addressed,33/33 task controls,67 lazy rejected,5 alternatives pass,9 spoof routes pass,28 standing controls pass;11 unsupported isolated suites explicitly removed and all run separately. Accepted20 not frozen; all failures retained, including reporting parser errors. No inference/baseline/freeze/merge/HF/sudo. Final record code/.session/repo-eval-isolation-20261107T071400/final-delivery.json.
+
+- 2026-11-07T17:33:40+07:00 One-target migration Part1 preflight:reroot-usb8db691f,workstation/main ancestor plus6commits; vault/workstation and code/origin URLs and .gitmodules match. PR13e8c8e60 and PR15ec3b17e OPEN/DRAFT,mainf98b4a2. Only CLAUDE.md,code gitlink and forbidden untracked .claude/worktrees changed. Other live refs recorded without moving them; ahead counts0,2,0,1,0 in user-listed order. Adding ignore protections before safe project snapshot. Evidence code/.session/workspace-freeze-20261107.
