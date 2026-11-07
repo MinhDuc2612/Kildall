@@ -1,9 +1,15 @@
 # Personal repo eval candidates (#112)
 
-Unfrozen review pool: **32 validated Kildall bug tasks** (12 easy, 11 medium,
-9 hard), plus **one separate explanation/empty-diff trap**. No model inference,
-baseline, or task freeze has run. The user accepted the 8 easy / 8 medium /
-4 hard proposal; it remains unfrozen and subject to Claude review.
+The accepted **20 tasks (8 easy / 8 medium / 4 hard) are frozen** in
+[`frozen-20.json`](frozen-20.json), following review of `e8c8e60`. The manifest
+pins their order, every task asset and the reviewed harness/runtime hashes.
+Task assets and harness code are unchanged. `final-20.json`, task manifests and
+`candidates.json` retain their original pre-freeze metadata as hashed review
+inputs; `frozen-20.json` is the authoritative freeze record.
+
+The wider review pool contains 32 bug tasks and one unscored explanation
+exercise. Only the frozen 20 enter the baseline. Historical validation reports
+below describe their state when those controls ran.
 
 `candidates.json` contains each source fix, difficulty estimate, trap, task link,
 validity result and deterministic agent results. Task issues describe symptoms;

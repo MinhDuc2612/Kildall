@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "selection_frozen": true,
+  "frozen_at": "2026-11-07T23:15:34+07:00",
+  "reviewed_commit": "e8c8e60e9fcfa8477c6ba54723283a6622826b9d",
+  "product_commit": "f98b4a2633569fd8564ced573a4882a5d8f2985e",
+  "task_count": 20,
+  "task_order": [
+    "action-background-outcome",
+    "child-background-outcome",
+    "cloud-null-calls",
+    "disabled-interval-clock",
+    "foreground-warm-lock",
+    "local-common-directory",
+    "metadata-case-alias",
+    "missing-session-admission",
+    "missing-task-outcome",
+    "oversized-hook-audit",
+    "partial-router-warm",
+    "pdf-byte-boundary",
+    "post-hook-status",
+    "remote-macos-config",
+    "scanner-word-boundary",
+    "server-port-ownership",
+    "shell-binary-output",
+    "shell-poll-completion",
+    "switch-hidden-index",
+    "terminal-nonseekable"
+  ],
+  "harness_sha256": "d1cdd7e6bbe9d8fb742e1714f368fa3287276dbb0c661ca0cc2b5d78cd43fd2e",
+  "harness_files_sha256": {
+    "repo_eval.py": "d1cdd7e6bbe9d8fb742e1714f368fa3287276dbb0c661ca0cc2b5d78cd43fd2e",
+    "repo_eval/worker.py": "791ad8c1edc1fd8f334afd276806817e8b37e52fa2c35e374ca326300b1e4070",
+    "repo_eval/verifier.py": "f0b9091cceca7c4552d2599aaa632ce53b84351a36bd5ad314f84838f15ed9b5",
+    "test_repo_eval.py": "e7057027344713eacdfd8ed7199003008b2292eeb2f8817b7c4610dd2ae4455e",
+    "repo_eval/final-20.json": "44406ee1a57efb34d539359cb5fdfd33711a21cadedfc43461c8006b14825c30"
+  },
+  "harness_bundle_sha256": "39c6967c5c9536af0cefd2a13fd328afedc57b8493ceed0f6d8589a1f38a632d",
+  "limits": {
+    "tool_calls": 40,
+    "wall_seconds": 900,
+    "verifier_seconds": 60
+  },
+  "tasks": [
+    {
+      "id": "action-background-outcome",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/action-background-outcome/.repo_eval_verify.py": "7ed14147ec629e334fb13d39f0d2b1fc2e9bc6500b136dedc711efc048c627d4",
+        "repo_eval/tasks/action-background-outcome/bug.patch": "1fd0be0d0922f6ee747ec90f08bcecacf00fc70752aa027b548349d9be436bb8",
+        "repo_eval/tasks/action-background-outcome/lazy.json": "f71813d40eeade5c0b5cf010aeebe9ae57cfadbebe29322c800fd03866a109cf",
+        "repo_eval/tasks/action-background-outcome/task.json": "a90ec9be241af8cea400dee3618cba10b3c1ce36c0929d7d83e099bfb288c4d9"
+      }
+    },
+    {
+      "id": "child-background-outcome",
+      "difficulty": "hard",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/child-background-outcome/.repo_eval_verify.py": "fa74b5378a23a316d2033fb553aacad1d513595d150e02f0f39ae3cbeb1b18e0",
+        "repo_eval/tasks/child-background-outcome/bug.patch": "2959afb44a64a81f3fa13be9995b1be49f6c9e54529a3dd331c405188e41ca87",
+        "repo_eval/tasks/child-background-outcome/lazy.json": "4f452725bf76e9b0c7ccdfa462337d0ddd7526dec3e92cef332bfb069d61317d",
+        "repo_eval/tasks/child-background-outcome/task.json": "752dcc6e7c68dadd51f808192334a94214acedebe3a6b934fdecd4be4ff8ab45"
+      }
+    },
+    {
+      "id": "cloud-null-calls",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/cloud-null-calls/.repo_eval_verify.py": "bd571e2af1e7a1d19eccbd5e767df3b690a5a007dbdf5c3bd9d9a09e2f5cf716",
+        "repo_eval/tasks/cloud-null-calls/bug.patch": "257215dcfeb23b3c6deb4d4c8201737e13b48ae14819ce4884c866f25772fd6e",
+        "repo_eval/tasks/cloud-null-calls/lazy.json": "5c2f696ee6dce43eafd7de025080ed7cac03d23b109ab7f32b44c0b9b597db33",
+        "repo_eval/tasks/cloud-null-calls/task.json": "48de54a2846fffb5facb509e4ea4dbb3aaf431c5ca48eb073601117dab4c0fa2"
+      }
+    },
+    {
+      "id": "disabled-interval-clock",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/disabled-interval-clock/.repo_eval_verify.py": "857991228db0f510357bfdd07c3d3814cabfb5faf3f4371db872fb820a57fc94",
+        "repo_eval/tasks/disabled-interval-clock/bug.patch": "72be1b344c7af577f7e1f1fc8fb10c74eebc5df7a180e89721dee979eb296bde",
+        "repo_eval/tasks/disabled-interval-clock/lazy.json": "2d09b496ef0f69c22ee6936f8dfc3750e19ed773a2eb6f28cec2712691605d5f",
+        "repo_eval/tasks/disabled-interval-clock/task.json": "ee8531d9861acf7a5c2ff871358bd169001d69577db2f32244ae6ffd9222937a"
+      }
+    },
+    {
+      "id": "foreground-warm-lock",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/foreground-warm-lock/.repo_eval_verify.py": "8fdad4212cf3cad3605c7400db77ed9d6b84d62a28c48b634949d176b1848fb3",
+        "repo_eval/tasks/foreground-warm-lock/bug.patch": "452e7ab16df326a5666f3c5252fc35c1b9c5aaec1bc72aa263b503f9691f1e72",
+        "repo_eval/tasks/foreground-warm-lock/lazy.json": "13bb38ccbaf05a8f3f53a93635dbf7b8c56df3124d85a6780f9fc09e575b42d7",
+        "repo_eval/tasks/foreground-warm-lock/task.json": "ee5995153d15dca280f08208bc777923e44bb898d4893a0f4eaf287f6d19e88b"
+      }
+    },
+    {
+      "id": "local-common-directory",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/local-common-directory/.repo_eval_verify.py": "f5ad8da1bf215ac99a4a8e4b91af9430382615cc9dbef0a6f57df2d58c21f48c",
+        "repo_eval/tasks/local-common-directory/bug.patch": "c63d3e69b8ca96e635a5c39a56ab78f7a63623213fcd1888922e6111127997a5",
+        "repo_eval/tasks/local-common-directory/lazy.json": "c5665628361ffd2c52a557077c992c92e987b8857da932c671d0646d57628854",
+        "repo_eval/tasks/local-common-directory/task.json": "8707f903d40c619df1a1401b9f8a853c48a8f07833ca8e84d9887a22aaec1da5"
+      }
+    },
+    {
+      "id": "metadata-case-alias",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/metadata-case-alias/.repo_eval_verify.py": "e60d2ca38063fb629b724ebdc7aed27f6a62e1b33def8c0f67fee77013b8acda",
+        "repo_eval/tasks/metadata-case-alias/bug.patch": "53df74add0d0dda461d95f370ff338c8f22ffe1058d979052039f5aaa882f5cf",
+        "repo_eval/tasks/metadata-case-alias/lazy.json": "d499f42b5beb45924686e0bf4f719c3d78b466b672fc0e0ee20ec44b472b71e5",
+        "repo_eval/tasks/metadata-case-alias/task.json": "b676674c054b6f868e4e3dc91801240ff351c36e36e266e79e9c7168aef882a1"
+      }
+    },
+    {
+      "id": "missing-session-admission",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/missing-session-admission/.repo_eval_verify.py": "9346a97de3d99c48294b7b181f3626f474135517ce427ea1948a99059e5f4450",
+        "repo_eval/tasks/missing-session-admission/bug.patch": "ca39fb028c5cc2b4d2575db2e9333f9a28a55289a7a404a9dbcbf18d28aafe25",
+        "repo_eval/tasks/missing-session-admission/correct.json": "bcaa61df58b3141a0317e9cd9aaf0e2a00c8cbd87fc15b25748c68fa246a5123",
+        "repo_eval/tasks/missing-session-admission/lazy.json": "1ba36044eae66b2acf6dd2070427490a9a000633910c0b0085ef95affdd6c03b",
+        "repo_eval/tasks/missing-session-admission/task.json": "be96dd3168b22450b10ff4475b151cdb5eb221629cf01ebeb701734b2382d19a"
+      }
+    },
+    {
+      "id": "missing-task-outcome",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/missing-task-outcome/.repo_eval_verify.py": "43150fc9dc4a9b88cbe2902e762f2e8faf49ebb1fa57dc9e8ec58d723dd50062",
+        "repo_eval/tasks/missing-task-outcome/bug.patch": "e2e6384f7b7d309c93e34e5f7bcb9d197049dcd4089e5cffe26f48000e01ac36",
+        "repo_eval/tasks/missing-task-outcome/lazy.json": "e8d90f2d03f495f45bf0361c316b4f3168aa340e4245b96a8c8c0a4aa85a3ecd",
+        "repo_eval/tasks/missing-task-outcome/task.json": "06e25093b6437662e52946a91cb253334e05fee14eda62e5b7e114c7f13e41b6"
+      }
+    },
+    {
+      "id": "oversized-hook-audit",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/oversized-hook-audit/.repo_eval_verify.py": "96bf62b557cf9b6498e1438967b13e0184b3af2d94eac0f52a016e95ae083e6f",
+        "repo_eval/tasks/oversized-hook-audit/bug.patch": "9a09d5393cca25ae19ad26ccee1d6b0e5d977f29c953c4e733495a2de4cf1951",
+        "repo_eval/tasks/oversized-hook-audit/lazy.json": "88d70c709a31b785924be9ee5d2740a26bbce57103582d9cf14ea68bfba5fbac",
+        "repo_eval/tasks/oversized-hook-audit/task.json": "7e17deff659f3907d1736e87a49df3bcf659df1538ada38bd0b53901899d97e9"
+      }
+    },
+    {
+      "id": "partial-router-warm",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/partial-router-warm/.repo_eval_verify.py": "50a6698aa317a593bedf8214fd9b0f54de0d44a0f559134a8b87b1a3f8f8daa6",
+        "repo_eval/tasks/partial-router-warm/bug.patch": "ce6a9e9c35ee564c3ab8898fa15b53bb7a37e0f4084d16422bab4ecbbd4aecbd",
+        "repo_eval/tasks/partial-router-warm/correct.json": "32f502cda1fc41628bb99533cafa8b7d62c1878b690b15f6cfae3289ba1c8e2e",
+        "repo_eval/tasks/partial-router-warm/lazy.json": "41e23a3b7adfddb9b5bdb57775710ba4159aaf575366c24fc2998ff374466d17",
+        "repo_eval/tasks/partial-router-warm/task.json": "85e4d3f335795899f92e31241214dc73f7336bcea9906935698716f7a0c3cfb5"
+      }
+    },
+    {
+      "id": "pdf-byte-boundary",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/pdf-byte-boundary/.repo_eval_verify.py": "7459b7d1d8b63471ec57569b487faaea007a0bcccb5b6e4a8b4e9525fd4f7e29",
+        "repo_eval/tasks/pdf-byte-boundary/bug.patch": "cd0540ad5a1f62f3b71106f721cdb8d86170833770d15548bf96c18e58246876",
+        "repo_eval/tasks/pdf-byte-boundary/lazy.json": "69518e8b29bcfaeef6091f43a78d5a56b2d59b01e9f108f34f2d35755f183657",
+        "repo_eval/tasks/pdf-byte-boundary/task.json": "9e57a558d8d0c80f3888f6e69e274a1494c856d60fa20ebfdf7205221c0fe000"
+      }
+    },
+    {
+      "id": "post-hook-status",
+      "difficulty": "hard",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/post-hook-status/.repo_eval_verify.py": "273fc8fce7c26c741b6eae19c4f4d328479f7761e1d0e92635343810eb9161c9",
+        "repo_eval/tasks/post-hook-status/bug.patch": "d5a045f08c0e872344c9d49ffb0ecc0e0ed5b42a23446612681159871b9efcc5",
+        "repo_eval/tasks/post-hook-status/lazy.json": "2f23abd05abd08f9b7dc8e217356b34b769f8bb136b2d456a6b13d25fde0d746",
+        "repo_eval/tasks/post-hook-status/task.json": "06d0596c67802c10e31dffecd3b7f66bb6faa03a3fcab10743f34cadb8587b6f"
+      }
+    },
+    {
+      "id": "remote-macos-config",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/remote-macos-config/.repo_eval_verify.py": "acd9f6f4176db66a45de1c9a7dbff05d64c3e4d7feab4fee86176b7573f2b4d8",
+        "repo_eval/tasks/remote-macos-config/bug.patch": "415c27bcd4676000f7c5f07a24bcd5b703233466fef9b97ab6adc76682c0b934",
+        "repo_eval/tasks/remote-macos-config/lazy.json": "1e33a14e9c8f9aef8f360eb4d89a2c4822245bf40cb5997ca88a26fd8c37d05a",
+        "repo_eval/tasks/remote-macos-config/task.json": "ee77c0df1deca8778f73711e76e3ebcde54cc8de2ec02dd6441807a9440637cf"
+      }
+    },
+    {
+      "id": "scanner-word-boundary",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/scanner-word-boundary/.repo_eval_verify.py": "178d607d5b03c1cfe1ff3a8ff9278d54c438bb2f741e75168e075430b2645bfe",
+        "repo_eval/tasks/scanner-word-boundary/bug.patch": "ebd52a0501908906ec85b1a970815f276adf964b31bc83abbcacd6985a4bf44a",
+        "repo_eval/tasks/scanner-word-boundary/lazy.json": "63bc862fedd530567ca9465c40127296ea9132d49abb12a27b520ad39b36ce2c",
+        "repo_eval/tasks/scanner-word-boundary/task.json": "87867889e887b7170d995883aeba0d06ce1dba8463d45516fd8a8853a3ae3e1c"
+      }
+    },
+    {
+      "id": "server-port-ownership",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/server-port-ownership/.repo_eval_verify.py": "6e4bd90f6e6972f5e46178fc2748723eb50a1d93f5723976baa5e596785a5098",
+        "repo_eval/tasks/server-port-ownership/bug.patch": "d34a1d705676b4b691e6bc5482c1a90682d00b0b0131169c0e26603125f3cf76",
+        "repo_eval/tasks/server-port-ownership/lazy.json": "6ed930c6635b7d6a9372079b6713201c69a8f1d5da02d37d04678f2a764b369d",
+        "repo_eval/tasks/server-port-ownership/task.json": "5df9a6aa2420e2c532a26120b5831c05bc2fef1b96929a31a78b029089e15522"
+      }
+    },
+    {
+      "id": "shell-binary-output",
+      "difficulty": "medium",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/shell-binary-output/.repo_eval_verify.py": "43059f07e1970e44a0c9b1f3896d10c9225b88d5ef229076acfabb74cd90936e",
+        "repo_eval/tasks/shell-binary-output/bug.patch": "6120b79ff0ba0b50db092a30a5dd544f86ca9508fbacea179b2f79a00b5b344f",
+        "repo_eval/tasks/shell-binary-output/lazy.json": "9b62144d9c414370a914ee99d483c5832435d044af79d6b6e744109f3b35a766",
+        "repo_eval/tasks/shell-binary-output/task.json": "f4f82b4f43f1ee170f12528e65f3bbe3a5c28b7c53bce450455ef82fcfb4d0f0"
+      }
+    },
+    {
+      "id": "shell-poll-completion",
+      "difficulty": "hard",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/shell-poll-completion/.repo_eval_verify.py": "50a6770c779858968de8d7a6d924729a72b08de0d98dca3690253d74d342ad41",
+        "repo_eval/tasks/shell-poll-completion/bug.patch": "90afd260ab37eb0fdd81fca996b98c6220bf931e5914d9aa945007e5d0edb6f5",
+        "repo_eval/tasks/shell-poll-completion/lazy.json": "82095d060632ed609886a5decaebd1193de8ffd0f392a67989cf76f45b0de986",
+        "repo_eval/tasks/shell-poll-completion/task.json": "93d89494ed1a83c7c4f177122a2dad60fe83dedbadd22d19077853ec6ae136ba"
+      }
+    },
+    {
+      "id": "switch-hidden-index",
+      "difficulty": "hard",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/switch-hidden-index/.repo_eval_verify.py": "b2631e29f38108d896097c1473b4d1d4bf541d83d7a50e87a96bd6d6db8fd5b9",
+        "repo_eval/tasks/switch-hidden-index/bug.patch": "256ea33d3e34c19a28ac3146b63763fbe4b980a3c01372c1c3eeb0dbeb3902a4",
+        "repo_eval/tasks/switch-hidden-index/correct.json": "d124acf73ef7b9b8e2dfd3cc53b7594b874aa3b22164943d1d79eab8ebf805d6",
+        "repo_eval/tasks/switch-hidden-index/lazy.json": "774c021292cbc66fd61a646a345b6bfee981d0c585648bb7c236d3f0205b28ee",
+        "repo_eval/tasks/switch-hidden-index/task.json": "208f8e1dcf5e61f5aff8215a9c62b67b863b08d72457c5a11c9def2a68a87603"
+      }
+    },
+    {
+      "id": "terminal-nonseekable",
+      "difficulty": "easy",
+      "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+      "assets_sha256": {
+        "repo_eval/tasks/terminal-nonseekable/.repo_eval_verify.py": "15e767c994f9313bad57fb08c404765387f2ac13e0d11e6011970e6fab04b01c",
+        "repo_eval/tasks/terminal-nonseekable/bug.patch": "1db51843b8a24e7b4510553ff6e0ac3c97750ab119737384e6691681c943e91f",
+        "repo_eval/tasks/terminal-nonseekable/correct.json": "36fe9417f913a1131f5b1d32397db8df10c526c3db3051dbcf21dc29d3986e6d",
+        "repo_eval/tasks/terminal-nonseekable/lazy.json": "4ac90954656f6b647a04390ca888d1bb9469d10846e2b358807afcb096d70d06",
+        "repo_eval/tasks/terminal-nonseekable/task.json": "d7fa32b00e801c012cbbfa1d1a28b9eef8e1a9c8592085489a81e5b1ed8cbf94"
+      }
+    }
+  ]
+}
