@@ -4393,3 +4393,199 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-07T23:21:39+07:00 Part2 code push admission:full-history858objects,exact/pattern/staged0; clean repo-eval5402780. Pushing only repo-eval normally; next update draftPR13 with freeze/admission report. No main/PR15 changes.
 
 - 2026-11-07T23:23:17+07:00 Part2 delivery verified:repo-eval5402780 pushed normally after858-object full-history scan0findings; draftPR13 body exactly matches freeze/admission/per-task report. Freeze3d9b4a6; run1 pressure2,swap12515016704bytes>3000000000,ports8123/8124/8223/8224free; stopped before inference. Both20-task runs NOT RUN,0calls,no measured wall time/pass totals/difference. PR15ec3b17e unchanged/unmerged,mainf98b4a2unchanged. No product/task/harness changes, no other-session process stopped, no merge/HF/sudo/paid API. Final vault log/submodule commit and full-history audit/normal workspace push follow; completion SHA/scan counts are retained in code/.session/workspace-freeze-20261107/final-delivery.json.
+
+- 2026-11-08T18:19:39+07:00 PR13 baseline-only attempt authorized. Verified remote PR13 OPEN/DRAFT head5402780 and clean local repo-eval5402780; freeze3d9b4a6 manifest byte-identical. No source/task changes. Evidence .session/repo-eval-baseline-20261108-lexz0qi5; checking run1 admission once before inference, same normal/3GB/four-port/no-other-model limits.
+
+- 2026-11-08T18:19:40+07:00 Part2 baseline1 admission: {"run": 1, "at": "2026-11-08T18:19:40+07:00", "pressure": 1, "swap_raw": "total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)", "swap_used_bytes": 0, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true, "8223": true, "8224": true}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-08T18:30:08+07:00 PR13 baseline collector prepared only under ignored evidence, SHA256 b40afe7c6e1121e42d0dc2d5967928f25eb54e2f9c44351349ca68d4e33be54b. Read-only agent reviewed product defaults, timer/cancellation and owned runtime cleanup. Stub controls pass (pass/refusal/40-call cap), sampling matches stream_reply exactly; frozen hashes unchanged. Fresh empty memory/history, unchanged BASE_TOOLS, every action through Trial.action, same40calls/900s. Run1 will reconfirm admission immediately before default startup; no custom warmups or model test calls.
+
+- 2026-11-08T18:30:09+07:00 Part2 baseline1 admission: {"run": 1, "at": "2026-11-08T18:30:09+07:00", "pressure": 1, "swap_raw": "total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)", "swap_used_bytes": 0, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true, "8223": true, "8224": true}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-08T18:30:09+07:00 PR13 baseline: run1 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-08T18:31:19+07:00 PR13 baseline: run1 ready in 70.545s; starting frozen20 in order.
+
+- 2026-11-08T18:31:19+07:00 PR13 baseline: run1 starting action-background-outcome
+
+- 2026-11-08T18:31:28+07:00 PR13 baseline: run1 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 8.143046665999464, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:31:28+07:00 PR13 baseline: run1 starting child-background-outcome
+
+- 2026-11-08T18:31:35+07:00 PR13 baseline: run1 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 7.638610875000268, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:31:35+07:00 PR13 baseline: run1 starting cloud-null-calls
+
+- 2026-11-08T18:31:50+07:00 PR13 baseline: run1 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 2, "wall_s": 14.650650084000517, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:31:50+07:00 PR13 baseline: run1 starting disabled-interval-clock
+
+- 2026-11-08T18:31:58+07:00 PR13 baseline: run1 {"task": "disabled-interval-clock", "status": "FAIL", "tool_calls": 1, "wall_s": 7.594357375000072, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:31:58+07:00 PR13 baseline: run1 starting foreground-warm-lock
+
+- 2026-11-08T18:32:05+07:00 PR13 baseline: run1 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 1, "wall_s": 7.4973344589998305, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:05+07:00 PR13 baseline: run1 starting local-common-directory
+
+- 2026-11-08T18:32:13+07:00 PR13 baseline: run1 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 1, "wall_s": 7.444865458000095, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:13+07:00 PR13 baseline: run1 starting metadata-case-alias
+
+- 2026-11-08T18:32:21+07:00 PR13 baseline: run1 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 1, "wall_s": 7.5699503750001895, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:21+07:00 PR13 baseline: run1 starting missing-session-admission
+
+- 2026-11-08T18:32:28+07:00 PR13 baseline: run1 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 1, "wall_s": 7.592542874999708, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:28+07:00 PR13 baseline: run1 starting missing-task-outcome
+
+- 2026-11-08T18:32:36+07:00 PR13 baseline: run1 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 7.609141916000226, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:36+07:00 PR13 baseline: run1 starting oversized-hook-audit
+
+- 2026-11-08T18:32:44+07:00 PR13 baseline: run1 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 1, "wall_s": 7.639013667000654, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:44+07:00 PR13 baseline: run1 starting partial-router-warm
+
+- 2026-11-08T18:32:52+07:00 PR13 baseline: run1 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 1, "wall_s": 7.678078625000126, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:52+07:00 PR13 baseline: run1 starting pdf-byte-boundary
+
+- 2026-11-08T18:32:59+07:00 PR13 baseline: run1 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 1, "wall_s": 7.695597624999209, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:32:59+07:00 PR13 baseline: run1 starting post-hook-status
+
+- 2026-11-08T18:33:07+07:00 PR13 baseline: run1 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 1, "wall_s": 7.785497832999681, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:07+07:00 PR13 baseline: run1 starting remote-macos-config
+
+- 2026-11-08T18:33:15+07:00 PR13 baseline: run1 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 1, "wall_s": 7.779060832999676, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:15+07:00 PR13 baseline: run1 starting scanner-word-boundary
+
+- 2026-11-08T18:33:23+07:00 PR13 baseline: run1 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 1, "wall_s": 7.786622833000365, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:23+07:00 PR13 baseline: run1 starting server-port-ownership
+
+- 2026-11-08T18:33:31+07:00 PR13 baseline: run1 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 1, "wall_s": 7.853410540999903, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:31+07:00 PR13 baseline: run1 starting shell-binary-output
+
+- 2026-11-08T18:33:39+07:00 PR13 baseline: run1 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 1, "wall_s": 7.771428000000014, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:39+07:00 PR13 baseline: run1 starting shell-poll-completion
+
+- 2026-11-08T18:33:47+07:00 PR13 baseline: run1 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 1, "wall_s": 8.078587375000097, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:47+07:00 PR13 baseline: run1 starting switch-hidden-index
+
+- 2026-11-08T18:33:55+07:00 PR13 baseline: run1 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 1, "wall_s": 7.842835084000399, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:33:55+07:00 PR13 baseline: run1 starting terminal-nonseekable
+
+- 2026-11-08T18:34:07+07:00 PR13 baseline: run1 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 3, "wall_s": 12.078688334000617, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:34:08+07:00 PR13 baseline: run1 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-08T18:34:54+07:00 Part2 baseline2 admission: {"run": 2, "at": "2026-11-08T18:34:54+07:00", "pressure": 1, "swap_raw": "total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)", "swap_used_bytes": 0, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true, "8223": true, "8224": true}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-08T18:34:54+07:00 PR13 baseline: run2 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-08T18:35:16+07:00 PR13 baseline: run2 ready in 22.264s; starting frozen20 in order.
+
+- 2026-11-08T18:35:16+07:00 PR13 baseline: run2 starting action-background-outcome
+
+- 2026-11-08T18:35:24+07:00 PR13 baseline: run2 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 7.597797833000186, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:35:24+07:00 PR13 baseline: run2 starting child-background-outcome
+
+- 2026-11-08T18:35:32+07:00 PR13 baseline: run2 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 7.673573582999779, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:35:32+07:00 PR13 baseline: run2 starting cloud-null-calls
+
+- 2026-11-08T18:35:47+07:00 PR13 baseline: run2 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 2, "wall_s": 15.033797875000346, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:35:47+07:00 PR13 baseline: run2 starting disabled-interval-clock
+
+- 2026-11-08T18:35:55+07:00 PR13 baseline: run2 {"task": "disabled-interval-clock", "status": "FAIL", "tool_calls": 1, "wall_s": 7.8557767920001424, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:35:55+07:00 PR13 baseline: run2 starting foreground-warm-lock
+
+- 2026-11-08T18:36:03+07:00 PR13 baseline: run2 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 1, "wall_s": 7.806294166000043, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:03+07:00 PR13 baseline: run2 starting local-common-directory
+
+- 2026-11-08T18:36:11+07:00 PR13 baseline: run2 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 1, "wall_s": 7.785323790999428, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:11+07:00 PR13 baseline: run2 starting metadata-case-alias
+
+- 2026-11-08T18:36:18+07:00 PR13 baseline: run2 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 1, "wall_s": 7.815537124999537, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:18+07:00 PR13 baseline: run2 starting missing-session-admission
+
+- 2026-11-08T18:36:27+07:00 PR13 baseline: run2 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 1, "wall_s": 7.983745165999608, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:27+07:00 PR13 baseline: run2 starting missing-task-outcome
+
+- 2026-11-08T18:36:35+07:00 PR13 baseline: run2 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 1, "wall_s": 7.8457720410006, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:35+07:00 PR13 baseline: run2 starting oversized-hook-audit
+
+- 2026-11-08T18:36:43+07:00 PR13 baseline: run2 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 1, "wall_s": 7.920898624999609, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:43+07:00 PR13 baseline: run2 starting partial-router-warm
+
+- 2026-11-08T18:36:51+07:00 PR13 baseline: run2 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 1, "wall_s": 7.918414916999609, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:51+07:00 PR13 baseline: run2 starting pdf-byte-boundary
+
+- 2026-11-08T18:36:59+07:00 PR13 baseline: run2 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 1, "wall_s": 7.954137541999444, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:36:59+07:00 PR13 baseline: run2 starting post-hook-status
+
+- 2026-11-08T18:37:07+07:00 PR13 baseline: run2 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 1, "wall_s": 7.931625750000421, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:07+07:00 PR13 baseline: run2 starting remote-macos-config
+
+- 2026-11-08T18:37:15+07:00 PR13 baseline: run2 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 1, "wall_s": 7.910212916000091, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:15+07:00 PR13 baseline: run2 starting scanner-word-boundary
+
+- 2026-11-08T18:37:23+07:00 PR13 baseline: run2 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 1, "wall_s": 7.86130704200059, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:23+07:00 PR13 baseline: run2 starting server-port-ownership
+
+- 2026-11-08T18:37:31+07:00 PR13 baseline: run2 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 1, "wall_s": 7.891229374999966, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:31+07:00 PR13 baseline: run2 starting shell-binary-output
+
+- 2026-11-08T18:37:39+07:00 PR13 baseline: run2 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 1, "wall_s": 7.904670124999939, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:39+07:00 PR13 baseline: run2 starting shell-poll-completion
+
+- 2026-11-08T18:37:47+07:00 PR13 baseline: run2 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 1, "wall_s": 7.871431000000484, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:47+07:00 PR13 baseline: run2 starting switch-hidden-index
+
+- 2026-11-08T18:37:55+07:00 PR13 baseline: run2 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 1, "wall_s": 7.942201750000095, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:37:55+07:00 PR13 baseline: run2 starting terminal-nonseekable
+
+- 2026-11-08T18:38:07+07:00 PR13 baseline: run2 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 3, "wall_s": 12.197865999999522, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-08T18:38:07+07:00 PR13 baseline: run2 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-08T18:38:43+07:00 PR13 baseline reporting: retained an AssertionError in the post-run evidence audit (report-check-01-failure.json); inspecting verifier execution details without changing or repeating any model task.
+
+- 2026-11-08T18:40:37+07:00 PR13 baseline completed: both full20 runs 0 pass/20 fail, 23 tool calls each; task wall 165.729321s / 168.701613s (run2-run1 +2.972293s); run wall 238.563827s / 193.024840s. All40 ContextOverflow at unchanged4096 context, no task-copy edits. Every regression suite completed37 checks; three defect probes per run raised before first assertion and remain FAIL. Report audit01 failure retained; read-only audit02 passed with89 frozen hashes and driver unchanged, all owned model PIDs gone. Updated repo_eval/BASELINE.md and README only; preserving old admission failure.
+
+- 2026-11-09T06:03:07+07:00 PR13 baseline publication resumed: remote draft head reverified5402780, local source unchanged; only BASELINE.md and README.md differ. Retained a second report-only assertion failure (report-check-02-failure.json): actual verifier failures are {"AssertionError": 32, "ValueError": 2, "KeyError": 2, "PermissionError": 2, "UnsupportedOperation": 2}; terminal-nonseekable raised UnsupportedOperation. Documentation corrected from recorded evidence; no inference or verification rerun. Preparing docs-only commit and full-history scans before normal pushes.
+
+- 2026-11-09T06:03:38+07:00 PR13 docs-only commit c752541d384215afaaf67f40bd7e97ab1de2b06e: BASELINE.md and README.md record both20-task runs and all failures; no task, harness or product edits. Starting full-history code secret audit before normal repo-eval push.
+
+- 2026-11-09T06:03:43+07:00 Re-root USB secret scan code-history-before-push: {"at": "2026-11-09T06:03:38.142962+07:00", "mode": "history-code", "history": {"objects": 863, "bytes": 11136650, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-09T06:05:07+07:00 PR13 normal push completed: repo-eval5402780 -> c752541d384215afaaf67f40bd7e97ab1de2b06e. Full code-history scan:863 objects,11136650 bytes,0 exact/pattern findings; staged scans code0/vault0. Updating the draft PR body/title with both full baseline tables via authenticated gh (connector write access previously denied).
+
+- 2026-11-09T06:06:28+07:00 PR13 delivery verified: draft/open/unmerged at c752541d384215afaaf67f40bd7e97ab1de2b06e; GitHub body matches the local per-task/totals report and title now names the frozen harness/baseline. PR15 remains draft/open/unmerged at ec3b17e387f55743cea108ce197c210ca41c26e8, main unchanged f98b4a2633569fd8564ced573a4882a5d8f2985e. Preparing the vault log plus code gitlink commit; next steps are full reachable-history exact-value/pattern/forbidden-path/50MB audit, normal reroot-usb:workspace push only on zero findings, and remote verification. Final audit counts and push/verification outcome are retained in code/.session/repo-eval-baseline-20261108-lexz0qi5/vault-scan-final.json and final-delivery.json. No further inference, task changes or product changes; stop at draft PR13 for Claude review.
