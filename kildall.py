@@ -164,6 +164,8 @@ def _json_request(endpoint, body, timeout, *, cancel=None):
         None if body is None else json.dumps(body).encode(), {"Content-Type": "application/json"})
     with (cancel or _OPENER).open(request, timeout=timeout) as response:
         data = response.read(2_000_001)
+    if cancel:
+        cancel.check()  # cancel() shuts the socket, so a read in flight can return no bytes.
     if len(data) > 2_000_000:
         raise ValueError("Oversized server response")
     result = strict_json(data)
