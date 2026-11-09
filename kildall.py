@@ -509,10 +509,38 @@ class ContextOverflow(ValueError):
         self.messages = messages
 
 
+def trim_tool_result(content):
+    """Drop complete result items, keeping JSON envelopes and text lines intact."""
+    def trim(value):
+        if isinstance(value, dict):
+            for key in sorted(value, key=lambda key: len(json.dumps(value[key])), reverse=True):
+                reduced, dropped = trim(value[key])
+                if dropped:
+                    result = dict(value, **{key: reduced})
+                    if 'truncated' in result:
+                        result['truncated'] = True
+                    return result, dropped
+        elif isinstance(value, (list, str)):
+            items = value.splitlines(keepends=True) if isinstance(value, str) else value
+            kept = len(items) // 2
+            return (''.join(items[:kept]) if isinstance(value, str) else items[:kept]), len(items) - kept
+        return value, 0
+
+    try:
+        value = json.loads(content)
+    except ValueError:
+        return trim(content)
+    reduced, dropped = trim(value)
+    return json.dumps(reduced), dropped
+
+
 def fit_messages(config, system, memory_text, previous, current, *, tools=None, cancel=None):
     tools = BASE_TOOLS if tools is None else tools
     transport = {'cancel': cancel} if cancel is not None else {}
     previous = list(previous)
+    current = [dict(message) for message in current]
+    results = {i: (message['content'], 0) for i, message in enumerate(current)
+               if message.get('role') == 'tool' and isinstance(message.get('content'), str)}
     while True:
         latest = [dict(message) for message in current]
         if not latest or latest[0].get('role') != 'user' or not isinstance(latest[0].get('content'), str):
@@ -531,7 +559,16 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
         elif memory_text:
             memory_text = memory_text[:len(memory_text) // 2]
         else:
-            raise ContextOverflow(messages, config['runtime']['context_size'])
+            for i in sorted(results, key=lambda i: len(results[i][0]), reverse=True):
+                content, omitted = results[i]
+                reduced, dropped = trim_tool_result(content)
+                if dropped:
+                    omitted += dropped
+                    results[i] = reduced, omitted
+                    current[i]['content'] = reduced + f'\n{omitted} items dropped; narrow the pattern.'
+                    break
+            else:
+                raise ContextOverflow(messages, config['runtime']['context_size'])
 
 
 def stream_reply(config, messages, task, *, tools=None):

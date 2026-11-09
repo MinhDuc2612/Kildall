@@ -46,7 +46,7 @@ def execute(operation, args, project):
                 relative = candidate.relative_to(path).as_posix()
                 pattern = args['pattern']
                 if Path(relative).match(pattern) or (pattern.startswith('**/') and fnmatch.fnmatchcase(relative, pattern[3:])):
-                    result.append(str(candidate))
+                    result.append(os.path.relpath(candidate, project))
                 if len(result) == 200 or scanned == 10000:
                     return dict(paths=result, truncated=True)
         return dict(paths=result, truncated=False)
@@ -54,7 +54,7 @@ def execute(operation, args, project):
         argv = [system().executable('rg'), '--json', '--max-count', '200', '--max-filesize', '16M']
         if args.get('file_type'):
             argv += ['--type', args['file_type']]
-        argv += ['--', args['pattern'], str(path)]
+        argv += ['--', args['pattern'], os.path.relpath(path, project)]
         result = run_bounded(argv, project, 10, limit=8192)
         if result['exit_code'] not in (0, 1) or result['timed_out']:
             raise OSError(f"grep failed ({result['exit_code']}): {result['stderr']}")
