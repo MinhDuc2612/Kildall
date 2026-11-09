@@ -52,7 +52,7 @@ def large_result():
     result = json.loads(content)
     assert result['paths'] and result['paths'] == paths[:len(result['paths'])]
     assert result['truncated'] is True
-    assert note == f"{len(paths)-len(result['paths'])} items dropped; narrow the pattern."
+    assert note == f"{len(paths)-len(result['paths'])} items dropped; narrow the request."
     assert len(json.dumps(fitted).encode()) + 512 + 32 <= config['runtime']['context_size'] == 4096
     assert current == original and fitted[-1]['tool_call_id'] == 'find'
     assert fitted[-2] == current[-2]
@@ -62,6 +62,28 @@ def large_result():
     assert count == 2 and json.loads(reduced)['result'] == dict(stdout='one\ntwo\n', exit_code=0)
     reduced, count = kildall.trim_tool_result(json.dumps(dict(encoding='base64', data='YWJj'*100)))
     assert count == 1 and json.loads(reduced)['data'] == ''
+
+
+def memory_before_tool_result():
+    config = kildall.settings()
+    recalled = 'The release coordinator is Imani Tran. ' * 12
+    paths = [f'{i:03d}-' + 'x'*100 + '.py' for i in range(200)]
+    current = [dict(role='user', content='Find Python files for the release coordinator.'),
+               dict(role='assistant', content='', tool_calls=[dict(id='find', type='function',
+                    function=dict(name='glob_files', arguments='{"path":".","pattern":"*.py"}'))]),
+               dict(role='tool', tool_call_id='find', content=json.dumps(dict(paths=paths)))]
+    original = copy.deepcopy(current)
+    previous = [[dict(role='user', content='Old turn. ' * 500)]]
+    with patch.object(kildall, 'json_request', side_effect=request):
+        fitted = kildall.fit_messages(config, kildall.system_prompt('.'), recalled, previous, current)
+    assert len(fitted) == 4  # Previous turns go first; recalled memory remains complete.
+    assert fitted[1]['content'] == current[0]['content'] + '\n\n<memory>\n' + recalled + '\n</memory>'
+    content, note = fitted[-1]['content'].rsplit('\n', 1)
+    kept = json.loads(content)['paths']
+    assert 0 < len(kept) < len(paths) and kept == paths[:len(kept)]
+    assert note == f'{len(paths)-len(kept)} items dropped; narrow the request.'
+    assert len(json.dumps(fitted).encode()) + 544 <= config['runtime']['context_size'] == 4096
+    assert current == original
 
 
 def turn_completes():
@@ -83,7 +105,7 @@ def turn_completes():
             if len(seen) == 1:
                 return dict(role='assistant', content='', tool_calls=[dict(id='find', type='function',
                     function=dict(name='glob_files', arguments='{"path":".","pattern":"*.py"}'))])
-            assert re.search(r'\n\d+ items dropped; narrow the pattern\.$', messages[-1]['content'])
+            assert re.search(r'\n\d+ items dropped; narrow the request\.$', messages[-1]['content'])
             assert len(json.dumps(messages).encode()) + 544 <= 4096
             return dict(role='assistant', content='I can narrow the pattern.')
         with patch.object(kildall, 'ensure_runtime'), \
@@ -99,6 +121,6 @@ def turn_completes():
 
 
 if __name__ == '__main__':
-    for check in (relative_paths, large_result, turn_completes):
+    for check in (relative_paths, large_result, memory_before_tool_result, turn_completes):
         check()
         print('PASS:', check.__name__, flush=True)

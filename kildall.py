@@ -556,8 +556,6 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             return messages
         if previous:
             del previous[:(len(previous) + 1) // 2]
-        elif memory_text:
-            memory_text = memory_text[:len(memory_text) // 2]
         else:
             for i in sorted(results, key=lambda i: len(results[i][0]), reverse=True):
                 content, omitted = results[i]
@@ -565,10 +563,13 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
                 if dropped:
                     omitted += dropped
                     results[i] = reduced, omitted
-                    current[i]['content'] = reduced + f'\n{omitted} items dropped; narrow the pattern.'
+                    current[i]['content'] = reduced + f'\n{omitted} items dropped; narrow the request.'
                     break
             else:
-                raise ContextOverflow(messages, config['runtime']['context_size'])
+                if memory_text:
+                    memory_text = memory_text[:len(memory_text) // 2]
+                else:
+                    raise ContextOverflow(messages, config['runtime']['context_size'])
 
 
 def stream_reply(config, messages, task, *, tools=None):
