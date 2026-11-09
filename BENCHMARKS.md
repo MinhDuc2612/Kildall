@@ -2942,3 +2942,123 @@ checks, both admission snapshots, routing error and service records, socket
 cleanup diagnostic, and per-task NOT RUN report. All earlier failures remain.
 Only the user-authorized local main/vault merges were performed; product PR #16
 stays draft for Claude review. No sudo, HF sync, force push or paid API.
+
+## Admission LISTEN/reuseaddr correction — 2026-11-09
+
+**Routing passed; the next stage stopped on swap admission.** Product source remains
+`e3a219b44d436f977c2bd11741238fb84907d8c6` (accepted fit-order fix `687e409`, normal
+main `ec3b17e` merge `af596048`; the difference from that merge is documentation only).
+No product, prompt, model, flag, routing, catalog, grammar, fixture or 4,096-token
+context change. This is the one new attempt authorized after review of the
+admission harness; no gate was repeated within it.
+
+### Retained failure and harness-only correction
+
+The earlier attempt remains in `.session/tool-result-memory-priority-20261109-6nw5afsk/`:
+startup-1 at 18:02:46 passed; startup-2 at 18:03:27 failed plain port binds despite
+normal pressure, swap 1,482,686,464 bytes and no other model. The 18:06:10 diagnostic
+had no listeners or sockets. Claude's review identifies this as the same
+TIME_WAIT/plain-bind harness bug recorded on 2026-09-07. The original snapshots,
+traceback, timings and UNSCORED result are preserved, without retroactive scoring.
+
+Only the new attempt's admission helpers change:
+
+- Each port must have no LISTEN socket according to
+  `lsof -nP -a -iTCP:<port> -sTCP:LISTEN -Fpn`, and both IPv4/IPv6 binds must succeed
+  after setting `SO_REUSEADDR=1`, matching llama-server's reuse behavior.
+  A listener or an unexpected lsof error refuses admission. Bind errors retain errno.
+- After stopping owned servers, wait up to **30 seconds total** for their PIDs to exit,
+  checking each saved PID/start-time pair. This completes before restart admission
+  and before moving to another stage. No extra signal is sent; other processes stay untouched.
+- Pressure normal (1), swap ≤**3,000,000,000 bytes**, ports **8123/8124**, no other model,
+  frozen workloads, thresholds and the routing-first stop-on-failure order are unchanged.
+
+The focused harness control reproduced plain-bind EADDRINUSE after an ephemeral
+server closed; LISTEN was absent and the reuse bind passed. A live listener was
+refused. Owned-child retirement also passed. The initial control held its own
+unreaped child and failed the PID-exit assertion after 30 seconds; that test-only
+failure and original test are retained. Its correction reaps the synthetic child
+concurrently. All of this occurred before the live attempt; no live admission or
+gate was retried.
+
+Private evidence: `.session/admission-reuseaddr-20261109-ia1dawo1/`.
+The exact helper diff is `admission-fix.patch`. SHA-256:
+`admission.py` = `2bc078695685e2505b5e0fe08a0809bf3c700351adee93f41512e532a95c853a`;
+`live_gate.py` = `182405ab44c807cc198dace57013dea0375ef9cea6eecbb694188e9c96cbc721`.
+No `.session/` artifacts are committed.
+
+### One attempted gate sequence
+
+Order: routing → recall single slot and answer slots 1/2 → abstention → callable/tools
+→ CLI → hooks → 28 controls (reuse the one hooks result) → nuke → check.sh → frozen eval twice.
+
+| Admission | Time +07:00 | Pressure | Swap bytes | LISTEN absent + reuse binds, both ports | Other models | Result |
+|---|---|---|---:|---|---|---|
+| routing-startup-1 | 19:06:57 | normal (1) | 1423966208 | PASS | none | PASS |
+| routing-startup-2 | 19:07:45 | normal (1) | 2461993533 | PASS | none | PASS |
+| recall-startup-1 | 19:09:10 | normal (1) | 3387162624 | PASS | none | FAIL: swap |
+
+
+Both routing stop snapshots confirm all owned server PIDs exited. Routing scored
+**20/20 categories and 20/20 lanes**, mean **0.84313675 s**, p50 **0.804893 s**,
+p99 **1.014551 s**, **zero cold routes**, and r17 X-to-C PASS.
+
+**STOP at recall admission, 19:09:10:** swap **3.387163 GB** exceeded **3.000 GB**.
+Pressure was normal, corrected port checks both passed, and no other model was running.
+No recall question ran; no later gate or eval started. No wait for lower swap,
+no new admission snapshot, no retry and no changed limit. Owned runtimes stopped;
+all 76 tracked source hashes remained unchanged during the attempted sequence.
+
+| Gate | Required | This attempt |
+|---|---|---|
+| Routing | Category/lane 20/20; mean ≤0.906 s; zero cold | **PASS: 20/20 each, 0.84313675 s, zero cold** |
+| Recall, single slot and answer slots 1/2 | 20/20 each | **UNSCORED: swap admission failed before first question** |
+| Abstention | 20/20 | NOT RUN |
+| Callable JSON | 20/20 | NOT RUN |
+| Tools | ≥17 first pass → 20 post-retry | NOT RUN |
+| CLI | 18/18 | NOT RUN |
+| Hooks | 5/5 | NOT RUN |
+| Standing controls | 28/28 | NOT RUN |
+| Nuke dry-run | 0 outside / 0 rejected | NOT RUN |
+| check.sh | exit 0 | NOT RUN |
+
+
+### Frozen #112 eval status
+
+Freeze **3d9b4a6** is unchanged; all **89** pinned asset/harness hashes were verified.
+Both full 20-task runs are **NOT RUN** following the recall admission stop.
+
+| Task | Run 1 | Calls | Wall s | Run 2 | Calls | Wall s |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| child-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| cloud-null-calls | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| disabled-interval-clock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| foreground-warm-lock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| local-common-directory | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| metadata-case-alias | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-session-admission | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-task-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| oversized-hook-audit | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| partial-router-warm | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| pdf-byte-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| post-hook-status | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| remote-macos-config | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| scanner-word-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| server-port-ownership | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-binary-output | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-poll-completion | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| switch-hidden-index | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| terminal-nonseekable | NOT RUN | 0 | — | NOT RUN | 0 | — |
+
+
+| Total | Run 1 | Run 2 | Difference |
+|---|---:|---:|---:|
+| Tasks attempted | 0/20 | 0/20 | — |
+| Pass/fail score | NOT RUN | NOT RUN | unavailable |
+| Tool calls | 0 | 0 | — |
+| Task wall / startup / overall seconds | — | — | unavailable |
+
+The noise floor remains **unmeasured**. NOT RUN is not a failed task score.
+Earlier source/control results and every failure remain in their original reports;
+older 28/28 controls are not claimed for this attempted sequence.
