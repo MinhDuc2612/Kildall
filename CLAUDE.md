@@ -4589,3 +4589,151 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-09T06:05:07+07:00 PR13 normal push completed: repo-eval5402780 -> c752541d384215afaaf67f40bd7e97ab1de2b06e. Full code-history scan:863 objects,11136650 bytes,0 exact/pattern findings; staged scans code0/vault0. Updating the draft PR body/title with both full baseline tables via authenticated gh (connector write access previously denied).
 
 - 2026-11-09T06:06:28+07:00 PR13 delivery verified: draft/open/unmerged at c752541d384215afaaf67f40bd7e97ab1de2b06e; GitHub body matches the local per-task/totals report and title now names the frozen harness/baseline. PR15 remains draft/open/unmerged at ec3b17e387f55743cea108ce197c210ca41c26e8, main unchanged f98b4a2633569fd8564ced573a4882a5d8f2985e. Preparing the vault log plus code gitlink commit; next steps are full reachable-history exact-value/pattern/forbidden-path/50MB audit, normal reroot-usb:workspace push only on zero findings, and remote verification. Final audit counts and push/verification outcome are retained in code/.session/repo-eval-baseline-20261108-lexz0qi5/vault-scan-final.json and final-delivery.json. No further inference, task changes or product changes; stop at draft PR13 for Claude review.
+
+- 2026-11-09T06:13:34+07:00 Tool-result context slice: read standing rules, memory/lessons and prior protocol; verified main f98b4a2, repo-eval/PR13 c752541 and PR15 ec3b17e unchanged. Created isolated branch fit-tool-results from main with worktree /Volumes/ES2TB/Kildall/code/.session/tool-result-context-20261109-4ymh2kiy/source and links to installed runtime/models/venv. Read-only individual agents review common result flow and gate portability. Scope: project-relative glob/grep output and per-turn result fitting, unchanged4096/model/prompts/flags/routing/catalog/grammar/fixtures, three focused tests, predeclared one-shot gates then two frozen20 eval runs; no merge/sudo/HF/force.
+
+- 2026-11-09T06:16:25+07:00 Tool-result context implementation location: standing permission controls require the canonical USB root; detached the new pristine reference worktree and switched canonical code/ from repo-eval to fit-tool-results without moving repo-eval (still c752541) or PR15. No ROOT/HOME test overrides. File readers will return project-relative paths; fitting will reduce only copied tool output at shared request construction. Existing phase41 absolute glob expectation must follow the requested relative contract; frozen fixtures remain byte-identical.
+
+- 2026-11-09T16:15:39+07:00 Implemented relative glob/grep operands plus copied-result trimming in shared fit_messages, with item-drop/narrow-pattern note and unchanged544-token reserve. Added three focused checks; updated only phase41 glob expected path. Predeclared one-shot gates and frozen20 eval twice in /Volumes/ES2TB/Kildall/code/.session/tool-result-context-20261109-4ymh2kiy/measurement-protocol.json; source snapshot pinned before tests. All28 controls run once (hooks included), any failure blocks live/eval; no retries or changed limits. Copied historical live helpers without running them.
+
+- 2026-11-09T16:17:01+07:00 Focused development checks: relative_paths PASS; large_result PASS; turn_completes stopped before entering the turn because the new HTTP stub required body for GET /slots (TypeError). Failure retained in focused-tests.log and pre-fix test hash snapshot. Corrected only the new test stub to return idle slots; product implementation unchanged. Running only turn_completes next. Formal28/control/live gates have not started; their single-attempt protocol and limits are unchanged.
+
+- 2026-11-09T16:18:26+07:00 Focused turn_completes PASS after correcting only its HTTP stub; the product turn completed with a bounded result, final response and done outcome while the raw full result remained in audit storage. Starting all28 standing suites once on pinned candidate source, preserving all outputs; hooks5/5 counted from phase43, not rerun.
+
+- 2026-11-09T16:18:26+07:00 standing-controls: starting test_platform_system.py (deterministic, no inference)
+
+- 2026-11-09T16:18:26+07:00 standing-controls: test_platform_system.py exit=0; raw log retained
+
+- 2026-11-09T16:18:26+07:00 standing-controls: starting test_platform_keys.py (deterministic, no inference)
+
+- 2026-11-09T16:18:26+07:00 standing-controls: test_platform_keys.py exit=0; raw log retained
+
+- 2026-11-09T16:18:26+07:00 standing-controls: starting test_platform_jobs.py (deterministic, no inference)
+
+- 2026-11-09T16:18:27+07:00 standing-controls: test_platform_jobs.py exit=0; raw log retained
+
+- 2026-11-09T16:18:27+07:00 standing-controls: starting test_long_context.py (deterministic, no inference)
+
+- 2026-11-09T16:18:27+07:00 standing-controls: test_long_context.py exit=0; raw log retained
+
+- 2026-11-09T16:18:27+07:00 standing-controls: starting test_router_warmth.py (deterministic, no inference)
+
+- 2026-11-09T16:18:36+07:00 standing-controls: test_router_warmth.py exit=0; raw log retained
+
+- 2026-11-09T16:18:36+07:00 standing-controls: starting test_slot_isolation.py (deterministic, no inference)
+
+- 2026-11-09T16:18:38+07:00 standing-controls: test_slot_isolation.py exit=0; raw log retained
+
+- 2026-11-09T16:18:38+07:00 standing-controls: starting test_phase44.py (deterministic, no inference)
+
+- 2026-11-09T16:18:42+07:00 standing-controls: test_phase44.py exit=0; raw log retained
+
+- 2026-11-09T16:18:42+07:00 standing-controls: starting test_tool_runtime.py (deterministic, no inference)
+
+- 2026-11-09T16:18:42+07:00 standing-controls: test_tool_runtime.py exit=0; raw log retained
+
+- 2026-11-09T16:18:42+07:00 standing-controls: starting test_benchmark.py (deterministic, no inference)
+
+- 2026-11-09T16:18:42+07:00 standing-controls: test_benchmark.py exit=0; raw log retained
+
+- 2026-11-09T16:18:42+07:00 standing-controls: starting test_routing.py (deterministic, no inference)
+
+- 2026-11-09T16:18:42+07:00 standing-controls: test_routing.py exit=0; raw log retained
+
+- 2026-11-09T16:18:42+07:00 standing-controls: starting test_permissions.py (deterministic, no inference)
+
+- 2026-11-09T16:18:44+07:00 standing-controls: test_permissions.py exit=0; raw log retained
+
+- 2026-11-09T16:18:44+07:00 standing-controls: starting test_phase41.py (deterministic, no inference)
+
+- 2026-11-09T16:18:48+07:00 standing-controls: test_phase41.py exit=0; raw log retained
+
+- 2026-11-09T16:18:48+07:00 standing-controls: starting test_phase42.py (deterministic, no inference)
+
+- 2026-11-09T16:18:54+07:00 standing-controls: test_phase42.py exit=0; raw log retained
+
+- 2026-11-09T16:18:54+07:00 standing-controls: starting test_phase43.py (deterministic, no inference)
+
+- 2026-11-09T16:19:01+07:00 standing-controls: test_phase43.py exit=0; raw log retained
+
+- 2026-11-09T16:19:01+07:00 standing-controls: starting test_tool_grammar.py (deterministic, no inference)
+
+- 2026-11-09T16:19:01+07:00 standing-controls: test_tool_grammar.py exit=0; raw log retained
+
+- 2026-11-09T16:19:01+07:00 standing-controls: starting test_shell_lifecycle.py (deterministic, no inference)
+
+- 2026-11-09T16:19:03+07:00 standing-controls: test_shell_lifecycle.py exit=0; raw log retained
+
+- 2026-11-09T16:19:03+07:00 standing-controls: starting test_image_reader.py (deterministic, no inference)
+
+- 2026-11-09T16:19:03+07:00 standing-controls: test_image_reader.py exit=0; raw log retained
+
+- 2026-11-09T16:19:03+07:00 standing-controls: starting test_nuke.py (deterministic, no inference)
+
+- 2026-11-09T16:19:03+07:00 standing-controls: test_nuke.py exit=0; raw log retained
+
+- 2026-11-09T16:19:03+07:00 standing-controls: starting test_rename.py (deterministic, no inference)
+
+- 2026-11-09T16:19:03+07:00 standing-controls: test_rename.py exit=0; raw log retained
+
+- 2026-11-09T16:19:03+07:00 standing-controls: starting test_check.py (deterministic, no inference)
+
+- 2026-11-09T16:19:04+07:00 standing-controls: test_check.py exit=0; raw log retained
+
+- 2026-11-09T16:19:04+07:00 standing-controls: starting test_tool_validation.py (deterministic, no inference)
+
+- 2026-11-09T16:19:04+07:00 standing-controls: test_tool_validation.py exit=0; raw log retained
+
+- 2026-11-09T16:19:04+07:00 standing-controls: starting test_memory.py (deterministic, no inference)
+
+- 2026-11-09T16:19:06+07:00 standing-controls: test_memory.py exit=0; raw log retained
+
+- 2026-11-09T16:19:06+07:00 standing-controls: starting test_cloud_keys.py (deterministic, no inference)
+
+- 2026-11-09T16:19:06+07:00 standing-controls: test_cloud_keys.py exit=0; raw log retained
+
+- 2026-11-09T16:19:06+07:00 standing-controls: starting test_backup_ops.py (deterministic, no inference)
+
+- 2026-11-09T16:19:06+07:00 standing-controls: test_backup_ops.py exit=0; raw log retained
+
+- 2026-11-09T16:19:06+07:00 standing-controls: starting test_secret_scanner.py (deterministic, no inference)
+
+- 2026-11-09T16:19:08+07:00 standing-controls: test_secret_scanner.py exit=0; raw log retained
+
+- 2026-11-09T16:19:08+07:00 standing-controls: starting test_prompt_reuse.py (deterministic, no inference)
+
+- 2026-11-09T16:19:08+07:00 standing-controls: test_prompt_reuse.py exit=0; raw log retained
+
+- 2026-11-09T16:19:08+07:00 standing-controls: starting test_cloud.py (deterministic, no inference)
+
+- 2026-11-09T16:19:09+07:00 standing-controls: test_cloud.py exit=0; raw log retained
+
+- 2026-11-09T16:19:09+07:00 standing-controls: starting test_usb_mount.py (deterministic, no inference)
+
+- 2026-11-09T16:19:09+07:00 standing-controls: test_usb_mount.py exit=0; raw log retained
+
+- 2026-11-09T16:21:52+07:00 Standing controls completed28/28 on pinned candidate; phase43 hooks5/5 included once. Prepared unchanged historical routing/recall/quality workloads with read-only admission before each fresh runtime startup and CLI start; no fixture/model/prompt/limit changes. Next routing gate enforces20/20 category+lane,0cold,mean<=0.906s; a failed admission/gate stops remaining live/eval work.
+
+- 2026-11-09T16:21:54+07:00 Tool-result context: Starting routing once; no retries or changed limits.
+
+- 2026-11-09T16:21:54+07:00 Tool-result context routing-startup-1 admission: {"label": "routing-startup-1", "at": "2026-11-09T16:21:54+07:00", "pressure": 1, "swap_raw": "total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)", "swap_used_bytes": 0, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true, "8223": true, "8224": true}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-09T16:22:49+07:00 Tool-result context routing-startup-2 admission: {"label": "routing-startup-2", "at": "2026-11-09T16:22:49+07:00", "pressure": 1, "swap_raw": "total = 4096.00M  used = 3191.62M  free = 904.38M  (encrypted)", "swap_used_bytes": 3346656133, "swap_limit_bytes": 3000000000, "ports_free": {"8123": false, "8124": false, "8223": true, "8224": true}, "other_model_processes": [], "passed": false}; STOP; no model started, no retries or process stops.
+
+- USB reroot routing measurement candidate finished; owned runtimes stopped, source/frozen hashes and wired20480 verified. Summary: {"failed": true}
+
+- 2026-11-09T16:22:49+07:00 Tool-result context: routing finished: {"exit": 1, "seconds": 55.395544874991174, "passed": false}; all evidence retained.
+
+- 2026-11-09T16:25:06+07:00 STOP at routing restart admission: initial startup admitted pressure1/swap0/allfourportsfree/noothermodel; after the protocol prefix-build startup and owned shutdown, restart check found pressure1,swap3346656133bytes(3.346656GB)>3000000000,ports8123/8124 not bind-free,8223/8224 free,no model processes. No scored routing case ran. Routing cleanup completed with empty owned service state; no LISTEN on8123/8124. No retries or later gates/eval. All28 standing suites and hooks5/5 passed; source hashes unchanged. Remaining recall/abstention/callable/tools/CLI/nuke/check and both frozen20 eval runs NOT RUN. Preparing draft PR with fix and preserved admission/focused-stub failure evidence.
+
+- 2026-11-09T16:27:48+07:00 Added BENCHMARKS.md gate/admission report and all20 frozen task rows marked NOT RUN for both runs; totals/difference unavailable, real noise floor unmeasured. Verified all89 frozen hashes from3d9b4a6 without changing or executing the eval. Historical PR13 zero scores are context-overflow floor only; PR13/15 remain untouched. Preparing one candidate commit with source, three focused tests, relative-path assertion update and truthful blocked-gate report.
+
+- 2026-11-09T16:30:02+07:00 Final pre-commit inspection: exactly file_tools.py,kildall.py,new test_tool_result_context.py,relative-path test_phase41 assertion and BENCHMARKS.md differ from f98b4a2. Product source equals the qualified snapshot; only report docs changed after the stop. AST confirms system_prompt,stream_reply,context_flags,ensure_runtime unchanged. No live/standing gate rerun. Committing the candidate for draft review.
+
+- 2026-11-09T16:30:42+07:00 Candidate committed c302973b438f800d4bd80edef3b08184c693e525 on fit-tool-results from f98b4a2; full code-history scan starting before normal push and a new draft PR. Repo-eval/PR13 and PR15 are being checked read-only for unchanged heads; no review/merge action.
+
+- 2026-11-09T16:30:46+07:00 Re-root USB secret scan code-history-before-push: {"at": "2026-11-09T16:30:42.271976+07:00", "mode": "history-code", "history": {"objects": 870, "bytes": 11469545, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-09T16:33:03+07:00 Normal push completed: new remote branch fit-tool-results at c302973b438f800d4bd80edef3b08184c693e525, following zero-finding full code-history scan. No main/repo-eval/PR15 ref changed. Creating a new draft PR through authenticated gh; no merge.
+
+- 2026-11-09T16:35:37+07:00 Draft PR16 opened and verified: https://github.com/MinhDuc2612/Kildall/pull/16 at c302973b438f800d4bd80edef3b08184c693e525, draft/open/unmerged, body matches prepared report. Code full-history audit870 objects/11469545bytes/0findings; staged scans0. PR13 and PR15 heads, bodies, titles, states and draft flags verified unchanged; main remains f98b4a2. Committing CLAUDE log and code gitlink; next perform full reachable vault history exact-value/pattern/forbidden-path/50MB scan, then normal reroot-usb:workspace push only if clean. Final scan/push/remote verification evidence is code/.session/tool-result-context-20261109-4ymh2kiy/vault-scan-final.json and final-delivery.json. Live sequence remains stopped; both frozen20 evals NOT RUN. Stop at draft PR16 for Claude review; no merge/sudo/HF/force.
