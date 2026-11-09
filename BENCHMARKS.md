@@ -2847,3 +2847,98 @@ predeclared protocol, source/harness hashes, focused-test failure and correction
 all 28 logs, both admission snapshots, prefix/startup evidence, routing error and
 cleanup, and `gate-and-eval-summary.json`. All failures are retained locally.
 No further live work, changed limits, merge, sudo, HF sync, force push or paid API.
+
+
+## Tool-result memory priority, merged main — 2026-11-09
+
+Review fix `687e409` changes fitting order to **drop previous turns → trim tool
+results → halve recalled memory → ContextOverflow**. The omission note is now
+`N items dropped; narrow the request.` A new focused test combines old history,
+recalled memory and a huge search result: old history is removed, the recalled
+memory stays complete, and the tool result is shortened within the 4,096-token
+budget. Existing note assertions follow the generic wording.
+
+Main `ec3b17e` (accepted PR #15) was normally merged into `fit-tool-results` at
+**`af59604857039712879678a64740b48732dd63ed` before any checks**. No rebase or force.
+All **four focused checks passed once on that merged code**. Product source stayed
+unchanged during the live attempt; model, prompts, flags, routing, catalog,
+grammar and frozen fixtures stayed unchanged.
+
+The new predeclared order is routing → recall single/work slots → abstention →
+callable/tools → CLI → hooks → 28 standing controls → nuke → check.sh → two frozen
+evals. Hooks would run once and its result would be reused in the 28-suite count.
+Old control passes above are historical and do not qualify this merged source.
+
+**STOP at routing restart admission; no scored routing case ran.** The inherited
+routing protocol builds the prefix, stops its owned services, then starts a fresh
+runtime for the fixed cases. Both planned starts had admission snapshots:
+
+| Admission | Time (+07:00) | Pressure | Swap bytes | Ports 8123/8124 bind-free | Other models | Result |
+|---|---|---|---:|---|---|---|
+| Initial startup | 2026-11-09T18:02:46+07:00 | normal (1) | 1482686464 | yes / yes | none | PASS |
+| Planned restart | 2026-11-09T18:03:27+07:00 | normal (1) | 1482686464 | no / no | none | FAIL |
+
+Swap was **1.482686 GB**, below the unchanged **3.000 GB** limit.
+The failed checks were raw socket binds on both ports. The snapshot detected no
+model process. The owned services were stopped, and a separate cleanup diagnostic
+at 18:06:10 found no sockets/listeners on either port. That later read cannot
+establish the cause of the earlier bind failures and was not an admission retry.
+The failed snapshot is retained; no limits changed and no live gate was rerun.
+
+| Gate | Required | This merged-source attempt |
+|---|---|---|
+| Routing | 20/20 category/lane, mean ≤0.906 s, zero cold | UNSCORED: restart admission stop |
+| Recall | 20/20 single slot and each answer slot 1/2 | NOT RUN |
+| Abstention | 20/20 | NOT RUN |
+| Callable JSON | 20/20 | NOT RUN |
+| Tools | ≥17 first pass → 20 post-retry | NOT RUN |
+| CLI | 18/18 | NOT RUN |
+| Hooks | 5/5 | NOT RUN |
+| Standing controls | 28/28 | NOT RUN |
+| Nuke dry-run | 0 outside / 0 rejected | NOT RUN |
+| check.sh | exit 0 | NOT RUN |
+
+### Frozen #112 eval on the merged source
+
+Freeze `3d9b4a6c1b40cbe908cf561f77189568ed7e8662` remains unchanged. All 84 task
+asset hashes and five harness/selection hashes match the frozen commit. Both
+requested runs are **NOT RUN** after the admission stop. The noise floor remains
+**unmeasured**; the earlier PR #13 zero scores remain a context-overflow floor.
+
+| Frozen task | Run 1 | Calls | Wall s | Run 2 | Calls | Wall s |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| child-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| cloud-null-calls | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| disabled-interval-clock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| foreground-warm-lock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| local-common-directory | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| metadata-case-alias | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-session-admission | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-task-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| oversized-hook-audit | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| partial-router-warm | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| pdf-byte-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| post-hook-status | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| remote-macos-config | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| scanner-word-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| server-port-ownership | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-binary-output | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-poll-completion | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| switch-hidden-index | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| terminal-nonseekable | NOT RUN | 0 | — | NOT RUN | 0 | — |
+
+| Total | Run 1 | Run 2 | Difference |
+|---|---|---|---|
+| Tasks attempted | 0/20 | 0/20 | — |
+| Pass/fail score | NOT RUN | NOT RUN | unavailable |
+| Tool calls | 0 | 0 | — |
+| Task wall time | — | — | unavailable |
+
+NOT RUN is not a failed task score. No task timer or model tool call ran.
+Evidence: `.session/tool-result-memory-priority-20261109-6nw5afsk/`, including the
+merged-source provenance, predeclared protocol, source/helper hashes, focused
+checks, both admission snapshots, routing error and service records, socket
+cleanup diagnostic, and per-task NOT RUN report. All earlier failures remain.
+Only the user-authorized local main/vault merges were performed; product PR #16
+stays draft for Claude review. No sudo, HF sync, force push or paid API.
