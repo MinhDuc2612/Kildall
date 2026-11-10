@@ -3062,3 +3062,110 @@ Both full 20-task runs are **NOT RUN** following the recall admission stop.
 The noise floor remains **unmeasured**. NOT RUN is not a failed task score.
 Earlier source/control results and every failure remain in their original reports;
 older 28/28 controls are not claimed for this attempted sequence.
+
+
+## 2026-11-10 — PR #16 resumed qualification and frozen #112 eval
+
+Report snapshot: 2026-11-10T19:25:45+07:00. Run 1: **COMPLETED**; run 2: **COMPLETED**.
+
+Both full frozen runs finished **0/20 passed**. These remain failures dominated by context/tool budgets, with two unresolved Git-verifier discrepancies; this is **not a clean noise-floor measurement**. All qualification gates below pass. Timed product routing is carried forward, as requested.
+
+Product at pre-run docs head `09b9e28` is unchanged from accepted merged product `af596048` (fit-order fix `687e409`, normal merge of main `ec3b17e`). This report changes documentation only. No product, prompt, model, flag, routing, catalog, grammar or frozen-task changes. Context remains 4,096.
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Timed routing (inherited; not rerun) | PASS | mean 0.84313675 s <= 0.906 s; category 20/20, lane 20/20, cold 0 |
+| Frozen recall, one slot | PASS | 20/20 |
+| Recall, answer slots 1 / 2 | PASS | 20/20; 20/20 |
+| Abstention | PASS | 20/20 |
+| Callable JSON | PASS | 20/20 |
+| Tools | PASS | 17/20 first-pass -> 20/20 post-retry; 3 retries |
+| CLI | PASS | 18/18 |
+| Hooks | PASS | 5/5; confinement also passed |
+| Standing controls | PASS | 28/28; hooks result reused |
+| Nuke dry-run | PASS | 421780 entries; 0 outside; 0 rejected |
+| check.sh | PASS | exit 0 |
+
+Timed routing mean **0.84313675 s** is the user-accepted prior result and was never rerun. Quality's separate JSON-routing cases remain part of the inherited quality suite (20/20). Callable validity and exact tool arguments use the same tool-case responses.
+
+Retained first-pass tool failures: t07, t09, t12; each received the declared single retry and passed afterward.
+
+The earlier raw-bind routing-startup-2 failure remains retained. The corrected admission requires no `lsof -sTCP:LISTEN` socket and successful IPv4/IPv6 `SO_REUSEADDR` binds, and waits up to 30 seconds for owned stopped PIDs to exit. Pressure, swap and other-model limits are unchanged.
+
+Verifier setup controls 01/02 failed with `ModuleNotFoundError: No module named numpy` under the symlinked venv arrangement. Both failures remain retained. Control 03 passed after physically copying the installed venv: no-op failed, known fix passed, no model inference or download. All **89 frozen hashes** still match `3d9b4a6`.
+
+Every current admission passed: normal pressure (1), swap at or below 3,000,000,000 bytes, no LISTEN sockets on 8123/8124, successful reuse binds, and no other model process. Admission snapshots:
+
+| Scope | Label | Passed | Pressure | Swap GB (decimal) |
+|---|---|---|---:|---:|
+| Current | abstention-startup-1 | True | 1 | 2.643334266 |
+| Current | cli-stage | True | 1 | 2.601391226 |
+| Current | eval-1-startup | True | 1 | 2.559448186 |
+| Current | eval-2-startup | True | 1 | 2.666067394 |
+| Current | quality-startup-1 | True | 1 | 2.626557050 |
+| Current | recall-startup-1 | True | 1 | 1.881271173 |
+| Current | recall-startup-2 | True | 1 | 2.133327872 |
+| Historical | recall-startup-1 | False | 1 | 3.387162624 |
+| Historical | routing-startup-1 | True | 1 | 1.423966208 |
+| Historical | routing-startup-2 | True | 1 | 2.461993533 |
+| Historical | routing-startup-2 | False | 1 | 1.482686464 |
+
+Failed admission `.session/admission-reuseaddr-20261109-ia1dawo1/recall-startup-1-admission.json`: swap `total = 4096.00M  used = 3230.25M  free = 865.75M  (encrypted)` (3387162624 bytes); limit 3000000000 bytes; ports `{"8123": true, "8124": true}`.
+Top 5 memory users: not recorded in this historical admission; not reconstructed.
+
+Failed admission `.session/tool-result-memory-priority-20261109-6nw5afsk/routing-startup-2-admission.json`: swap `total = 3072.00M  used = 1414.00M  free = 1658.00M  (encrypted)` (1482686464 bytes); limit 3000000000 bytes; ports `{"8123": false, "8124": false}`.
+Top 5 memory users: not recorded in this historical admission; not reconstructed.
+
+| Frozen task | Run 1 | Calls | Seconds | Run 2 | Calls | Seconds |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | FAIL (ContextOverflow) | 30 | 391.060 | FAIL (ContextOverflow) | 30 | 412.364 |
+| child-background-outcome | FAIL (tool-cap) | 40 | 696.675 | FAIL (ContextOverflow) | 32 | 452.490 |
+| cloud-null-calls | FAIL (ContextOverflow) | 38 | 612.203 | FAIL (ContextOverflow) | 38 | 619.659 |
+| disabled-interval-clock | FAIL (ContextOverflow) | 38 | 679.108 | FAIL (ContextOverflow) | 39 | 693.510 |
+| foreground-warm-lock | FAIL (ContextOverflow) | 36 | 595.132 | FAIL (ContextOverflow) | 31 | 399.836 |
+| local-common-directory | FAIL (ContextOverflow) | 36 | 566.141 | FAIL (ContextOverflow) | 37 | 562.861 |
+| metadata-case-alias | FAIL (ContextOverflow) | 36 | 532.124 | FAIL (ValueError) | 18 | 206.088 |
+| missing-session-admission | FAIL (ContextOverflow) | 31 | 378.086 | FAIL (ContextOverflow) | 30 | 392.294 |
+| missing-task-outcome | FAIL (ContextOverflow) | 31 | 409.117 | FAIL (ContextOverflow) | 32 | 455.878 |
+| oversized-hook-audit | FAIL (ContextOverflow) | 31 | 348.899 | FAIL (ContextOverflow) | 32 | 395.979 |
+| partial-router-warm | FAIL (ContextOverflow) | 35 | 593.792 | FAIL (ContextOverflow) | 33 | 472.360 |
+| pdf-byte-boundary | FAIL (ContextOverflow) | 38 | 554.457 | FAIL (ContextOverflow) | 38 | 548.406 |
+| post-hook-status | FAIL (ContextOverflow) | 32 | 417.151 | FAIL (ContextOverflow) | 32 | 432.703 |
+| remote-macos-config | FAIL (ContextOverflow) | 31 | 361.539 | FAIL (ContextOverflow) | 31 | 338.879 |
+| scanner-word-boundary | FAIL (ContextOverflow) | 37 | 628.342 | FAIL (ContextOverflow) | 37 | 638.460 |
+| server-port-ownership | FAIL (ContextOverflow) | 32 | 403.836 | FAIL (ValueError) | 17 | 199.523 |
+| shell-binary-output | FAIL (ContextOverflow) | 37 | 583.945 | FAIL (ContextOverflow) | 34 | 436.207 |
+| shell-poll-completion | FAIL (ContextOverflow) | 31 | 434.103 | FAIL (ContextOverflow) | 30 | 356.053 |
+| switch-hidden-index | FAIL (ContextOverflow) | 34 | 471.849 | FAIL (final-answer) | 11 | 107.085 |
+| terminal-nonseekable | FAIL (ContextOverflow) | 30 | 368.961 | FAIL (ContextOverflow) | 30 | 359.097 |
+
+Each run attempted all 20 tasks once with default Lane A, the unchanged frozen sampling/prompt/tools, 40-call and 900-second task caps, and 4,096-token context. Overall time includes startup/setup and excludes shutdown. Both collectors exited 0; all owned server PIDs exited within the 30-second retirement bound.
+
+| Total | Run 1 | Run 2 | Run 2 − Run 1 |
+|---|---:|---:|---:|
+| Completed tasks | 20 | 20 | 0 |
+| Passed | 0 | 0 | +0 |
+| Failed | 20 | 20 | +0 |
+| Tool calls | 684 | 612 | -72 |
+| Task wall seconds | 10026.521 | 8479.732 | -1546.789 |
+| Startup seconds | 44.882 | 33.409 | -11.472 |
+| Overall seconds | 10074.159 | 8515.891 | -1558.268 |
+
+Differences are calculated from raw run totals, never from summed rounded task rows. These timings describe failed attempts with differing stop reasons, not successful-repair throughput.
+
+Run 1 failure stop reasons (20 failures): ContextOverflow × 19, tool-cap × 1.
+Run 2 failure stop reasons (20 failures): ContextOverflow × 17, ValueError × 2, final-answer × 1.
+
+Final read-only audit (`final-eval-audit.json`, with earlier `run-1-audit.md` and `run-2-partial-audit.md` retained):
+
+- Both runs' final grading started all 40 suites, collected 829 checks and executed 759. Across all model-requested and final verification invocations, run 1 retained 60 suite reports and run 2 retained 54. Every suite collected nonzero checks; none skipped or timed out. Every regression suite passed 37/37. Hidden suites stop on their failing assertion/exception; this is not a claim that all collected assertions executed.
+- **Grading caveat in both runs:** `local-common-directory` and `remote-macos-config` raise Git-config exit 128. Prior identical-hash PR #13 controls and Nov 8 baseline records instead show the expected task failures, with known fixes passing the earlier controls. The new discrepancy's cause is unresolved: captured Git stderr is absent from the frozen exception transport. The private ancestor gitfile is a possible cause, not a confirmed one. No reproduction or environment correction was attempted during either run; neither affected grade is presented as an infrastructure-independent bug verdict.
+- Run 2's `metadata-case-alias` and `server-port-ownership` errors are `ValueError: Truncated tool call; no execution`. Their tracebacks are retained; the truncated response payload was not saved because the request raised before the baseline collector received it. `switch-hidden-index` returned a final answer without editing source and failed its hidden assertion.
+- Run 1 made two accepted, incorrect edits to the copied `permissions.py` for `local-common-directory`; its other edit attempt failed an exact-string match. Run 2 made no edits; its `local-common-directory` regex error is retained. The first-three run-1 audit still records 108 approved reads and no edits/errors for that limited sample.
+- All 76 source hashes matched through both runs and all 89 frozen hashes match `3d9b4a6`. Product, model, sampling, prompts, flags, grammar, catalog and frozen assets were not changed. The two runs use separate private database/runtime paths.
+
+Earlier failures remain in their original evidence and BENCHMARKS entries, including the `c302973` swap stop, prior test-stub failure, raw-bind stop, initial synthetic-child retirement-control failure, and the later 3.387162624 GB recall-admission stop. Pending log 6 was moved verbatim into the vault Change Log and its original retained privately.
+
+Every task failure, traceback, verifier outcome and setup failure remains in the private evidence. `report-summary.json` contains per-task failure records/counts; `final-eval-audit.json` adds the verifier caveats and suite accounting. Evidence root: `.session/recall-resume-20261110-o5slksil`.
+
+PR #16 stays draft for Claude review. No source or task changes, gate reruns, merge, sudo, HF sync, paid API or force push.
