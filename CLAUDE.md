@@ -303,6 +303,11 @@ landscape moves fast (Qwen shipped 3 versions in 6 months).
 
 # Change Log
 
+- **2026-11-10T17:03:22+07:00 — PR #16 frozen eval run 1 complete; run 2 requested next.** Unchanged freeze `3d9b4a6` and product `af59604` (docs HEAD `09b9e28`): 20/20 tasks attempted, 0 passed, 684 tool calls, task wall 10026.520837627031 s, startup 44.88153141600196 s, overall 10074.158884625009 s (excludes shutdown). Runner exit 0, owned server PIDs 38782/39689 exited within the 30 s bound; all failures and source guards retained at `code/.session/recall-resume-20261110-o5slksil/`. Starting the second full run once, subject to fresh unchanged admission; completed gates and timed routing will not be rerun.
+
+
+- 2026-11-10 — Claude reviewed PR #16 run (fit-tool-results 09b9e28, main ec3b17e, workspace 4fc0256; ls-remote verified). Routing PASS 20/20, mean 0.843137 s. Recall stop: swap rose 1.42 GB (19:06:57) -> 2.46 GB (19:07:45) -> 3.39 GB (19:09:10) while Chrome stayed open (6.0-7.7 GB RSS). Now 06:12: swap 1.83 GB, pressure normal, Chrome still running 6.01 GB. Next: quit Chrome for the whole run; Codex resumes from recall, keeping the routing pass.
+
 - 2026-11-09 — Claude reviewed PR #16 update (fit-tool-results e3a219b, main ec3b17e, workspace 5a2cf43; ls-remote verified). Order fix correct: previous turns, then tool results, then memory, then ContextOverflow. Gate stop is a harness bug: routing-startup-1 admission passed 18:02:46 with ports free; startup-2 at 18:03:27 (41 s after Kildall's own servers stopped for the restart step) found 8123/8124 not bindable; read-only diagnostic at 18:06:10 showed no listener and no sockets. Same TIME_WAIT/plain-bind footgun as 2026-09-07. Fix: port check = no LISTEN socket plus SO_REUSEADDR bind, after the owned server PIDs have exited.
 
 - 2026-11-07 — Claude verified Codex Part 1/2: Kildall workspace = 7d8c3a1, main = f98b4a2, repo-eval/PR #13 = 5402780 (draft, OPEN). Baseline not run: swap 11.24 GB used of 12.29 GB, free 16 %, uptime 9 d 23 h; top RSS only claude bg-spare and Chrome, no model running. Next: user reboots, then Codex reruns Part 2 baseline only (freeze 3d9b4a6 stays).
@@ -4825,3 +4830,391 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-09T19:13:39+07:00 Normal fit-tool-results push completed at 09b9e2845cadaa897a1636c3d477713ec1f12b50 after full code-history scan883objects/0findings and staged scans0. Updating only draft PR16 body from retained report; no source change or other PR/main update.
 
 - 2026-11-09T19:14:40+07:00 Verified draft PR16 at 09b9e2845cadaa897a1636c3d477713ec1f12b50: OPEN/draft/unmerged and body matches retained report. Remote main ec3b17e, PR13 c752541 and already-merged PR15 ec3b17e remain unchanged. The accepted product stayed unchanged; only BENCHMARKS changed. Pending-5 lines verified in Change Log. Committing this log and code gitlink only; final strict full reachable-history exact-values/patterns/forbidden-paths/50MB scan must pass before normal reroot-usb:workspace push. Final audit and remote verification retained under code/.session/admission-reuseaddr-20261109-ia1dawo1/vault-scan-final.json and final-delivery.json. No further admission or gate attempt; stopped at draft PR16 for Claude review.
+
+- 2026-11-10T06:20:57+07:00 PR16 resume authorized from recall on unchanged product09b9e28/af596048. User accepts routing20/20 mean0.84313675s from .session/admission-reuseaddr-20261109-ia1dawo1; do not rerun routing. Remaining predeclared gates then frozen3d9b4a6 eval twice, unchanged limits and LISTEN/SO_REUSEADDR/PID-retirement admission. On admission failure stop and capture swap plus top5 memory users by RSS; no other-session process stops. New evidence .session/recall-resume-20261110-o5slksil. Moved pending-6 lines verbatim into Change Log; original preserved in evidence.
+
+- 2026-11-10T06:21:13+07:00 Tool-result context: Starting recall once; no retries or changed limits.
+
+- 2026-11-10 USB reroot local regression: USB reroot v38 recall starting: untouched frozen harness on one slot; same exact request bodies then replayed on production answer slots1-2. Only historical vault-path normalization permitted.
+
+- 2026-11-10T06:21:13+07:00 Tool-result context recall-startup-1 admission: {"label": "recall-startup-1", "at": "2026-11-10T06:21:13+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 1794.12M  free = 1277.88M  (encrypted)", "swap_used_bytes": 1881271173, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T06:23:00+07:00 Tool-result context: Owned server retirement: {"pids": [97271, 97699], "remaining": [], "seconds": 0.0043782920110970736, "limit_seconds": 30, "passed": true}
+
+- 2026-11-10T06:23:00+07:00 Tool-result context recall-startup-2 admission: {"label": "recall-startup-2", "at": "2026-11-10T06:23:00+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2034.50M  free = 1037.50M  (encrypted)", "swap_used_bytes": 2133327872, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T06:24:32+07:00 Prepared private frozen3d9b4a6 eval archive under .session/recall-resume-20261110-o5slksil/frozen; all89 asset/harness hashes and20 task IDs verified. Private Git discovery points at the existing read-only object store; product imports remain the current branch. No eval test or inference has run; recall is still the active gate.
+
+- 2026-11-10T06:26:09+07:00 Tool-result context: Owned server retirement: {"pids": [444, 1472], "remaining": [], "seconds": 0.004449166008271277, "limit_seconds": 30, "passed": true}
+
+- 2026-11-10 USB reroot local regression: USB reroot recall stopped; {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-11-10T06:26:09+07:00 Tool-result context: recall finished: {"exit": 0, "seconds": 296.4929413749778, "passed": true}; all evidence retained.
+
+- 2026-11-10T06:26:22+07:00 Tool-result context: Starting abstention once; no retries or changed limits.
+
+- 2026-11-10T06:26:22+07:00 Tool-result context abstention-startup-1 admission: {"label": "abstention-startup-1", "at": "2026-11-10T06:26:22+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2520.88M  free = 551.12M  (encrypted)", "swap_used_bytes": 2643334266, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T06:26:58+07:00 Prepared external frozen-eval collector for private pinned archive/current product imports. AST verifies original baseline CONTRACT, SAMPLING, agent loop and task_run scoring unchanged; only private paths/import, shared admission label, owned-PID shutdown wait and log label differ. No frozen-file or product edits; collector not executed.
+
+- 2026-11-10T06:28:03+07:00 Tool-result context: Owned server retirement: {"pids": [7231, 7777], "remaining": [], "seconds": 0.0047159579989966005, "limit_seconds": 30, "passed": true}
+
+- 2026-11-10T06:28:03+07:00 Tool-result context: abstention finished: {"exit": 0, "seconds": 101.08562137500849, "passed": true}; all evidence retained.
+
+- 2026-11-10T06:28:05+07:00 Tool-result context: Starting quality once; no retries or changed limits.
+
+- 2026-11-10T06:28:05+07:00 Tool-result context quality-startup-1 admission: {"label": "quality-startup-1", "at": "2026-11-10T06:28:05+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2504.88M  free = 567.12M  (encrypted)", "swap_used_bytes": 2626557050, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T06:28:46+07:00 Prepared post-live runner using the predeclared28 controls: hooks test_phase43 executes once first and its recorded result counts in28, other27 each once with inherited240s limits; then installed kildall nuke without --delete and check.sh once. Source hashes guarded. Runner not executed; quality gate is active.
+
+- 2026-11-10T06:32:25+07:00 Tool-result context: Owned server retirement: {"pids": [10457, 10971], "remaining": [], "seconds": 0.0049081670003943145, "limit_seconds": 30, "passed": true}
+
+- 2026-11-10T06:32:25+07:00 Tool-result context: quality finished: {"exit": 0, "seconds": 259.9105784170097, "passed": true}; all evidence retained.
+
+- 2026-11-10T06:32:27+07:00 Tool-result context: Starting cli once; no retries or changed limits.
+
+- 2026-11-10T06:32:27+07:00 Tool-result context cli-stage admission: {"label": "cli-stage", "at": "2026-11-10T06:32:27+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2480.88M  free = 591.12M  (encrypted)", "swap_used_bytes": 2601391226, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T06:33:36+07:00 Tool-result context: Owned server retirement: {"pids": [18760, 19292], "remaining": [], "seconds": 0.004000291984993964, "limit_seconds": 30, "passed": true}
+
+- 2026-11-10T06:33:36+07:00 Tool-result context: cli finished: {"exit": 0, "seconds": 69.91870016700705, "passed": true}; all evidence retained.
+
+- 2026-11-10T06:33:46+07:00 PR16 controls/delivery: starting test_phase43.py once
+
+- 2026-11-10T06:33:52+07:00 PR16 controls/delivery: {"test": "test_phase43.py", "exit": 0, "seconds": 5.989598417014349}; raw output retained
+
+- 2026-11-10T06:33:52+07:00 PR16 controls/delivery: starting test_platform_system.py once
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: {"test": "test_platform_system.py", "exit": 0, "seconds": 0.5548062909801956}; raw output retained
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: starting test_platform_keys.py once
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: {"test": "test_platform_keys.py", "exit": 0, "seconds": 0.12856174999615178}; raw output retained
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: starting test_platform_jobs.py once
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: {"test": "test_platform_jobs.py", "exit": 0, "seconds": 0.2486873340094462}; raw output retained
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: starting test_long_context.py once
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: {"test": "test_long_context.py", "exit": 0, "seconds": 0.1353935409861151}; raw output retained
+
+- 2026-11-10T06:33:53+07:00 PR16 controls/delivery: starting test_router_warmth.py once
+
+- 2026-11-10T06:34:03+07:00 PR16 controls/delivery: {"test": "test_router_warmth.py", "exit": 0, "seconds": 9.479333916999167}; raw output retained
+
+- 2026-11-10T06:34:03+07:00 PR16 controls/delivery: starting test_slot_isolation.py once
+
+- 2026-11-10T06:34:05+07:00 PR16 controls/delivery: {"test": "test_slot_isolation.py", "exit": 0, "seconds": 1.9151868330081925}; raw output retained
+
+- 2026-11-10T06:34:05+07:00 PR16 controls/delivery: starting test_phase44.py once
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: {"test": "test_phase44.py", "exit": 0, "seconds": 3.6233433749875985}; raw output retained
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: starting test_tool_runtime.py once
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: {"test": "test_tool_runtime.py", "exit": 0, "seconds": 0.14564591701491736}; raw output retained
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: starting test_benchmark.py once
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: {"test": "test_benchmark.py", "exit": 0, "seconds": 0.20762037500389852}; raw output retained
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: starting test_routing.py once
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: {"test": "test_routing.py", "exit": 0, "seconds": 0.4381180409982335}; raw output retained
+
+- 2026-11-10T06:34:09+07:00 PR16 controls/delivery: starting test_permissions.py once
+
+- 2026-11-10T06:34:10+07:00 PR16 controls/delivery: {"test": "test_permissions.py", "exit": 0, "seconds": 1.1220542090013623}; raw output retained
+
+- 2026-11-10T06:34:10+07:00 PR16 controls/delivery: starting test_phase41.py once
+
+- 2026-11-10T06:34:14+07:00 PR16 controls/delivery: {"test": "test_phase41.py", "exit": 0, "seconds": 3.45914220798295}; raw output retained
+
+- 2026-11-10T06:34:14+07:00 PR16 controls/delivery: starting test_phase42.py once
+
+- 2026-11-10T06:34:18+07:00 PR16 controls/delivery: {"test": "test_phase42.py", "exit": 0, "seconds": 4.541587292012991}; raw output retained
+
+- 2026-11-10T06:34:18+07:00 PR16 controls/delivery: starting test_tool_grammar.py once
+
+- 2026-11-10T06:34:19+07:00 PR16 controls/delivery: {"test": "test_tool_grammar.py", "exit": 0, "seconds": 0.20687475000158884}; raw output retained
+
+- 2026-11-10T06:34:19+07:00 PR16 controls/delivery: starting test_shell_lifecycle.py once
+
+- 2026-11-10T06:34:20+07:00 PR16 controls/delivery: {"test": "test_shell_lifecycle.py", "exit": 0, "seconds": 1.5169652080221567}; raw output retained
+
+- 2026-11-10T06:34:20+07:00 PR16 controls/delivery: starting test_image_reader.py once
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: {"test": "test_image_reader.py", "exit": 0, "seconds": 0.3165878749859985}; raw output retained
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: starting test_nuke.py once
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: {"test": "test_nuke.py", "exit": 0, "seconds": 0.09092070799670182}; raw output retained
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: starting test_rename.py once
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: {"test": "test_rename.py", "exit": 0, "seconds": 0.2037102910107933}; raw output retained
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: starting test_check.py once
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: {"test": "test_check.py", "exit": 0, "seconds": 0.19470849999925122}; raw output retained
+
+- 2026-11-10T06:34:21+07:00 PR16 controls/delivery: starting test_tool_validation.py once
+
+- 2026-11-10T06:34:22+07:00 PR16 controls/delivery: {"test": "test_tool_validation.py", "exit": 0, "seconds": 0.4473807080066763}; raw output retained
+
+- 2026-11-10T06:34:22+07:00 PR16 controls/delivery: starting test_memory.py once
+
+- 2026-11-10T06:34:22+07:00 PR16 controls/delivery: {"test": "test_memory.py", "exit": 0, "seconds": 0.9527605829935055}; raw output retained
+
+- 2026-11-10T06:34:22+07:00 PR16 controls/delivery: starting test_cloud_keys.py once
+
+- 2026-11-10T06:34:23+07:00 PR16 controls/delivery: {"test": "test_cloud_keys.py", "exit": 0, "seconds": 0.09178362498641945}; raw output retained
+
+- 2026-11-10T06:34:23+07:00 PR16 controls/delivery: starting test_backup_ops.py once
+
+- 2026-11-10T06:34:23+07:00 PR16 controls/delivery: {"test": "test_backup_ops.py", "exit": 0, "seconds": 0.14949124999111518}; raw output retained
+
+- 2026-11-10T06:34:23+07:00 PR16 controls/delivery: starting test_secret_scanner.py once
+
+- 2026-11-10T06:34:25+07:00 PR16 controls/delivery: {"test": "test_secret_scanner.py", "exit": 0, "seconds": 1.9117844580032397}; raw output retained
+
+- 2026-11-10T06:34:25+07:00 PR16 controls/delivery: starting test_prompt_reuse.py once
+
+- 2026-11-10T06:34:25+07:00 PR16 controls/delivery: {"test": "test_prompt_reuse.py", "exit": 0, "seconds": 0.14434666698798537}; raw output retained
+
+- 2026-11-10T06:34:25+07:00 PR16 controls/delivery: starting test_cloud.py once
+
+- 2026-11-10T06:34:26+07:00 PR16 controls/delivery: {"test": "test_cloud.py", "exit": 0, "seconds": 0.8778283330029808}; raw output retained
+
+- 2026-11-10T06:34:26+07:00 PR16 controls/delivery: starting test_usb_mount.py once
+
+- 2026-11-10T06:34:26+07:00 PR16 controls/delivery: {"test": "test_usb_mount.py", "exit": 0, "seconds": 0.1998676249932032}; raw output retained
+
+- 2026-11-10T06:34:26+07:00 PR16 controls/delivery: 28/28 standing controls PASS, including the single hooks5/5 run
+
+- 2026-11-10T06:34:26+07:00 PR16 controls/delivery: starting nuke-dry-run once
+
+- 2026-11-10T06:36:02+07:00 PR16 controls/delivery: {"test": "nuke-dry-run", "exit": 0, "seconds": 96.10321962501621}; raw output retained
+
+- 2026-11-10T06:36:08+07:00 PR16 controls/delivery: starting check.sh once
+
+- 2026-11-10T06:36:08+07:00 PR16 controls/delivery: {"test": "check.sh", "exit": 0, "seconds": 0.26725495798746124}; raw output retained
+
+- 2026-11-10T06:36:08+07:00 PR16 controls/delivery: all post-live gates PASS; {"hooks": 5, "controls": 28, "nuke": {"test": "nuke-dry-run", "exit": 0, "seconds": 96.10321962501621, "entries": 421780, "outside": 0, "rejected_outward_paths": 0}, "check": {"test": "check.sh", "exit": 0, "seconds": 0.26725495798746124}, "passed": true}
+
+- 2026-11-10T06:36:09+07:00 PR16 frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-10T06:37:34+07:00 All requested gates after inherited routing passed: recall20/20 single+slots1/2; abstention20; callable20; tools17->20 with3 allowed retries; CLI18; hooks5; controls28; nuke421780entries/0outside/0rejected; check.sh exit0. Before eval inference, private verifier-wiring control failed: restored golden patch collected suites but executed0 due ModuleNotFoundError numpy. Failure and all verifier outputs retained in frozen/.session/driver-control and eval-control-01-failure.log. Investigating launcher prefix only; no frozen/product edits or model attempts.
+
+- 2026-11-10T06:37:58+07:00 PR16 frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-10T06:38:48+07:00 Retained verifier wiring control02: launching through the private venv symlink still cannot load numpy inside the unchanged sandbox. The alias resolves outside the allowed frozen-root/.venv path. Replacing only that private symlink with a byte copy of the already-installed venv, then using its interpreter; no dependency download/install, sandbox relaxation, frozen-file edit or model attempt. Both failed controls remain.
+
+- 2026-11-10T06:39:31+07:00 PR16 frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-10T06:39:33+07:00 PR16 frozen eval: private frozen-verifier control {"passed": true, "model_inference": false, "task": "action-background-outcome", "no_op_pass": false, "fixed_pass": true, "product_module": "/Volumes/ES2TB/Kildall/code/kildall.py", "frozen_module": "/Volumes/ES2TB/Kildall/code/.session/recall-resume-20261110-o5slksil/frozen/repo_eval.py"}
+
+- 2026-11-10T11:16:12+07:00 Private verifier control03 PASS: same installed venv bytes copied inside the frozen-root allowlist (no download/install or sandbox weakening); no-op failed, restored golden fix passed, all suites collected/executed with no skips. Controls01/02 failures retained. All89 frozen hashes and76 current source hashes hold. External collector payload/sampling/scoring unchanged; starting frozen20 eval run1 once on default LaneA after its own admission.
+
+- 2026-11-10T11:16:13+07:00 Tool-result context eval-1-startup admission: {"label": "eval-1-startup", "at": "2026-11-10T11:16:13+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2440.88M  free = 631.12M  (encrypted)", "swap_used_bytes": 2559448186, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T11:16:13+07:00 PR16 frozen eval: run1 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-10T11:16:58+07:00 PR16 frozen eval: run1 ready in 44.882s; starting frozen20 in order.
+
+- 2026-11-10T11:16:58+07:00 PR16 frozen eval: run1 starting action-background-outcome
+
+- 2026-11-10T11:23:29+07:00 PR16 frozen eval: run1 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 30, "wall_s": 391.05978420801694, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T11:23:29+07:00 PR16 frozen eval: run1 starting child-background-outcome
+
+- 2026-11-10T11:35:06+07:00 PR16 frozen eval: run1 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 696.6746063750179, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-10T11:35:06+07:00 PR16 frozen eval: run1 starting cloud-null-calls
+
+- 2026-11-10T11:45:18+07:00 PR16 frozen eval: run1 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 38, "wall_s": 612.203347416973, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T11:45:18+07:00 PR16 frozen eval: run1 starting disabled-interval-clock
+
+- 2026-11-10T11:47:53+07:00 Read-only audit of first3 frozen eval run1 tasks: 108 approved reads, zero tool errors or source edits; repeated reads/greps exhausted context/tool budgets. Hidden verifiers failed on actual unfixed bugs; regression37/37 each, no infrastructure defect observed, all89 frozen hashes hold. Detailed evidence: code/.session/recall-resume-20261110-o5slksil/first-three-audit.md.
+
+- 2026-11-10T11:56:37+07:00 PR16 frozen eval: run1 {"task": "disabled-interval-clock", "status": "FAIL", "tool_calls": 38, "wall_s": 679.1077105419827, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T11:56:37+07:00 PR16 frozen eval: run1 starting foreground-warm-lock
+
+- 2026-11-10T12:06:33+07:00 PR16 frozen eval: run1 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 36, "wall_s": 595.1322013330064, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:06:33+07:00 PR16 frozen eval: run1 starting local-common-directory
+
+- 2026-11-10T12:15:59+07:00 PR16 frozen eval: run1 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 36, "wall_s": 566.1411993340007, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:15:59+07:00 PR16 frozen eval: run1 starting metadata-case-alias
+
+- 2026-11-10T12:24:51+07:00 PR16 frozen eval: run1 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 36, "wall_s": 532.1235713750066, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:24:51+07:00 PR16 frozen eval: run1 starting missing-session-admission
+
+- 2026-11-10T12:31:09+07:00 PR16 frozen eval: run1 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 31, "wall_s": 378.08565758299665, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:31:09+07:00 PR16 frozen eval: run1 starting missing-task-outcome
+
+- 2026-11-10T12:37:59+07:00 PR16 frozen eval: run1 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 31, "wall_s": 409.1166508749884, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:37:59+07:00 PR16 frozen eval: run1 starting oversized-hook-audit
+
+- 2026-11-10T12:43:48+07:00 PR16 frozen eval: run1 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 31, "wall_s": 348.899457291991, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:43:48+07:00 PR16 frozen eval: run1 starting partial-router-warm
+
+- 2026-11-10T12:53:42+07:00 PR16 frozen eval: run1 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 35, "wall_s": 593.7924021250219, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T12:53:42+07:00 PR16 frozen eval: run1 starting pdf-byte-boundary
+
+- 2026-11-10T13:02:56+07:00 PR16 frozen eval: run1 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 38, "wall_s": 554.4571078750014, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:02:56+07:00 PR16 frozen eval: run1 starting post-hook-status
+
+- 2026-11-10T13:09:53+07:00 PR16 frozen eval: run1 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 32, "wall_s": 417.15123316601967, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:09:53+07:00 PR16 frozen eval: run1 starting remote-macos-config
+
+- 2026-11-10T13:15:55+07:00 PR16 frozen eval: run1 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 31, "wall_s": 361.5393447089882, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:15:55+07:00 PR16 frozen eval: run1 starting scanner-word-boundary
+
+- 2026-11-10T13:26:24+07:00 PR16 frozen eval: run1 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 37, "wall_s": 628.3417360000021, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:26:24+07:00 PR16 frozen eval: run1 starting server-port-ownership
+
+- 2026-11-10T13:33:07+07:00 PR16 frozen eval: run1 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 32, "wall_s": 403.83560258400394, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:33:07+07:00 PR16 frozen eval: run1 starting shell-binary-output
+
+- 2026-11-10T13:42:52+07:00 PR16 frozen eval: run1 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 37, "wall_s": 583.9453706670029, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:42:52+07:00 PR16 frozen eval: run1 starting shell-poll-completion
+
+- 2026-11-10T13:50:06+07:00 PR16 frozen eval: run1 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 31, "wall_s": 434.1033475000004, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:50:06+07:00 PR16 frozen eval: run1 starting switch-hidden-index
+
+- 2026-11-10T13:57:58+07:00 PR16 frozen eval: run1 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 34, "wall_s": 471.84934729200904, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T13:57:58+07:00 PR16 frozen eval: run1 starting terminal-nonseekable
+
+- 2026-11-10T14:04:07+07:00 PR16 frozen eval: run1 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 30, "wall_s": 368.96115937500144, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T14:04:07+07:00 PR16 frozen eval: run1 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-10T17:03:23+07:00 Tool-result context eval-2-startup admission: {"label": "eval-2-startup", "at": "2026-11-10T17:03:23+07:00", "pressure": 1, "swap_raw": "total = 3072.00M  used = 2542.56M  free = 529.44M  (encrypted)", "swap_used_bytes": 2666067394, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-10T17:03:23+07:00 PR16 frozen eval: run2 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-10T17:03:56+07:00 PR16 frozen eval: run2 ready in 33.409s; starting frozen20 in order.
+
+- 2026-11-10T17:03:56+07:00 PR16 frozen eval: run2 starting action-background-outcome
+
+- 2026-11-10T17:04:34+07:00 PR #16 frozen eval run 2 admission PASS at 17:03:23 +07: pressure 1, swap 2666067394 bytes (2.666067394 GB), ports 8123/8124 have no listeners and both SO_REUSEADDR binds pass, no other model processes. Same freeze/source/default Lane A settings and full 20 tasks; run 2 launched exactly once. Read-only audit of all completed run-1 outcomes delegated to the existing harness reviewer; no gates or inference delegated.
+
+- 2026-11-10T17:07:19+07:00 PR #16 read-only run-1 audit: 19 ContextOverflow stops and 1 tool-cap stop; all 40 final verifier suites started and collected checks, zero skips/timeouts, regression suites 37/37 each. `local-common-directory` and `remote-macos-config` now show Git config exit 128 in hidden checks, unlike their historical Nov8 assertion/PermissionError failures. Exact cause is unproven (Git stderr not retained by frozen exception transport); record this grading-environment discrepancy explicitly rather than count those verifiers as proven task-bug failures. No source/fixture/collector changes or repeated model attempts; full run 2 continues as authorized.
+
+- 2026-11-10T17:10:49+07:00 PR16 frozen eval: run2 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 30, "wall_s": 412.3638379579934, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:10:49+07:00 PR16 frozen eval: run2 starting child-background-outcome
+
+- 2026-11-10T17:18:21+07:00 PR16 frozen eval: run2 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 32, "wall_s": 452.4895054170047, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:18:21+07:00 PR16 frozen eval: run2 starting cloud-null-calls
+
+- 2026-11-10T17:28:41+07:00 PR16 frozen eval: run2 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 38, "wall_s": 619.6587640839862, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:28:41+07:00 PR16 frozen eval: run2 starting disabled-interval-clock
+
+- 2026-11-10T17:40:15+07:00 PR16 frozen eval: run2 {"task": "disabled-interval-clock", "status": "FAIL", "tool_calls": 39, "wall_s": 693.5098014580144, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:40:15+07:00 PR16 frozen eval: run2 starting foreground-warm-lock
+
+- 2026-11-10T17:46:55+07:00 PR16 frozen eval: run2 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 31, "wall_s": 399.83601866601384, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:46:55+07:00 PR16 frozen eval: run2 starting local-common-directory
+
+- 2026-11-10T17:56:18+07:00 PR16 frozen eval: run2 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 37, "wall_s": 562.8610922500084, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T17:56:18+07:00 PR16 frozen eval: run2 starting metadata-case-alias
+
+- 2026-11-10T17:59:44+07:00 PR16 frozen eval: run2 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 18, "wall_s": 206.08845079201274, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-10T17:59:44+07:00 PR16 frozen eval: run2 starting missing-session-admission
+
+- 2026-11-10T18:03:21+07:00 Run1 read-only audit: 0/20,684 calls (19 ContextOverflow,1 tool-cap); all76 source/89 frozen hashes hold, all60 retained suite reports collected tests without skips. Two unresolved grading caveats: local-common-directory and remote-macos-config now hit Git exit128 unlike historical same-hash controls. Completed-task-only run2 audit: metadata-case-alias stopped after18 calls with ValueError "Truncated tool call; no execution"; local-common Git128 recurs in both verifications without edits. Exact Git cause remains unproven; no blanket claim that all grades are infrastructure-independent. Private evidence: code/.session/recall-resume-20261110-o5slksil/run-1-audit.md and run-2-partial-audit.md; no active/future run2 task inspection, reproductions or inference.
+
+- 2026-11-10T18:06:16+07:00 PR16 frozen eval: run2 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 30, "wall_s": 392.2944344999851, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:06:16+07:00 PR16 frozen eval: run2 starting missing-task-outcome
+
+- 2026-11-10T18:13:52+07:00 PR16 frozen eval: run2 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 32, "wall_s": 455.8780699589988, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:13:52+07:00 PR16 frozen eval: run2 starting oversized-hook-audit
+
+- 2026-11-10T18:20:28+07:00 PR16 frozen eval: run2 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 32, "wall_s": 395.97939512500307, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:20:28+07:00 PR16 frozen eval: run2 starting partial-router-warm
+
+- 2026-11-10T18:28:21+07:00 PR16 frozen eval: run2 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 33, "wall_s": 472.36014249999425, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:28:21+07:00 PR16 frozen eval: run2 starting pdf-byte-boundary
+
+- 2026-11-10T18:37:30+07:00 PR16 frozen eval: run2 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 38, "wall_s": 548.40574508399, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:37:30+07:00 PR16 frozen eval: run2 starting post-hook-status
+
+- 2026-11-10T18:44:43+07:00 PR16 frozen eval: run2 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 32, "wall_s": 432.70274633399094, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:44:43+07:00 PR16 frozen eval: run2 starting remote-macos-config
+
+- 2026-11-10T18:50:22+07:00 PR16 frozen eval: run2 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 31, "wall_s": 338.87935070801177, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T18:50:22+07:00 PR16 frozen eval: run2 starting scanner-word-boundary
+
+- 2026-11-10T19:01:00+07:00 PR16 frozen eval: run2 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 37, "wall_s": 638.4603937090142, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T19:01:00+07:00 PR16 frozen eval: run2 starting server-port-ownership
+
+- 2026-11-10T19:04:20+07:00 PR16 frozen eval: run2 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 17, "wall_s": 199.52332070900593, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-10T19:04:20+07:00 PR16 frozen eval: run2 starting shell-binary-output
+
+- 2026-11-10T19:11:36+07:00 PR16 frozen eval: run2 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 34, "wall_s": 436.2067640830064, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T19:11:36+07:00 PR16 frozen eval: run2 starting shell-poll-completion
+
+- 2026-11-10T19:17:32+07:00 PR16 frozen eval: run2 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 30, "wall_s": 356.05278987501515, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T19:17:32+07:00 PR16 frozen eval: run2 starting switch-hidden-index
+
+- 2026-11-10T19:19:20+07:00 PR16 frozen eval: run2 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 11, "wall_s": 107.08479745799559, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-10T19:19:20+07:00 PR16 frozen eval: run2 starting terminal-nonseekable
+
+- 2026-11-10T19:25:19+07:00 PR16 frozen eval: run2 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 30, "wall_s": 359.0968505839992, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-10T19:25:20+07:00 PR16 frozen eval: run2 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-10T22:11:21+07:00 PR #16 both frozen20 eval runs COMPLETED, exactly once each; 0/20 passes each. Run1:684 tool calls, task wall10026.520837627031 s, startup44.88153141600196 s, overall10074.158884625009 s. Run2:612 calls, task wall8479.732271253044 s, startup33.40917654198711 s, overall8515.891061542003 s. Differences (run2-run1): {"passed": 0, "failed": 0, "tool_calls": -72, "task_wall_s": -1546.7885663739871, "startup_s": -11.472354874014854, "overall_s": -1558.267823083006}. Both runners exited0 and owned server PID retirement passed within30 s with no remaining PIDs. All76 source hashes and89 frozen hashes preserved through execution; all requested gates pass, timed routing inherited without rerun. Run1 stops:19 ContextOverflow/1 tool-cap; run2:17 ContextOverflow/2 ValueError/1 final-answer with failed grading. Every failure retained; final read-only run2 verifier audit in progress before docs-only publication.
+
+- 2026-11-10T22:11:43+07:00 Final delegated run2 read-only audit could not start because the helper account reported its usage limit. No extra credits/API were purchased and no inference/gates repeated; Codex is completing the same audit directly from retained JSON/tracebacks.
+
+- 2026-11-10T22:13:43+07:00 Final direct evidence audit completed without reruns: run1 has30 verification invocations/60 suite reports; run2 has27/54. All collected nonzero checks, none skipped or timed out, all regression suites37/37. Each run final grading collected829 checks and executed759 (hidden suites stop at failure). Both runs retain Git exit128 caveats on local-common-directory/remote-macos-config; cause unproven and previous same-hash controls differ. Run2 ValueErrors are both truncated tool calls with no execution; switch-hidden-index returned a final answer without any edit and fails its hidden assertion. Run2 made no edits; its invalid-regex tool failure is retained. All76 product-snapshot and89 frozen hashes match. Preparing docs-only BENCHMARKS and draftPR16 updates; no clean noise-floor claim.
+
+- 2026-11-10T22:15:13+07:00 BENCHMARKS report appended for PR16: all current gates, inherited routing, seven admissions, both20-task tables and raw-total differences, setup failures and Git-verifier caveats retained. Independent protocol comparison differs only in private runtime/database paths. Product files unchanged; only BENCHMARKS modified in code. Preparing one docs-only code commit and full-history scan before normal fit-tool-results push; main/PR13/workspace remote heads verified unchanged so far.
+
+- 2026-11-10T22:15:48+07:00 Created docs-only code commit c7c50ed0dc4768171f52e9d4dbee4bf3465e675c (`BENCHMARKS.md` only,107 inserted lines); full per-task results, admissions, preserved failures and grading caveats included. Draft PR16 replacement body prepared locally; running full code-history exact-value/pattern and staged-file scans before normal push.
+
+- 2026-11-10T22:15:53+07:00 Re-root USB secret scan code-history-before-push: {"at": "2026-11-10T22:15:49.195744+07:00", "mode": "history-code", "history": {"objects": 886, "bytes": 12402573, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-10T22:17:37+07:00 Full code history scan passed:886 objects,12402573 bytes,0 exact/pattern findings; staged code/vault0. Prepared PR-body scan also0. Normal fit-tool-results push succeeded09b9e28→c7c50ed0dc4768171f52e9d4dbee4bf3465e675c. GitHub connector PR-body update returned403 Resource not accessible by integration (not an approval-review rejection); using authenticated gh CLI for the same user-authorized update. No merge or force.
+
+- 2026-11-10T22:19:30+07:00 gh PR16 body update succeeded; GitHub read-back confirms exact prepared body, head c7c50ed0dc4768171f52e9d4dbee4bf3465e675c, OPEN/DRAFT/unmerged. PR13 remains OPEN/DRAFT at c752541d384215afaaf67f40bd7e97ab1de2b06e; main remains ec3b17e387f55743cea108ce197c210ca41c26e8. Pending log6 original bytes verified inside Change Log; original evidence retained. Vault staging is limited to CLAUDE.md and the code gitlink.
+
+- 2026-11-10T22:19:30+07:00 Final publication procedure: commit this vault log/code link, scan every reachable blob and every historical path using exact nonempty env/Keychain values in memory plus secret_scanner patterns, forbidden paths and50MB size limit; normal-push reroot-usb→workspace only if clean and the audited SHA still equals HEAD. Record actual final scan/push/ref verification in private `code/.session/recall-resume-20261110-o5slksil/final-delivery.json` and the final report. No further inference, product/task changes, merge, sudo, HF sync, paid API or force; stop at draftPR16 for Claude review.
