@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "task_freeze_commit": "3d9b4a6c1b40cbe908cf561f77189568ed7e8662",
+  "task_freeze_manifest_sha256": "34ced362af741fa2bf1dd9ca4f1b24549eae4c71c3e486f86bf85c49d603560c",
+  "task_assets_verified": 84,
+  "harness_sha256": "8293422c59e6051aaf33264afc214162b7e276d8eafb7c2c3368e85dfc600cba",
+  "harness_files_sha256": {
+    "repo_eval.py": "8293422c59e6051aaf33264afc214162b7e276d8eafb7c2c3368e85dfc600cba",
+    "repo_eval/worker.py": "791ad8c1edc1fd8f334afd276806817e8b37e52fa2c35e374ca326300b1e4070",
+    "repo_eval/verifier.py": "f0b9091cceca7c4552d2599aaa632ce53b84351a36bd5ad314f84838f15ed9b5",
+    "test_repo_eval.py": "45fba3a3e2f8c813f43aaddf86c3d6437a07435b7d1b37c9ebbb90499ea357d8",
+    "repo_eval/final-20.json": "44406ee1a57efb34d539359cb5fdfd33711a21cadedfc43461c8006b14825c30"
+  },
+  "harness_bundle_sha256": "a66d4c0a3dab0c7d1aa60a59545e46c4eefa9aa5defb96d6716003b3c074e6f8",
+  "change": "Verifier-owned read-only Git discovery boundary; no product or task changes."
+}

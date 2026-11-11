@@ -277,3 +277,42 @@ the real repair; its regression suite also executes **37/37** sites.
 | [switch-hidden-index](tasks/switch-hidden-index/lazy.json) | hard | yes | 5/5 | 3/3 | 1/1 |
 | [terminal-nonseekable](tasks/terminal-nonseekable/lazy.json) | easy | yes | 5/5 | 3/3 | 2/2 |
 | [unsupported-keys-diagnostic](tasks/unsupported-keys-diagnostic/lazy.json) | easy | no | 7/7 | 1/1 | — |
+
+
+## 2026-11-11 — verifier Git discovery boundary
+
+Git `config --file` still discovers its current repository. The PR16 frozen-copy
+layout put an ancestor `.git` gitfile outside the worker sandbox. Both known fixes
+then failed with exit128: `fatal: error opening .../.git: Operation not permitted`.
+The product calls replace their environment, so a parent Git-ceiling variable
+cannot solve this.
+
+Each verification now creates its own bare Git boundary above candidate home.
+The sandbox grants read-only access to that metadata and to the parent directory
+itself (for Git's working-directory resolution), without exposing host repository
+metadata or trusted verifier files. Worker writes remain confined to candidate
+home; the private report channel remains authoritative.
+
+| Task | Fixed / fix-agent | No-op | Cheat | Lazy mutants |
+|---|---|---|---|---|
+| local-common-directory | PASS / PASS | FAIL | flagged | 3/3 rejected |
+| remote-macos-config | PASS / PASS | FAIL | flagged | 2/2 rejected |
+
+The full `test_repo_eval.py` passed, including both fixes under an ancestor gitfile,
+all existing spoofing/suite controls and a new private-boundary write-denial check.
+Its printed `cloud-null-calls DROP` is the expected missing-lazy negative control.
+No model inference ran. All 84 frozen task assets, the task order, all 67 lazy
+mutants and five alternatives are unchanged; `frozen-20.json` is unchanged from
+`3d9b4a6`. This is a verifier revision, not a new task freeze.
+
+New harness SHA-256: `8293422c59e6051aaf33264afc214162b7e276d8eafb7c2c3368e85dfc600cba`.
+New bundle SHA-256: `a66d4c0a3dab0c7d1aa60a59545e46c4eefa9aa5defb96d6716003b3c074e6f8`.
+The separately recorded `harness-git-boundary.json` pins the revised harness files
+and the unchanged task-freeze manifest for subsequent evaluations.
+
+Failures retained: the original two known-fix reproductions, plus the first
+boundary attempt that still denied Git's working-directory resolution. The
+narrow literal-directory read permission resolved that second error. Evidence:
+`.session/verifier-compaction-20261111-swr_9zup/` (`git128-before.json`,
+`boundary-attempt-1-diagnostic.json`, both control matrices and full-test log);
+full-suite artifacts: `.session/repo-eval-controls-tyo01g8f/`.

@@ -288,6 +288,10 @@ class Trial:
     def verify(self):
         now, changed, cheats, lines = self.changes()
         home = Path(tempfile.mkdtemp(prefix='verify-', dir=self.output))
+        # Git config discovers ancestors even with --file and a replaced env.
+        # Stop at verifier-owned metadata; never grant access to the host repo.
+        boundary = home / '.git'
+        git('init', '--quiet', '--bare', '--template=', str(boundary))
         worker_home = home / 'candidate'
         tree = worker_home / 'Kildall/code'
         tree.mkdir(parents=True)
@@ -299,10 +303,11 @@ class Trial:
         temporary = worker_home / 'tmp'; temporary.mkdir()
         runtime = ROOT / 'repo_eval'
         dependencies = [sysconfig.get_path('purelib'), sysconfig.get_path('platlib')]
-        reads = [str(worker_home), str(ROOT / '.venv'), sys.base_prefix, '/opt/homebrew', '/System', '/usr', '/bin', '/Library/Apple', '/dev']
+        reads = [str(worker_home), str(boundary), str(ROOT / '.venv'), sys.base_prefix, '/opt/homebrew', '/System', '/usr', '/bin', '/Library/Apple', '/dev']
         profile = ('(version 1)(deny default)(allow process-fork)(allow process-exec)(allow process-info*)'
                    '(allow sysctl-read)(allow file-read-metadata)(allow file-read-data (literal "/"))'
-                   '(allow file-read* ' + ' '.join('(subpath ' + json.dumps(v) + ')' for v in reads) + ')'
+                   '(allow file-read* (literal ' + json.dumps(str(home)) + ') '
+                   + ' '.join('(subpath ' + json.dumps(v) + ')' for v in reads) + ')'
                    '(allow file-read* (literal ' + json.dumps(str(runtime / 'worker.py')) + '))'
                    '(allow file-write* (subpath ' + json.dumps(str(worker_home)) + ')(literal "/dev/null"))')
         env = {'HOME': str(worker_home), 'TMPDIR': str(temporary), 'PATH': '/opt/homebrew/bin:/usr/bin:/bin',

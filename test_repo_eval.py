@@ -80,6 +80,14 @@ def main():
     assert recorded['tool_calls_to_green'] == 2 and recorded['diff_lines_outside_tests'] > 0
     assert recorded['valid'] and recorded['executable'] and not recorded['wrong_but_valid']
     assert all(not (valid.project / name).exists() for name in valid.hidden)
+    # A frozen-harness gitfile above the copy must not affect product Git calls,
+    # including calls that replace their environment with only PATH.
+    ancestor = output / 'git-discovery'; ancestor.mkdir()
+    (ancestor / '.git').write_text('gitdir: ' + str(evaluation.ROOT / '.git') + '\n')
+    for ident in ('local-common-directory', 'remote-macos-config'):
+        nested = evaluation.Trial(evaluation.TASKS / ident / 'task.json', ancestor / ident)
+        nested.golden()
+        assert nested.verify()['pass'], ident
     assert not evaluation.skips(b"raise RuntimeError('skip-worktree')\n# skip this note\n")
     assert evaluation.skips(b'if False:\n    assert answer\n')
     assert evaluation.skips(b'@unittest.skip("reason")\ndef check(): pass\n')
@@ -102,6 +110,12 @@ except PermissionError:
     pass
 else:
     raise AssertionError('Verifier read outside its copy')
+try:
+    (_EvalPath.home().parent / '.git' / 'HEAD').write_text('ref: refs/heads/forged')
+except PermissionError:
+    pass
+else:
+    raise AssertionError('Worker changed the verifier Git boundary')
 with _eval_socket.socket() as _eval_sock:
     try:
         _eval_sock.connect(('127.0.0.1', 9))
