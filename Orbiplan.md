@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v55 · 2026-11-01.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v56 · 2026-11-11.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -928,7 +928,7 @@ gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/
 
 ---
 
-# 🔮 BEYOND THE PLAN — 126 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51, #97–#126 v53; 19 of them scheduled earlier — see "Queued small slices")*
+# 🔮 BEYOND THE PLAN — 187 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51, #97–#126 v53, #127–#187 and S7–S16 v56; 19 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
@@ -1168,6 +1168,91 @@ Source: `Researchhub/sample3/kildallideas.md` (50 sources; verification partial 
 | **S5** | **Lessons survive model swaps** — the #105 ledger is model-agnostic | new models inherit what old ones learned | built with #105 |
 | **S6** | **Live taint map** — show and block agent-written code/config before trusted tools run it | answer to the 2026 sandbox escapes | after #123 |
 
+## Added v56 — Claude's idea sweep (2026-11-11, user: "add all")
+
+New ideas only — none repeat #1–#126, S1–S6 or Phase 9. **Nothing is scheduled.** Keep-on-evidence rule applies:
+each idea stays only if it beats its baseline (#112 for coding, the standing gates for everything else).
+**(check)** = not yet confirmed to run on this Mac. Speed notes for this Mac and the server: `up1.md`.
+
+| # | Idea | Buys | Placement |
+|---|---|---|---|
+| **127** | **Tiny lane on the GPU** — Bonsai 2B (85 tok/s) or LFM3 1.7B (73 tok/s) answers trivial requests | small talk and rewrites without waking Lane A | Phase R |
+| **128** | **WhisperKit speech-in** — Whisper on the Neural Engine | speech-in without using the GPU | 9.3 |
+| **129** | **Embeddings on the Neural Engine** — Harrier through Core ML (check) | frees GPU time for Lane A | Phase R |
+| **130** | **Pressure-aware unload** — drop idle answer slots when pressure turns to warning | fewer swap stops | with S7 |
+| **131** | **Time estimate before big jobs** — from measured paces ("about 20 min") | the user knows before waiting | after test #3 |
+| **132** | **Outline-first file reading** — a big file returns its outline, then only the lines asked for | coding inside the 4K window | coding core 5d |
+| **133** | **Tool-result digest** — Lane A summarises a huge result instead of halving it (builds on PR #16) | keeps meaning when cutting | coding core 5d |
+| **134** | **Swap-aware night jobs** — night work starts only when swap is low | night runs that finish | with S2 |
+| **135** | **`apply_patch` tool** — small unified-diff edits | fewer tokens than rewriting files | coding core 5d |
+| **136** | **LSP tool** — pyright / ruff: errors, definitions, references | answers without grep guessing | coding core 5d |
+| **137** | **Auto lint and format after edits** — ruff, shellcheck run before the model sees the result | fewer broken edits | coding core 5d |
+| **138** | **Test-failure digest** — only failing asserts and the end of the traceback | test output fits the window | with #89 |
+| **139** | **Symbol existence check** — confirm a function/file exists before naming it | fewer made-up names | coding core 5d |
+| **140** | **Git history tool** — `log` / `blame` for "why is this here" | real reasons, not guesses | after test #3 |
+| **141** | **Worktree per coding task** — each task in its own copy | safe parallel attempts | with #99 |
+| **142** | **`kildall review`** — local review of the diff before each commit | catches bugs before they land | after test #3 |
+| **143** | **Local dependency-update bot** — bump, run tests, propose the commit | local Dependabot | 9.7 |
+| **144** | **Security scan tools** — semgrep, bandit, pip-audit | finds unsafe code and packages | after test #3 |
+| **145** | **Offline docs** — Zeal/Dash docsets | library answers with no internet | after test #3 |
+| **146** | **Notebook runner** — run Jupyter cells, read outputs | data work in notebooks | after test #3 |
+| **147** | **"Explain this repo"** — one onboarding report for any project | fast start on new code | with #88 |
+| **148** | **Spotlight search** (`mdfind`) | find any file on the Mac in milliseconds | 4C |
+| **149** | **Shortcuts bridge** — run the user's macOS Shortcuts as tools | reuses automations the user already has | 4C |
+| **150** | **Apple Calendar, Reminders, Notes, Mail** via AppleScript | local alternative to Google Workspace | 9.8 |
+| **151** | **Clipboard tool** — read/write with permission | quick hand-offs | 4C |
+| **152** | **"What's on my screen"** — screenshot → OCR + vision (#59) | questions about the screen | 4C |
+| **153** | **Local web search** — SearXNG (no key) + trafilatura page text | web answers with no paid API | 4.5e |
+| **154** | **Page-change watcher** — changedetection.io | price and news alerts | 9.7 |
+| **155** | **RSS / newsletter digest** | morning summary | 9.7 |
+| **156** | **DuckDB** — questions on CSV, Excel, Parquet | real data analysis | after test #3 |
+| **157** | **Office files out** — docx, xlsx, pptx, PDF (python-docx, openpyxl, pandoc) | finished documents | Phase 5 |
+| **158** | **Charts to PNG** | plots from data | Phase 5 |
+| **159** | **Scanned-PDF OCR** — PaddleOCR-VL 1.6 (on disk, 1.35 s per test image) | reads scans macOS Vision misses | Phase 5 |
+| **160** | **Background removal** — BiRefNet / rembg | product and profile images | Phase 5 |
+| **161** | **Upscaling** — Real-ESRGAN | sharper images | Phase 5 |
+| **162** | **Object removal** — big-lama (on disk) | photo clean-up | Phase 5 |
+| **163** | **Subtitles** — video → `.srt` + translation | captions in any language | Phase 5 |
+| **164** | **Audio cleanup** — DeepFilterNet | clean recordings | 9.3 |
+| **165** | **3D texture on Mac** — MLX port of the Hunyuan3D paint step (check) | coloured 3D, not shape only | Phase 5 |
+| **166** | **Music fallback** — ACE-Step (check); MiniMax-Music3 timed out here | music that runs on 24 GB | Phase 5 |
+| **167** | **Vietnamese voice** — test OmniVoice in Vietnamese, pick a voice | Vietnamese speech out | 9.3 |
+| **168** | **Import old chats** — ChatGPT / Claude exports into memory | memory starts full | 9.4 |
+| **169** | **Memory browser** — list, edit, forget, pin | the user controls memory | after test #3 |
+| **170** | **Translation glossary** — the user's own VN↔EN terms, always applied | consistent translations | after test #3 (#61) |
+| **171** | **Meeting notes** — record → transcript → summary → tasks, all local | private meeting notes | 9.3 / 9.5 |
+| **172** | **Daily briefing** — calendar, reminders, overnight jobs, gate results | one morning view | 9.6 / 9.7 |
+| **173** | **Encrypted memory** — SQLCipher on the memory database | safe if the disk is lost | after test #3 |
+| **174** | **Global hotkey quick-ask window** | ask from anywhere | 9.11 app |
+| **175** | **Raycast / Alfred extension** | ask from the launcher | with S10 |
+| **176** | **Terminal UI** — panes for chat, tool log, job queue | see the agent work | after test #3 |
+| **177** | **Phone push** — ntfy when long jobs finish | no waiting at the Mac | with #33 |
+| **178** | **Thumbs up/down after answers** | feeds outcome routing #14 | with #14 |
+| **179** | **Simple-English answer mode** (the user's ELIS style) | easy answers on tired days | with 9.12 |
+| **180** | **Vietnamese interface** | menus and messages in Vietnamese | after test #3 |
+| **181** | **Context meter** — how full the window is | explains slow or cut answers | after test #3 |
+| **182** | **Disk doctor** — caches, unused models, big files; safe cleanup with confirm | the disk questions asked most | with S7 |
+| **183** | **ES2TB guard** — detect unplug, fail clean, warn exFAT has no journal, read disk health | models and vault live on that disk | ops, soon |
+| **184** | **Monthly restore drill** — restore the backup to a temp folder and check it | backups proven, not assumed | ops (#53/#54) |
+| **185** | **Cloud data-use warning** — e.g. "NIM trains on your data" before sending | informed cloud use | 4.5 |
+| **186** | **PII scrub before cloud** — names, emails, phone numbers | less personal data leaves the Mac | 4.5 (T2) |
+| **187** | **Egress viewer** — what left the Mac, when, to whom | trust you can check | with #41 / #68 |
+
+## Signature features *(v56)*
+
+| | Feature | Why only Kildall | Placement |
+|---|---|---|---|
+| **S7** | **Memory Concierge** — before heavy jobs, read free memory and swap, name the big users ("Chrome uses 7.7 GB"), pause or unload idle slots | swap stopped the gates 3 times in one week (2026-11-05 to 11-09) | small slice, after coding core 5d |
+| **S8** | **Lane 0 on the Neural Engine** — Apple's on-device model (macOS 26) for small requests (check: languages) | the GPU stays free for Lane A | Phase R |
+| **S9** | **Embedding router** — nearest past requests through Harrier (already loaded); LLM router only when unsure | routing 0.84 s → milliseconds | Phase R, gated on routing 20/20 |
+| **S10** | **Kildall as the Mac's AI hub** — local OpenAI-style API + MCP server + ACP agent | every app and agent on the Mac uses Kildall's router, memory and models | after 4.5 / with 9.11 |
+| **S11** | **Pocket Kildall** — use it from the phone via Tailscale or iMessage | home models and memory, anywhere | 9.2 |
+| **S12** | **Inbox folder** — drop a file; Kildall reads, files and remembers it | zero-effort capture | 9.4 / 9.7 |
+| **S13** | **Watch anything locally** — video/podcast → transcript + frames + vision → vault summary | the user's most used task, now private | Phase 5 / 9.4 |
+| **S14** | **Replay gym** — the user's own past sessions, private data removed, replayed on every new model/setting | the most realistic test set there is | with S4, Phase 7 |
+| **S15** | **Canary memory** — fake secrets in memory; any cloud request containing one is blocked and reported | proof that memory does not leak | with 4.5 T2 |
+| **S16** | **One-command model add** — `kildall model add <hf-id>`: download to ES2TB, checksum, speed test, licence, lane | turns a manual afternoon into one command | Phase R (with #86, #87) |
+
 ## The honest shape of this list
 
 **Most of these are small. Three are not.** #1 (spec decoding) may not work at all. #42 (distillation)
@@ -1332,6 +1417,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-11-11 (v56)** — **61 ideas (#127–#187) and 10 signature features (S7–S16) added** (user: "add all", after Claude's full idea sweep). New only; nothing repeats #1–#126, S1–S6 or Phase 9. Nothing scheduled; placement column says where each would fit. Born from this week's work: S7 Memory Concierge (swap stopped the gates three times), S9 embedding router (routing 0.84 s), #132/#133/#135 (4K window, PR #16), #159/#162 (models already on disk). Keep-on-evidence rule applies. Checklist unchanged.
 - **2026-11-01 (v55)** — **Phase R added: refresh everything — lanes, runtime, research, plan — runs next** (user: "make the phase of updating lanes updating everything … the plans and researches was far too outdated"). Seven steps R1–R7; R1, R2, R6 need no disk, R3–R5 wait for ≥ 20 GB free. Evidence of staleness recorded in the section: runtime b10809 vs b12020 (Metal speculative kernels #29869/#30065), Gemma MTP drafter unmeasured, Qwen3.8-27B + CMoE dead (dense 27B 5.48 tok/s measured), Strata Metal engine for Flash-Next, research swept 2026-09-02, Answer-first rows out of date. Planning files and Researchhub editable in this phase; new research goes to `sample4/`. Phase 10 becomes the second pass. Checklist +6.
 - **2026-10-30 (v54)** — **Reward machine changed to the Kildall server** (user: "update the plan, update everything"; "cost isn't a shit no more"): AMD Instinct MI210 64 GB HBM2e + EPYC 7543P + **512 GB DDR4-3200 on all 8 channels** + 8 TB NVMe (bought), Linux + ROCm, ~208–217M VND, bought only if Kildall succeeds. Replaces the 2026-10-13 GMKtec EVO-X2. RAM went from 4 to 8 sticks after Claude found 4 sticks halve memory bandwidth (4 of 8 channels). Updated: Answer first (new row), cross-platform (ROCm on the server, no NVIDIA machine), Road to 7/10 (machine, model fit by GPU + RAM expert offload, pre-purchase checks A and B), Phase 6 (8 TB NVMe bought, 512 GB RAM), context follow-up item 5, Shadow Twin, #90, #120 (MI210/ROCm defaults), #122, and every "mini PC" cell. Check A corrected with slice 5c's live results (Kimi K3 not on NIM; V4.1-Flash timed out; only Nemotron 3 Ultra qualified). Orbimodels row 7b and the checklist updated to match; checklist +3.
 
