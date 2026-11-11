@@ -349,7 +349,7 @@
 ## 20. Refresh — P0 *(Phase R, v55 — runs next)*
 
 - [ ] **Plan facts synced:** every Answer-first, lane and build-order fact cites a measurement or commit ≤ 30 days old, or is marked ⚠
-- [ ] **`Researchhub/sample4/` written** — dated, every pick ✓ benchmark-backed or ⚠ marked, quota-limited runs discarded; sample1–3 kept; CLAUDE.md's "which file" table points to it
+- [ ] **`Researchhub/sample4/` written** — one `/last30days` run per topic ("best ways for {topic} — tricks, OSS projects, popularity does not count"), raw file saved and linked; dated, every pick ✓ benchmark-backed or ⚠ marked, quota-limited runs discarded; sample1–3 kept; CLAUDE.md's "which file" table points to it
 - [ ] **Runtime on a current llama.cpp build** with every frozen gate unchanged or better — or b10809 kept and the failing gate recorded
 - [ ] **Lane A re-picked on the new build** (Gemma ± MTP, Qwen3.8-27B + DFlash2, Flash-Next via Strata, any sample4 candidate): ≥ 15 tok/s, greedy output identical with and without the drafter, all Lane A gates
 - [ ] **Every Lane B specialist re-confirmed or replaced** through the model-load procedure and its gate; nothing deleted without your OK
