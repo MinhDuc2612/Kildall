@@ -1,0 +1,15 @@
+--- a/shell_tools.py
++++ b/shell_tools.py
+@@ -69,11 +69,7 @@
+         proc.stderr.close()
+     result = dict(exit_code=code, timed_out=timed_out, truncated=truncated)
+     for name, data in chunks.items():
+-        try:
+-            result[name] = data.decode('utf-8')
+-        except UnicodeDecodeError:
+-            result[name] = None
+-            result[name + '_base64'] = base64.b64encode(data).decode('ascii')
++        result[name] = data.decode('utf-8', errors='replace')
+     return result
+ 
+ 

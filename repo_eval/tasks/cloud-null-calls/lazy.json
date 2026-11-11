@@ -1,0 +1,23 @@
+[
+  {
+    "id": "initial",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "calls = message.get('tool_calls', [])",
+        "new": "calls = []"
+      }
+    ]
+  },
+  {
+    "id": "N1-falsy-or",
+    "file": "cloud.py",
+    "edits": [
+      {
+        "old": "calls = message.get('tool_calls', [])\n        if calls is None:\n            calls = []  # OpenAI-compatible nullable field: no tool call was emitted.\n",
+        "new": "calls = message.get('tool_calls') or []\n"
+      }
+    ],
+    "note": "tool_calls '' {} 0 False accepted as no call"
+  }
+]

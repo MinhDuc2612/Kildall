@@ -1,0 +1,11 @@
+--- a/git_tools.py
++++ b/git_tools.py
+@@ -77,8 +77,6 @@
+             # Local receive-pack does not inherit the client's -c hooksPath setting.
+             if entry.parent == path / 'hooks' and entry.is_file() and not entry.name.endswith('.sample'):
+                 raise PermissionError('Local remote hooks are unsupported')
+-            if path / 'refs' in entry.parents and entry.is_file() and file_bytes(entry).startswith(b'ref:'):
+-                raise PermissionError('Symbolic remote refs can redirect a feature push and are forbidden')
+     config = subprocess.run([system().executable('git'), 'config', '--file', str(path / 'config'),
+         '--no-includes', '--null', '--list'], capture_output=True, check=True, timeout=10,
+         env={'PATH': '/usr/bin:/bin'}).stdout

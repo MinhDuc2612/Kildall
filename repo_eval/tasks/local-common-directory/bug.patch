@@ -1,0 +1,11 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -198,8 +198,6 @@
+     directory = repo / ".git"
+     if not directory.is_dir() or directory.is_symlink():
+         raise PermissionError("Expected a local repository with an in-root .git directory")
+-    if (directory / "commondir").exists():
+-        raise PermissionError("Redirected Git common directories are not supported")
+     for folder, dirs, files in os.walk(directory, followlinks=False, onerror=lambda e: (_ for _ in ()).throw(e)):
+         for name in dirs + files:
+             path = Path(folder) / name

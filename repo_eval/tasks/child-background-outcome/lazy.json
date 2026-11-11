@@ -1,0 +1,23 @@
+[
+  {
+    "id": "initial",
+    "file": "subagents.py",
+    "edits": [
+      {
+        "old": "outcome = 'error' if child.get('error') else 'done'",
+        "new": "outcome = 'error'"
+      }
+    ]
+  },
+  {
+    "id": "C1-overwrite-error",
+    "file": "subagents.py",
+    "edits": [
+      {
+        "old": "child.setdefault('error', 'Unfinished child background jobs were cancelled')",
+        "new": "child['error'] = 'Unfinished child background jobs were cancelled'"
+      }
+    ],
+    "note": "real child error lost"
+  }
+]

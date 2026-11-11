@@ -1,0 +1,11 @@
+--- a/router_warmth.py
++++ b/router_warmth.py
+@@ -152,8 +152,6 @@
+         if response is None:
+             raise RuntimeError('Incomplete router warm stream')
+     # b10809 samples one token even at n_predict=0; it is not inserted into saved KV.
+-    if response.get('tokens_evaluated') != len(tokens):
+-        raise ValueError('Incomplete router prefix warm-up')
+     return dict(seconds=time.monotonic() - started, timings=response['timings'])
+ 
+ 

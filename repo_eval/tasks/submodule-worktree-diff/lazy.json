@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "    if operation == 'git_read':\n",
+        "new": "    if operation == 'git_read':\n        raise PermissionError('Worktree diff is unsupported')\n"
+      }
+    ]
+  }
+]

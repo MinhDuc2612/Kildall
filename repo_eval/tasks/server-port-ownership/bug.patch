@@ -1,0 +1,12 @@
+--- a/kildall.py
++++ b/kildall.py
+@@ -190,8 +190,7 @@
+         return False
+     result = system().process_command(record["pid"])
+     port = re.search(r"(?:^|\s)--port\s+(\d+)(?=\s|$)", result.stdout)
+-    return (result.returncode == 0 and "llama-server" in result.stdout and record["model"] in result.stdout
+-            and ("port" not in record or (port is not None and int(port[1]) == record["port"])))
++    return (result.returncode == 0 and "llama-server" in result.stdout and record["model"] in result.stdout)
+ 
+ 
+ def ensure_runtime(config, stop=False, *, lane_only=False):

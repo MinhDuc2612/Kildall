@@ -1,0 +1,11 @@
+--- a/cloud.py
++++ b/cloud.py
+@@ -214,7 +214,7 @@
+         try:
+             accounts = credential_names(self.path, (p['key_name'] for p in self.providers.values() if p['key_name']))
+             credentials = {account: get_key(account) for account in accounts}
+-            keys = {name: (credentials[item['key_name']] or '') if item['key_name'] else ''
++            keys = {name: credentials[item['key_name']] if item['key_name'] else ''
+                     for name, item in self.providers.items()}
+         except KeychainError:
+             return None  # Cannot safely scrub unknown credentials; stay local.

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "initial",
+    "file": "kildall.py",
+    "edits": [
+      {
+        "old": "    def set(self, state):\n",
+        "new": "    def set(self, state):\n        raise RuntimeError(\"Task disappeared\")\n"
+      }
+    ]
+  }
+]

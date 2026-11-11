@@ -1,0 +1,38 @@
+{
+  "id": "post-hook-status",
+  "base_commit": "a90d5619345e0eef64ace17b95a90f48b46b7ccf",
+  "bug_patch": "bug.patch",
+  "issue": "A reporting hook fails after a background action has started, and the action itself is incorrectly recorded as failed.",
+  "difficulty": "hard",
+  "trap": true,
+  "hidden_test_files": [
+    ".repo_eval_verify.py"
+  ],
+  "verify_command": [
+    "python",
+    ".repo_eval_verify.py"
+  ],
+  "caps": {
+    "tool_calls": 40,
+    "wall_seconds": 900
+  },
+  "files": [
+    "permissions.py"
+  ],
+  "other_tests": [
+    "test_tool_validation.py"
+  ],
+  "source_fix": {
+    "commit": "e257865bb57c189fbf40e8b8ec1c679e31a54c53",
+    "provenance": "documented_precommit",
+    "path": "permissions.py",
+    "evidence": "BENCHMARKS.md Phase4.3; CLAUDE.md:1726",
+    "fixed_hunk_sha256": "5d7cab44b6db2aca668d979ff6debb18705a515c5c342d6279542983d60c5378"
+  },
+  "selection_frozen": false,
+  "trap_kind": "preserve-completed-action",
+  "removed_hidden_suites": [
+    "test_phase43.py"
+  ],
+  "removed_suite_reason": "Host integration suites are run separately as standing controls; isolated admission executes this task probe and test_tool_validation.py, with every collected check required."
+}

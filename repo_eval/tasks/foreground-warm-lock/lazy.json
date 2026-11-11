@@ -1,0 +1,34 @@
+[
+  {
+    "id": "initial",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "    if MAINTENANCE.get() or base is None or not base.with_suffix('.sock').exists():",
+        "new": "    if True:"
+      }
+    ]
+  },
+  {
+    "id": "F1-exclusive",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "system().lock(lock, exclusive=False, nonblocking=True)",
+        "new": "system().lock(lock, nonblocking=True)"
+      }
+    ],
+    "note": "foreground takes exclusive lease"
+  },
+  {
+    "id": "F2-no-notify",
+    "file": "router_warmth.py",
+    "edits": [
+      {
+        "old": "        notify(endpoint)\n        try:\n            system().lock(",
+        "new": "        try:\n            system().lock("
+      }
+    ],
+    "note": "maintenance never told to yield"
+  }
+]

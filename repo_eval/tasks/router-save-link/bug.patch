@@ -1,0 +1,11 @@
+--- a/router_warmth.py
++++ b/router_warmth.py
+@@ -180,8 +180,6 @@
+             json_request(url(config) + '/slots/0?action=erase', {})
+             status['checkpoint_rebuild'] = warm(config, tokens)
+             pending = directory / ('prefix-' + uuid.uuid4().hex + '.pending')
+-            if pending.exists() or pending.is_symlink():
+-                raise ValueError('Router save destination already exists')
+             json_request(url(config) + '/slots/0?action=save', dict(filename=pending.name))
+             if saved_tokens(pending, len(tokens)) != tokens:
+                 raise ValueError('Refusing to persist anything beyond the router prefix')

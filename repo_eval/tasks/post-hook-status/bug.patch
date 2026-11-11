@@ -1,0 +1,11 @@
+--- a/permissions.py
++++ b/permissions.py
+@@ -166,8 +166,6 @@
+                 update(status='done')
+             run_stage(hooks, 'after', operation, arguments, row, project)
+     except BaseException as error:
+-        if after_action:
+-            raise  # Preserve the completed/background action and the failed child hook.
+         status = "refused" if isinstance(error, PermissionError) else (
+             "cancelled" if isinstance(error, (KeyboardInterrupt, EOFError)) else "failed")
+         update(status="declined" if row["status"] == "declined" else status, reason=str(error))

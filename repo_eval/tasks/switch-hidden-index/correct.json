@@ -1,0 +1,13 @@
+[
+  {
+    "id": "FF4-flag-order",
+    "file": "git_tools.py",
+    "edits": [
+      {
+        "old": "git(repo, 'ls-files', '-v', '-z')",
+        "new": "git(repo, 'ls-files', '-z', '-v')"
+      }
+    ],
+    "note": "same git command"
+  }
+]
