@@ -536,15 +536,56 @@ def trim_tool_result(content):
     return json.dumps(reduced), dropped
 
 
+def tool_step_summary(call, content):
+    function = call['function']
+    try:
+        args = json.loads(function['arguments'])
+    except ValueError:
+        args = function['arguments']
+    argument = next((args[key] for key in ('command', 'pattern', 'path', 'query', 'text', 'name', 'url')
+                     if key in args), args) if isinstance(args, dict) else args
+    try:
+        result = json.loads(content)
+    except ValueError:
+        result = content
+    outcome = result
+    if isinstance(result, dict):
+        if result.get('error') or result.get('blocked') or result.get('hook_feedback'):
+            outcome = result
+        else:
+            result = result.get('result', result)
+            if isinstance(result, dict):
+                if 'exit_code' in result:
+                    outcome = f"exit {result['exit_code']}"
+                elif isinstance(result.get('text'), str):
+                    outcome = f"{len(result['text'].splitlines())} lines read"
+                elif isinstance(result.get('paths'), list):
+                    outcome = f"{len(result['paths'])} paths found"
+                if result.get('truncated'):
+                    outcome = str(outcome) + ' (truncated)'
+    # ponytail: other tool outcomes use bounded excerpts; specialize only when needed.
+    short = lambda value: ' '.join(str(value).split())[:80]
+    return f"{function['name']} {short(argument)}: {short(outcome)}"
+
+
 def fit_messages(config, system, memory_text, previous, current, *, tools=None, cancel=None):
     tools = BASE_TOOLS if tools is None else tools
     transport = {'cancel': cancel} if cancel is not None else {}
     previous = list(previous)
     current = [dict(message) for message in current]
+    pairs = [i for i in range(len(current) - 1)
+             if current[i].get('role') == 'assistant' and len(current[i].get('tool_calls', [])) == 1
+             and current[i + 1].get('role') == 'tool'
+             and current[i]['tool_calls'][0]['id'] == current[i + 1].get('tool_call_id')
+             and isinstance(current[i + 1].get('content'), str)]
+    protected = {i + 1 for i in pairs[-4:]} if len(pairs) > 4 else set()
+    summaries = {i: tool_step_summary(current[i]['tool_calls'][0], current[i + 1]['content'])
+                 for i in pairs[:-4]}
     results = {i: (message['content'], 0) for i, message in enumerate(current)
-               if message.get('role') == 'tool' and isinstance(message.get('content'), str)}
+               if i not in protected and message.get('role') == 'tool'
+               and isinstance(message.get('content'), str)}
     while True:
-        latest = [dict(message) for message in current]
+        latest = [dict(message) for message in current if message is not None]
         if not latest or latest[0].get('role') != 'user' or not isinstance(latest[0].get('content'), str):
             raise ValueError('Expected the current user message before recalled memory')
         latest[0]['content'] += '\n\n<memory>\n' + memory_text + '\n</memory>'
@@ -568,7 +609,12 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
                     current[i]['content'] = reduced + f'\n{omitted} items dropped; narrow the request.'
                     break
             else:
-                if memory_text:
+                if summaries:
+                    i = next(iter(summaries))
+                    current[i] = dict(role='assistant', content=summaries.pop(i))
+                    current[i + 1] = None
+                    results.pop(i + 1, None)
+                elif memory_text:
                     memory_text = memory_text[:len(memory_text) // 2]
                 else:
                     raise ContextOverflow(messages, config['runtime']['context_size'])
