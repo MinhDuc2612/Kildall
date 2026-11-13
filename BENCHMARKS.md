@@ -3169,3 +3169,73 @@ Earlier failures remain in their original evidence and BENCHMARKS entries, inclu
 Every task failure, traceback, verifier outcome and setup failure remains in the private evidence. `report-summary.json` contains per-task failure records/counts; `final-eval-audit.json` adds the verifier caveats and suite accounting. Evidence root: `.session/recall-resume-20261110-o5slksil`.
 
 PR #16 stays draft for Claude review. No source or task changes, gate reruns, merge, sudo, HF sync, paid API or force push.
+
+
+## 2026-11-11 — #48 in-turn compaction, admission stop
+
+Source `a3d4826c4821f99dce76a1df9acc8bd2c2f45b3b` on `compact-tool-steps`, based on main
+`c7c50ed0dc4768171f52e9d4dbee4bf3465e675c`. `fit_messages` now summarizes the oldest completed
+current-turn call/result pairs after trimming older results and before cutting
+recalled memory. Each summary contains the tool, main argument and recorded
+outcome. With older pairs available, the last four pairs remain complete; the
+current user message and raw audit messages are preserved. Existing single-result
+trimming and its generic dropped-items note remain covered by the focused checks.
+Prompts, model, flags, routing, catalog, grammar, fixtures and 4,096-token context
+are unchanged.
+
+`test_tool_result_context.py`: **5/5 PASS**, including the new 30-step fit check
+(last four pairs/user/recalled memory intact; original input unchanged).
+This focused run is separate from the 28 standing controls, which were not reached.
+
+The complete gate order and unchanged limits were declared before the first live
+attempt in `measurement-protocol.json`. Routing's initial startup passed admission
+and built its prefix. Its required restart then failed admission on swap. No timed
+routing cases ran. There was no retry and no later stage was started.
+
+| Admission | Time (UTC+7) | Pressure | Swap GB (decimal) | Ports 8123/8124 | Other models | Result |
+|---|---|---:|---:|---|---:|---|
+| routing-startup-1 | 2026-11-11T19:47:01+07:00 | 1 | 0.606475386 | free | 0 | PASS |
+| routing-startup-2 | 2026-11-11T19:48:05+07:00 | 1 | 3.708876226 | free | 0 | STOP |
+
+Failed raw swap reading: `total = 4096.00M  used = 3537.06M  free = 558.94M  (encrypted)`. Limit: 3,000,000,000 bytes.
+Ports had no LISTEN socket and successful IPv4/IPv6 SO_REUSEADDR binds.
+Owned server PIDs 78081, 79577 had exited before the second admission;
+retirement completed in 0.005095 seconds (30-second bound).
+Other sessions' processes were left untouched.
+
+Top five memory users at failure (RSS; this snapshot does not attribute the swap rise):
+
+| Process | PID | RSS MB (decimal) |
+|---|---:|---:|
+| Chrome Renderer | 93199 | 345.948 |
+| Chrome | 52756 | 265.568 |
+| Wuthering Waves | 45377 | 176.161 |
+| Claude bg-spare | 75055 | 142.328 |
+| Chrome Renderer | 93396 | 134.087 |
+
+| Stage | Status |
+|---|---|
+| Routing (mean <= 0.906 s) | ADMISSION STOP; 0 scored cases; mean unavailable |
+| Recall: one slot, answer slots 1 and 2 | NOT RUN |
+| Abstention; callable; tools | NOT RUN |
+| CLI; hooks; 28 standing controls | NOT RUN |
+| Nuke dry-run; check.sh | NOT RUN |
+| Frozen #112 eval, run 1 | NOT RUN — all 20 tasks; no scores, calls or wall times |
+| Frozen #112 eval, run 2 | NOT RUN — all 20 tasks; no scores, calls or wall times |
+
+Run totals and run difference are unavailable. This is incomplete qualification,
+not a new baseline or noise-floor result. Historical PR16 results remain above.
+
+The planned evaluation retains task freeze `3d9b4a6`, with the verifier-only PR13
+fix at `2a71126919891bea8cf094779c01daa4ea078dfd` and harness SHA-256
+`8293422c59e6051aaf33264afc214162b7e276d8eafb7c2c3368e85dfc600cba`.
+Task1 independently passed both Git-task fixed/fix-agent/no-op/cheat matrices,
+all five relevant lazy mutants and the full `test_repo_eval.py`; its original
+Git128 reproductions and first boundary-attempt failures remain retained in PR13.
+No task content or original freeze manifest changed.
+
+Evidence: `.session/verifier-compaction-20261111-swr_9zup/` — focused log,
+measurement protocol, source/collector hashes, both admission snapshots, startup
+and retirement records, routing traceback, and `task2-report-summary.json`.
+All 76 source hashes and declared collector hashes held through the stop.
+No gate reruns, PR merge, sudo, HF sync, paid API or force push.

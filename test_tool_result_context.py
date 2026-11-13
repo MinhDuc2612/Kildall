@@ -120,7 +120,54 @@ def turn_completes():
         assert len(json.loads(raw['content'])['paths']) == 100  # Raw audit evidence is preserved.
 
 
+def compact_current_turn():
+    config = kildall.settings()
+    recalled = 'The release coordinator is Imani Tran.'
+    current = [dict(role='user', content='Inspect the files and fix the release bug.')]
+    for i in range(30):
+        current += [dict(role='assistant', content='Inspecting the next file. ' * 30,
+                         tool_calls=[dict(id=str(i), type='function', function=dict(
+                             name='read_file', arguments=json.dumps(dict(path=f'{i}.py'))))]),
+                    dict(role='tool', tool_call_id=str(i), content=json.dumps(
+                        dict(text='1: first line\n2: second line\n', truncated=False)))]
+    original = copy.deepcopy(current)
+    def tokenize(endpoint, body, **kwargs):
+        if endpoint.endswith('/tokenize'):
+            return dict(tokens=[1] * ((len(body['content'].encode()) + 3) // 4))
+        return request(endpoint, body, **kwargs)
+    with patch.object(kildall, 'json_request', side_effect=tokenize):
+        fitted = kildall.fit_messages(config, kildall.system_prompt('.'), recalled, [], current)
+    assert (len(json.dumps(fitted).encode()) + 3) // 4 + 544 <= 4096
+    assert fitted[1]['content'] == current[0]['content'] + '\n\n<memory>\n' + recalled + '\n</memory>'
+    assert fitted[-8:] == current[-8:]  # Last four call/result pairs remain byte-for-byte complete.
+    summaries = [m['content'] for m in fitted[2:] if m['role'] == 'assistant' and not m.get('tool_calls')]
+    assert len(summaries) == 1  # One message: chat templates may trim and merge adjacent assistant turns.
+    lines = summaries[0].split('\n')
+    assert len(lines) > 1 and lines == [f'read_file {i}.py: 2 lines read' for i in range(len(lines))]
+    assert current == original  # Compaction never changes stored audit evidence.
+
+
+def recent_result_trimmed():
+    config = kildall.settings()
+    big = ''.join(f'{n:3d}: ' + 'x' * 74 + '\n' for n in range(1, 101))  # 8,000 chars: near the read_file cap.
+    current = [dict(role='user', content='Fix the bug.')]
+    for i, text in enumerate(['1: a\n'] * 4 + [big]):
+        current += [dict(role='assistant', content='', tool_calls=[dict(id=str(i), type='function', function=dict(
+                        name='read_file', arguments=json.dumps(dict(path=f'{i}.py'))))]),
+                    dict(role='tool', tool_call_id=str(i), content=json.dumps(dict(text=text, truncated=False)))]
+    def counted(endpoint, body, **kwargs):  # Tool declarations count, as in the real template.
+        if endpoint.endswith('/apply-template'):
+            return dict(prompt=json.dumps([body['messages'], body['tools']]))
+        return dict(tokens=[1] * ((len(body['content'].encode()) + 3) // 4))
+    with patch.object(kildall, 'json_request', side_effect=counted):
+        fitted = kildall.fit_messages(config, kildall.system_prompt('.'), 'Memory.', [], current)
+    assert fitted[1]['content'].endswith('<memory>\nMemory.\n</memory>')  # Memory outranks the latest result.
+    assert fitted[2] == dict(role='assistant', content='read_file 0.py: 1 lines read')
+    assert fitted[-1]['content'].endswith('items dropped; narrow the request.')
+
+
 if __name__ == '__main__':
-    for check in (relative_paths, large_result, memory_before_tool_result, turn_completes):
+    for check in (relative_paths, large_result, memory_before_tool_result, turn_completes, compact_current_turn,
+                  recent_result_trimmed):
         check()
         print('PASS:', check.__name__, flush=True)
