@@ -584,6 +584,7 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
     results = {i: (message['content'], 0) for i, message in enumerate(current)
                if i not in protected and message.get('role') == 'tool'
                and isinstance(message.get('content'), str)}
+    digest = None  # One assistant message holds every summary; templates may trim and merge adjacent turns.
     while True:
         latest = [dict(message) for message in current if message is not None]
         if not latest or latest[0].get('role') != 'user' or not isinstance(latest[0].get('content'), str):
@@ -611,9 +612,18 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             else:
                 if summaries:
                     i = next(iter(summaries))
-                    current[i] = dict(role='assistant', content=summaries.pop(i))
+                    if digest is None:
+                        digest = i
+                        current[i] = dict(role='assistant', content=summaries.pop(i))
+                    else:
+                        current[digest]['content'] += '\n' + summaries.pop(i)
+                        current[i] = None
                     current[i + 1] = None
                     results.pop(i + 1, None)
+                elif protected:
+                    # The latest pairs stay whole only while room allows; then trim them like any result.
+                    results.update({i: (current[i]['content'], 0) for i in protected})
+                    protected = set()
                 elif memory_text:
                     memory_text = memory_text[:len(memory_text) // 2]
                 else:

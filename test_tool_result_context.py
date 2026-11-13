@@ -141,11 +141,33 @@ def compact_current_turn():
     assert fitted[1]['content'] == current[0]['content'] + '\n\n<memory>\n' + recalled + '\n</memory>'
     assert fitted[-8:] == current[-8:]  # Last four call/result pairs remain byte-for-byte complete.
     summaries = [m['content'] for m in fitted[2:] if m['role'] == 'assistant' and not m.get('tool_calls')]
-    assert summaries and summaries == [f'read_file {i}.py: 2 lines read' for i in range(len(summaries))]
+    assert len(summaries) == 1  # One message: chat templates may trim and merge adjacent assistant turns.
+    lines = summaries[0].split('\n')
+    assert len(lines) > 1 and lines == [f'read_file {i}.py: 2 lines read' for i in range(len(lines))]
     assert current == original  # Compaction never changes stored audit evidence.
 
 
+def recent_result_trimmed():
+    config = kildall.settings()
+    big = ''.join(f'{n:3d}: ' + 'x' * 74 + '\n' for n in range(1, 101))  # 8,000 chars: near the read_file cap.
+    current = [dict(role='user', content='Fix the bug.')]
+    for i, text in enumerate(['1: a\n'] * 4 + [big]):
+        current += [dict(role='assistant', content='', tool_calls=[dict(id=str(i), type='function', function=dict(
+                        name='read_file', arguments=json.dumps(dict(path=f'{i}.py'))))]),
+                    dict(role='tool', tool_call_id=str(i), content=json.dumps(dict(text=text, truncated=False)))]
+    def counted(endpoint, body, **kwargs):  # Tool declarations count, as in the real template.
+        if endpoint.endswith('/apply-template'):
+            return dict(prompt=json.dumps([body['messages'], body['tools']]))
+        return dict(tokens=[1] * ((len(body['content'].encode()) + 3) // 4))
+    with patch.object(kildall, 'json_request', side_effect=counted):
+        fitted = kildall.fit_messages(config, kildall.system_prompt('.'), 'Memory.', [], current)
+    assert fitted[1]['content'].endswith('<memory>\nMemory.\n</memory>')  # Memory outranks the latest result.
+    assert fitted[2] == dict(role='assistant', content='read_file 0.py: 1 lines read')
+    assert fitted[-1]['content'].endswith('items dropped; narrow the request.')
+
+
 if __name__ == '__main__':
-    for check in (relative_paths, large_result, memory_before_tool_result, turn_completes, compact_current_turn):
+    for check in (relative_paths, large_result, memory_before_tool_result, turn_completes, compact_current_turn,
+                  recent_result_trimmed):
         check()
         print('PASS:', check.__name__, flush=True)
