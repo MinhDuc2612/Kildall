@@ -51,7 +51,9 @@ def execute(operation, args, project):
                     return dict(paths=result, truncated=True)
         return dict(paths=result, truncated=False)
     if operation == 'grep_files':
-        argv = [system().executable('rg'), '--json', '--max-count', '200', '--max-filesize', '16M']
+        # Plain path:line:text rows; ripgrep's JSON events cost a small context window about ten times more.
+        argv = [system().executable('rg'), '--line-number', '--with-filename', '--no-heading', '--color', 'never',
+                '--max-columns', '240', '--max-columns-preview', '--max-count', '200', '--max-filesize', '16M']
         if args.get('file_type'):
             argv += ['--type', args['file_type']]
         argv += ['--', args['pattern'], os.path.relpath(path, project)]

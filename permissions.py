@@ -364,8 +364,11 @@ def execute(operation, args, record, project):
             raise PermissionError("Git metadata may only be changed by the commit operation")
         before = snapshot(path)
         if operation == "edit":
-            if before is None or not args["old"] or before[0].decode("utf-8").count(args["old"]) != 1:
-                raise ValueError("Edit requires exactly one matching nonempty old string")
+            found = before[0].decode("utf-8").count(args["old"]) if before is not None and args["old"] else 0
+            if found != 1:
+                raise ValueError("Edit requires exactly one matching nonempty old string; found " + str(found) + (
+                    ". Read the file and copy the exact text, including indentation" if not found
+                    else ". Add neighbouring lines to old until it matches once"))
             content = before[0].decode("utf-8").replace(args["old"], args["new"], 1).encode()
         elif operation == "install":
             # ponytail: install a local artifact only; package hooks need Phase 4 confinement.
