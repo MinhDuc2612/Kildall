@@ -3239,3 +3239,86 @@ measurement protocol, source/collector hashes, both admission snapshots, startup
 and retirement records, routing traceback, and `task2-report-summary.json`.
 All 76 source hashes and declared collector hashes held through the stop.
 No gate reruns, PR merge, sudo, HF sync, paid API or force push.
+
+## In-turn compaction (#48), PR #17 — full gates and frozen #112 eval at `5530167` (2026-11-14/15)
+
+Product under test: `compact-tool-steps` `55301675513ece6ca9fc777b329637ffdd281a0a` (a3d4826 plus review fix:
+latest results trimmed after all older steps are summarized; one summary message). Base `main` `c7c50ed`.
+One full pass, nothing inherited, evidence `.session/compaction-fix-20261114e/`. Model, prompts, flags, routing,
+catalog, grammar, `bench_cases.json`, `test_recall.py`, frozen task assets (`3d9b4a6`) and verifier harness
+(`2a71126`) unchanged; 76 source hashes and 12 collector hashes held.
+
+| Gate | Result |
+|---|---|
+| Focused `test_tool_result_context.py` | PASS 6/6 |
+| Routing (20 cases, fresh restart) | PASS — category 20/20, lane 20/20, r17 X→C, 0 cold, mean 0.787221 s ≤ 0.906, p50 0.766063 s, p99 0.941279 s |
+| Recall, frozen one slot / answer slots 1 and 2 | PASS — 20/20, 20/20, 20/20; requests identical after path normalization |
+| Abstention | PASS — 20/20 |
+| Callable / tools | PASS — callable 20/20; exact 17/20 first pass, 20/20 after 3 retries (t07, t09, t12) |
+| CLI | PASS — 18/18, CLI recall checks 3/3 |
+| Hooks; standing controls | PASS — 5/5; 28/28 |
+| Nuke dry-run; `check.sh` | PASS — 507,831 entries, 0 outside, 0 rejected; exit 0 |
+| Verifier wiring control (no model) | PASS — no-op fails, golden fix passes |
+| Admission (10 snapshots) | all PASS — pressure 1; swap 0 for every stage through eval run 1, 1.018 GB at eval run 2; ports free; no other model |
+
+### Frozen #112 eval, both runs: 0/20 — overflow floor removed, loop floor exposed
+
+| | Run 1 | Run 2 | PR #16 run 1 / run 2 (before #48) |
+|---|---|---|---|
+| Passed | 0/20 | 0/20 | 0/20 / 0/20 |
+| Tool calls | 724 | 700 | 684 / 612 |
+| Task wall (s) | 12319.1 | 13933.7 | 10026.5 / 8479.7 |
+| Startup (s) | 38.9 | 24.3 | 44.9 / 33.4 |
+| Stops: ContextOverflow | 0 | 0 | 19 / 17 |
+| Stops: tool cap (40) | 15 | 14 | 1 / 0 |
+| Stops: wall cap (900 s) | 1 | 3 | 0 / 0 |
+| Stops: truncated tool call (ValueError) | 3 | 3 | 0 / 2 |
+| Stops: final answer, failed grading | 1 | 0 | 0 / 1 |
+
+`dup` = tool calls that exactly repeat an earlier call (same tool, same arguments) in the same task.
+
+| Task | R1 | calls | wall s | stop | dup | R2 | calls | wall s | stop | dup |
+|---|---|---|---|---|---|---|---|---|---|---|
+| action-background-outcome | FAIL | 40 | 635 | tool-cap | 19 | FAIL | 40 | 685 | tool-cap | 32 |
+| child-background-outcome | FAIL | 40 | 648 | tool-cap | 10 | FAIL | 40 | 701 | tool-cap | 15 |
+| cloud-null-calls | FAIL | 25 | 350 | final-answer | 15 | FAIL | 40 | 858 | tool-cap | 20 |
+| disabled-interval-clock | FAIL | 30 | 465 | error (ValueError) | 10 | FAIL | 40 | 695 | tool-cap | 14 |
+| foreground-warm-lock | FAIL | 40 | 686 | tool-cap | 20 | FAIL | 40 | 715 | tool-cap | 16 |
+| local-common-directory | FAIL | 40 | 636 | tool-cap | 16 | FAIL | 40 | 744 | tool-cap | 16 |
+| metadata-case-alias | FAIL | 40 | 689 | tool-cap | 18 | FAIL | 40 | 674 | tool-cap | 19 |
+| missing-session-admission | FAIL | 40 | 600 | tool-cap | 15 | FAIL | 40 | 694 | tool-cap | 13 |
+| missing-task-outcome | FAIL | 40 | 638 | tool-cap | 21 | FAIL | 40 | 699 | tool-cap | 13 |
+| oversized-hook-audit | FAIL | 40 | 555 | tool-cap | 33 | FAIL | 40 | 541 | tool-cap | 32 |
+| partial-router-warm | FAIL | 9 | 112 | error (ValueError) | 3 | FAIL | 40 | 793 | tool-cap | 18 |
+| pdf-byte-boundary | FAIL | 40 | 680 | tool-cap | 20 | FAIL | 8 | 163 | error (ValueError) | 1 |
+| post-hook-status | FAIL | 40 | 791 | tool-cap | 22 | FAIL | 11 | 414 | error (ValueError) | 4 |
+| remote-macos-config | FAIL | 39 | 900 | wall-cap (RuntimeError) | 20 | FAIL | 38 | 901 | wall-cap (RemoteDisconnected) | 17 |
+| scanner-word-boundary | FAIL | 21 | 568 | error (ValueError) | 5 | FAIL | 35 | 900 | wall-cap (RemoteDisconnected) | 18 |
+| server-port-ownership | FAIL | 40 | 772 | tool-cap | 32 | FAIL | 40 | 774 | tool-cap | 29 |
+| shell-binary-output | FAIL | 40 | 650 | tool-cap | 24 | FAIL | 37 | 900 | wall-cap (RuntimeError) | 15 |
+| shell-poll-completion | FAIL | 40 | 678 | tool-cap | 33 | FAIL | 11 | 286 | error (ValueError) | 1 |
+| switch-hidden-index | FAIL | 40 | 709 | tool-cap | 30 | FAIL | 40 | 901 | tool-cap | 22 |
+| terminal-nonseekable | FAIL | 40 | 556 | tool-cap | 29 | FAIL | 40 | 893 | tool-cap | 26 |
+
+Read-only transcript audit (both runs, 1,424 calls): 736 exact repeat calls (52%); 638 `read_file`,
+586 `grep_files`, 41 `glob_files`, 59 verifier runs, 98 `edit` calls of which 82 tool results were errors
+(mostly failed edits); 17 of 40 task runs made no edit at all. Conclusion: #48 does what it was built for — no task
+ends in ContextOverflow and turns now run to the 40-call or 900 s cap — but it does not raise the score. The model
+re-issues searches whose results were compacted away and fails most edits. This is the evidence for the next 5d
+slices: #108 repeat-call breaker, #98 loop breaker, #107 error messages (edit failures), and keeping findings
+(file:line hits) in the step summaries. No clean noise-floor claim: 0/20 in both runs.
+
+### Retained stops on the way to this pass (all at `5530167`, no product change between them)
+
+| Attempt | Outcome |
+|---|---|
+| `…20261113` (2026-11-14 17:10) | STOP UNSCORED at routing restart admission: swap 3.03 GB > 3 GB (Chrome open, Mac not restarted) |
+| `…20261114` (17:22–17:36, after a restart) | live stages exit 0; STOP at controls: `test_phase41.py` F6 glob listed `sub/._a.py`. Processes started from the Claude desktop job put `com.apple.provenance` on new files; exFAT stores it as AppleDouble `._` files |
+| `…20261114b` | prepared only; its copy carried 8,604 side files; unused |
+| `…20261114c` (17:44–17:59, `launchctl submit`) | live stages exit 0, phase41/42 PASS; STOP at `test_memory.py`: 388.0 ms > 300 ms |
+| `…20261114d` (18:03–18:05, `launchctl submit`) | STOP at `test_memory.py`: 391.4 ms. A/B probe: standard launchd job fails 5/5 (384–391 ms), `ProcessType=Interactive` passes 5/5, direct shell passes 12/12 — background-type launchd jobs get throttled timers |
+| `…20261114e` (18:06–01:44, launchd `ProcessType=Interactive`) | this report: every gate PASS, both evals completed |
+
+Open items found, not part of this PR: (1) file tools and the `git_switch` clean check do not tolerate AppleDouble
+`._` files on the exFAT root; (2) any Kildall daemon must run with `ProcessType=Interactive` or the 300 ms memory cap
+is missed. No gate limit changed, no retry inside an attempt, no sudo, HF sync, paid API or force push.
