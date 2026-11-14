@@ -2752,3 +2752,573 @@ One predefined repeat recommended by Claude's review. Harness copied unchanged, 
 | Reading | Read and write match internal-SSD runs (229–230 and 26.5–28.3 tok/s), so USB alone does not explain the failure. It tracks host state; high swap is the likely cause, not proven by one repeat | `candidate/latency/.session/lane_a.log` |
 | Limit | This repeat ran alone, not in sequence with the other gates | this table |
 | Live nuke dry-run / `check.sh` | PASS: 108,933 paths, 0 rejected; `check.sh` exit 0 | run on `386de3e` before this commit |
+
+
+## Tool-result context fitting — 2026-11-09
+
+Branch `fit-tool-results`, based on main `f98b4a2`. Search paths are relative to
+the project root. Shared `fit_messages` fits copied tool replies to the full
+rendered/tokenized request after existing history/memory reduction, keeping the
+unchanged 512-token response allowance and 32-token margin. Complete list items
+or text lines are omitted with a final `N items dropped; narrow the pattern.`
+note. Raw audit results remain intact. Context remains 4,096; system prompt,
+model, runtime flags, routing, catalog, grammar and frozen fixtures are unchanged.
+
+The three focused checks cover relative paths, bounded output/omission count,
+and a complete product turn with oversized search results. The first two passed
+on their first execution. The turn check initially failed before entering the
+turn because its new HTTP stub omitted GET `/slots`; that failure is retained.
+Only the test stub was corrected, then the turn check passed. No product fix or
+formal gate was repeated after a failed gate. The existing Phase4.1 glob
+assertion now expects the explicitly requested relative path.
+
+All **28/28 standing controls passed once**, including **hooks 5/5** (plus its
+confinement check). Source hashes stayed unchanged during qualification.
+
+**STOP: routing restart admission failed before any scored routing case.**
+The inherited protocol first builds the router prefix, stops its owned runtime,
+then admits the fresh restart before measuring the fixed routing cases.
+
+| Admission | Time (+07:00) | Pressure | Swap bytes | Ports 8123/8124 | Ports 8223/8224 | Other model processes |
+|---|---|---|---:|---|---|---|
+| Initial startup | 2026-11-09T16:21:54+07:00 | normal (1) | 0 | free | free | none |
+| Planned restart | 2026-11-09T16:22:49+07:00 | normal (1) | 3346656133 | not bind-free | free | none |
+
+Restart swap was **3.346656 GB**, above the unchanged **3.000 GB** limit.
+Both owned services had stopped; a later cleanup check found no listeners on
+8123/8124. That check was not an admission retry. No other session process was
+stopped. The failed admission is final for this attempt.
+
+| Predeclared gate | Required | Result |
+|---|---|---|
+| Standing controls | 28/28 | PASS 28/28, once |
+| Routing | 20/20 category/lane, mean ≤0.906 s, zero cold | UNSCORED; restart admission stopped measurement |
+| Frozen recall | 20/20 single slot and each answer slot (1, 2) | NOT RUN |
+| Abstention | 20/20 | NOT RUN |
+| Callable JSON | 20/20 | NOT RUN |
+| Tool arguments | ≥17/20 first pass, 20/20 after permitted retry | NOT RUN |
+| CLI | 18/18 | NOT RUN |
+| Hooks | 5/5 | PASS, counted from standing control; no rerun |
+| Nuke dry-run | 0 outside / 0 rejected | NOT RUN |
+| check.sh | exit 0 | NOT RUN |
+
+### Frozen #112 eval
+
+Freeze `3d9b4a6c1b40cbe908cf561f77189568ed7e8662` stays unchanged. Its 84 task
+assets and five harness/selection hashes were verified from the frozen commit.
+Neither 20-task eval started after the failed admission. **The noise floor is
+unmeasured.** PR #13's earlier 0/20 runs remain valid measurements of the
+context-overflow floor; they are not a noise-floor estimate. PR #13 and PR #15
+were not changed.
+
+| Frozen task | Run 1 | Calls | Wall s | Run 2 | Calls | Wall s |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| child-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| cloud-null-calls | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| disabled-interval-clock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| foreground-warm-lock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| local-common-directory | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| metadata-case-alias | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-session-admission | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-task-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| oversized-hook-audit | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| partial-router-warm | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| pdf-byte-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| post-hook-status | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| remote-macos-config | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| scanner-word-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| server-port-ownership | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-binary-output | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-poll-completion | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| switch-hidden-index | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| terminal-nonseekable | NOT RUN | 0 | — | NOT RUN | 0 | — |
+
+| Total | Run 1 | Run 2 | Difference |
+|---|---|---|---|
+| Tasks attempted | 0/20 | 0/20 | — |
+| Pass/fail score | NOT RUN | NOT RUN | unavailable |
+| Tool calls | 0 | 0 | — |
+| Task wall time | — | — | unavailable |
+
+No task timers or model tool calls ran; NOT RUN is not a failed task score.
+Evidence: `.session/tool-result-context-20261109-4ymh2kiy/`, including the
+predeclared protocol, source/harness hashes, focused-test failure and correction,
+all 28 logs, both admission snapshots, prefix/startup evidence, routing error and
+cleanup, and `gate-and-eval-summary.json`. All failures are retained locally.
+No further live work, changed limits, merge, sudo, HF sync, force push or paid API.
+
+
+## Tool-result memory priority, merged main — 2026-11-09
+
+Review fix `687e409` changes fitting order to **drop previous turns → trim tool
+results → halve recalled memory → ContextOverflow**. The omission note is now
+`N items dropped; narrow the request.` A new focused test combines old history,
+recalled memory and a huge search result: old history is removed, the recalled
+memory stays complete, and the tool result is shortened within the 4,096-token
+budget. Existing note assertions follow the generic wording.
+
+Main `ec3b17e` (accepted PR #15) was normally merged into `fit-tool-results` at
+**`af59604857039712879678a64740b48732dd63ed` before any checks**. No rebase or force.
+All **four focused checks passed once on that merged code**. Product source stayed
+unchanged during the live attempt; model, prompts, flags, routing, catalog,
+grammar and frozen fixtures stayed unchanged.
+
+The new predeclared order is routing → recall single/work slots → abstention →
+callable/tools → CLI → hooks → 28 standing controls → nuke → check.sh → two frozen
+evals. Hooks would run once and its result would be reused in the 28-suite count.
+Old control passes above are historical and do not qualify this merged source.
+
+**STOP at routing restart admission; no scored routing case ran.** The inherited
+routing protocol builds the prefix, stops its owned services, then starts a fresh
+runtime for the fixed cases. Both planned starts had admission snapshots:
+
+| Admission | Time (+07:00) | Pressure | Swap bytes | Ports 8123/8124 bind-free | Other models | Result |
+|---|---|---|---:|---|---|---|
+| Initial startup | 2026-11-09T18:02:46+07:00 | normal (1) | 1482686464 | yes / yes | none | PASS |
+| Planned restart | 2026-11-09T18:03:27+07:00 | normal (1) | 1482686464 | no / no | none | FAIL |
+
+Swap was **1.482686 GB**, below the unchanged **3.000 GB** limit.
+The failed checks were raw socket binds on both ports. The snapshot detected no
+model process. The owned services were stopped, and a separate cleanup diagnostic
+at 18:06:10 found no sockets/listeners on either port. That later read cannot
+establish the cause of the earlier bind failures and was not an admission retry.
+The failed snapshot is retained; no limits changed and no live gate was rerun.
+
+| Gate | Required | This merged-source attempt |
+|---|---|---|
+| Routing | 20/20 category/lane, mean ≤0.906 s, zero cold | UNSCORED: restart admission stop |
+| Recall | 20/20 single slot and each answer slot 1/2 | NOT RUN |
+| Abstention | 20/20 | NOT RUN |
+| Callable JSON | 20/20 | NOT RUN |
+| Tools | ≥17 first pass → 20 post-retry | NOT RUN |
+| CLI | 18/18 | NOT RUN |
+| Hooks | 5/5 | NOT RUN |
+| Standing controls | 28/28 | NOT RUN |
+| Nuke dry-run | 0 outside / 0 rejected | NOT RUN |
+| check.sh | exit 0 | NOT RUN |
+
+### Frozen #112 eval on the merged source
+
+Freeze `3d9b4a6c1b40cbe908cf561f77189568ed7e8662` remains unchanged. All 84 task
+asset hashes and five harness/selection hashes match the frozen commit. Both
+requested runs are **NOT RUN** after the admission stop. The noise floor remains
+**unmeasured**; the earlier PR #13 zero scores remain a context-overflow floor.
+
+| Frozen task | Run 1 | Calls | Wall s | Run 2 | Calls | Wall s |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| child-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| cloud-null-calls | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| disabled-interval-clock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| foreground-warm-lock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| local-common-directory | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| metadata-case-alias | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-session-admission | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-task-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| oversized-hook-audit | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| partial-router-warm | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| pdf-byte-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| post-hook-status | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| remote-macos-config | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| scanner-word-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| server-port-ownership | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-binary-output | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-poll-completion | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| switch-hidden-index | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| terminal-nonseekable | NOT RUN | 0 | — | NOT RUN | 0 | — |
+
+| Total | Run 1 | Run 2 | Difference |
+|---|---|---|---|
+| Tasks attempted | 0/20 | 0/20 | — |
+| Pass/fail score | NOT RUN | NOT RUN | unavailable |
+| Tool calls | 0 | 0 | — |
+| Task wall time | — | — | unavailable |
+
+NOT RUN is not a failed task score. No task timer or model tool call ran.
+Evidence: `.session/tool-result-memory-priority-20261109-6nw5afsk/`, including the
+merged-source provenance, predeclared protocol, source/helper hashes, focused
+checks, both admission snapshots, routing error and service records, socket
+cleanup diagnostic, and per-task NOT RUN report. All earlier failures remain.
+Only the user-authorized local main/vault merges were performed; product PR #16
+stays draft for Claude review. No sudo, HF sync, force push or paid API.
+
+## Admission LISTEN/reuseaddr correction — 2026-11-09
+
+**Routing passed; the next stage stopped on swap admission.** Product source remains
+`e3a219b44d436f977c2bd11741238fb84907d8c6` (accepted fit-order fix `687e409`, normal
+main `ec3b17e` merge `af596048`; the difference from that merge is documentation only).
+No product, prompt, model, flag, routing, catalog, grammar, fixture or 4,096-token
+context change. This is the one new attempt authorized after review of the
+admission harness; no gate was repeated within it.
+
+### Retained failure and harness-only correction
+
+The earlier attempt remains in `.session/tool-result-memory-priority-20261109-6nw5afsk/`:
+startup-1 at 18:02:46 passed; startup-2 at 18:03:27 failed plain port binds despite
+normal pressure, swap 1,482,686,464 bytes and no other model. The 18:06:10 diagnostic
+had no listeners or sockets. Claude's review identifies this as the same
+TIME_WAIT/plain-bind harness bug recorded on 2026-09-07. The original snapshots,
+traceback, timings and UNSCORED result are preserved, without retroactive scoring.
+
+Only the new attempt's admission helpers change:
+
+- Each port must have no LISTEN socket according to
+  `lsof -nP -a -iTCP:<port> -sTCP:LISTEN -Fpn`, and both IPv4/IPv6 binds must succeed
+  after setting `SO_REUSEADDR=1`, matching llama-server's reuse behavior.
+  A listener or an unexpected lsof error refuses admission. Bind errors retain errno.
+- After stopping owned servers, wait up to **30 seconds total** for their PIDs to exit,
+  checking each saved PID/start-time pair. This completes before restart admission
+  and before moving to another stage. No extra signal is sent; other processes stay untouched.
+- Pressure normal (1), swap ≤**3,000,000,000 bytes**, ports **8123/8124**, no other model,
+  frozen workloads, thresholds and the routing-first stop-on-failure order are unchanged.
+
+The focused harness control reproduced plain-bind EADDRINUSE after an ephemeral
+server closed; LISTEN was absent and the reuse bind passed. A live listener was
+refused. Owned-child retirement also passed. The initial control held its own
+unreaped child and failed the PID-exit assertion after 30 seconds; that test-only
+failure and original test are retained. Its correction reaps the synthetic child
+concurrently. All of this occurred before the live attempt; no live admission or
+gate was retried.
+
+Private evidence: `.session/admission-reuseaddr-20261109-ia1dawo1/`.
+The exact helper diff is `admission-fix.patch`. SHA-256:
+`admission.py` = `2bc078695685e2505b5e0fe08a0809bf3c700351adee93f41512e532a95c853a`;
+`live_gate.py` = `182405ab44c807cc198dace57013dea0375ef9cea6eecbb694188e9c96cbc721`.
+No `.session/` artifacts are committed.
+
+### One attempted gate sequence
+
+Order: routing → recall single slot and answer slots 1/2 → abstention → callable/tools
+→ CLI → hooks → 28 controls (reuse the one hooks result) → nuke → check.sh → frozen eval twice.
+
+| Admission | Time +07:00 | Pressure | Swap bytes | LISTEN absent + reuse binds, both ports | Other models | Result |
+|---|---|---|---:|---|---|---|
+| routing-startup-1 | 19:06:57 | normal (1) | 1423966208 | PASS | none | PASS |
+| routing-startup-2 | 19:07:45 | normal (1) | 2461993533 | PASS | none | PASS |
+| recall-startup-1 | 19:09:10 | normal (1) | 3387162624 | PASS | none | FAIL: swap |
+
+
+Both routing stop snapshots confirm all owned server PIDs exited. Routing scored
+**20/20 categories and 20/20 lanes**, mean **0.84313675 s**, p50 **0.804893 s**,
+p99 **1.014551 s**, **zero cold routes**, and r17 X-to-C PASS.
+
+**STOP at recall admission, 19:09:10:** swap **3.387163 GB** exceeded **3.000 GB**.
+Pressure was normal, corrected port checks both passed, and no other model was running.
+No recall question ran; no later gate or eval started. No wait for lower swap,
+no new admission snapshot, no retry and no changed limit. Owned runtimes stopped;
+all 76 tracked source hashes remained unchanged during the attempted sequence.
+
+| Gate | Required | This attempt |
+|---|---|---|
+| Routing | Category/lane 20/20; mean ≤0.906 s; zero cold | **PASS: 20/20 each, 0.84313675 s, zero cold** |
+| Recall, single slot and answer slots 1/2 | 20/20 each | **UNSCORED: swap admission failed before first question** |
+| Abstention | 20/20 | NOT RUN |
+| Callable JSON | 20/20 | NOT RUN |
+| Tools | ≥17 first pass → 20 post-retry | NOT RUN |
+| CLI | 18/18 | NOT RUN |
+| Hooks | 5/5 | NOT RUN |
+| Standing controls | 28/28 | NOT RUN |
+| Nuke dry-run | 0 outside / 0 rejected | NOT RUN |
+| check.sh | exit 0 | NOT RUN |
+
+
+### Frozen #112 eval status
+
+Freeze **3d9b4a6** is unchanged; all **89** pinned asset/harness hashes were verified.
+Both full 20-task runs are **NOT RUN** following the recall admission stop.
+
+| Task | Run 1 | Calls | Wall s | Run 2 | Calls | Wall s |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| child-background-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| cloud-null-calls | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| disabled-interval-clock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| foreground-warm-lock | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| local-common-directory | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| metadata-case-alias | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-session-admission | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| missing-task-outcome | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| oversized-hook-audit | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| partial-router-warm | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| pdf-byte-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| post-hook-status | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| remote-macos-config | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| scanner-word-boundary | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| server-port-ownership | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-binary-output | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| shell-poll-completion | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| switch-hidden-index | NOT RUN | 0 | — | NOT RUN | 0 | — |
+| terminal-nonseekable | NOT RUN | 0 | — | NOT RUN | 0 | — |
+
+
+| Total | Run 1 | Run 2 | Difference |
+|---|---:|---:|---:|
+| Tasks attempted | 0/20 | 0/20 | — |
+| Pass/fail score | NOT RUN | NOT RUN | unavailable |
+| Tool calls | 0 | 0 | — |
+| Task wall / startup / overall seconds | — | — | unavailable |
+
+The noise floor remains **unmeasured**. NOT RUN is not a failed task score.
+Earlier source/control results and every failure remain in their original reports;
+older 28/28 controls are not claimed for this attempted sequence.
+
+
+## 2026-11-10 — PR #16 resumed qualification and frozen #112 eval
+
+Report snapshot: 2026-11-10T19:25:45+07:00. Run 1: **COMPLETED**; run 2: **COMPLETED**.
+
+Both full frozen runs finished **0/20 passed**. These remain failures dominated by context/tool budgets, with two unresolved Git-verifier discrepancies; this is **not a clean noise-floor measurement**. All qualification gates below pass. Timed product routing is carried forward, as requested.
+
+Product at pre-run docs head `09b9e28` is unchanged from accepted merged product `af596048` (fit-order fix `687e409`, normal merge of main `ec3b17e`). This report changes documentation only. No product, prompt, model, flag, routing, catalog, grammar or frozen-task changes. Context remains 4,096.
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Timed routing (inherited; not rerun) | PASS | mean 0.84313675 s <= 0.906 s; category 20/20, lane 20/20, cold 0 |
+| Frozen recall, one slot | PASS | 20/20 |
+| Recall, answer slots 1 / 2 | PASS | 20/20; 20/20 |
+| Abstention | PASS | 20/20 |
+| Callable JSON | PASS | 20/20 |
+| Tools | PASS | 17/20 first-pass -> 20/20 post-retry; 3 retries |
+| CLI | PASS | 18/18 |
+| Hooks | PASS | 5/5; confinement also passed |
+| Standing controls | PASS | 28/28; hooks result reused |
+| Nuke dry-run | PASS | 421780 entries; 0 outside; 0 rejected |
+| check.sh | PASS | exit 0 |
+
+Timed routing mean **0.84313675 s** is the user-accepted prior result and was never rerun. Quality's separate JSON-routing cases remain part of the inherited quality suite (20/20). Callable validity and exact tool arguments use the same tool-case responses.
+
+Retained first-pass tool failures: t07, t09, t12; each received the declared single retry and passed afterward.
+
+The earlier raw-bind routing-startup-2 failure remains retained. The corrected admission requires no `lsof -sTCP:LISTEN` socket and successful IPv4/IPv6 `SO_REUSEADDR` binds, and waits up to 30 seconds for owned stopped PIDs to exit. Pressure, swap and other-model limits are unchanged.
+
+Verifier setup controls 01/02 failed with `ModuleNotFoundError: No module named numpy` under the symlinked venv arrangement. Both failures remain retained. Control 03 passed after physically copying the installed venv: no-op failed, known fix passed, no model inference or download. All **89 frozen hashes** still match `3d9b4a6`.
+
+Every current admission passed: normal pressure (1), swap at or below 3,000,000,000 bytes, no LISTEN sockets on 8123/8124, successful reuse binds, and no other model process. Admission snapshots:
+
+| Scope | Label | Passed | Pressure | Swap GB (decimal) |
+|---|---|---|---:|---:|
+| Current | abstention-startup-1 | True | 1 | 2.643334266 |
+| Current | cli-stage | True | 1 | 2.601391226 |
+| Current | eval-1-startup | True | 1 | 2.559448186 |
+| Current | eval-2-startup | True | 1 | 2.666067394 |
+| Current | quality-startup-1 | True | 1 | 2.626557050 |
+| Current | recall-startup-1 | True | 1 | 1.881271173 |
+| Current | recall-startup-2 | True | 1 | 2.133327872 |
+| Historical | recall-startup-1 | False | 1 | 3.387162624 |
+| Historical | routing-startup-1 | True | 1 | 1.423966208 |
+| Historical | routing-startup-2 | True | 1 | 2.461993533 |
+| Historical | routing-startup-2 | False | 1 | 1.482686464 |
+
+Failed admission `.session/admission-reuseaddr-20261109-ia1dawo1/recall-startup-1-admission.json`: swap `total = 4096.00M  used = 3230.25M  free = 865.75M  (encrypted)` (3387162624 bytes); limit 3000000000 bytes; ports `{"8123": true, "8124": true}`.
+Top 5 memory users: not recorded in this historical admission; not reconstructed.
+
+Failed admission `.session/tool-result-memory-priority-20261109-6nw5afsk/routing-startup-2-admission.json`: swap `total = 3072.00M  used = 1414.00M  free = 1658.00M  (encrypted)` (1482686464 bytes); limit 3000000000 bytes; ports `{"8123": false, "8124": false}`.
+Top 5 memory users: not recorded in this historical admission; not reconstructed.
+
+| Frozen task | Run 1 | Calls | Seconds | Run 2 | Calls | Seconds |
+|---|---|---:|---:|---|---:|---:|
+| action-background-outcome | FAIL (ContextOverflow) | 30 | 391.060 | FAIL (ContextOverflow) | 30 | 412.364 |
+| child-background-outcome | FAIL (tool-cap) | 40 | 696.675 | FAIL (ContextOverflow) | 32 | 452.490 |
+| cloud-null-calls | FAIL (ContextOverflow) | 38 | 612.203 | FAIL (ContextOverflow) | 38 | 619.659 |
+| disabled-interval-clock | FAIL (ContextOverflow) | 38 | 679.108 | FAIL (ContextOverflow) | 39 | 693.510 |
+| foreground-warm-lock | FAIL (ContextOverflow) | 36 | 595.132 | FAIL (ContextOverflow) | 31 | 399.836 |
+| local-common-directory | FAIL (ContextOverflow) | 36 | 566.141 | FAIL (ContextOverflow) | 37 | 562.861 |
+| metadata-case-alias | FAIL (ContextOverflow) | 36 | 532.124 | FAIL (ValueError) | 18 | 206.088 |
+| missing-session-admission | FAIL (ContextOverflow) | 31 | 378.086 | FAIL (ContextOverflow) | 30 | 392.294 |
+| missing-task-outcome | FAIL (ContextOverflow) | 31 | 409.117 | FAIL (ContextOverflow) | 32 | 455.878 |
+| oversized-hook-audit | FAIL (ContextOverflow) | 31 | 348.899 | FAIL (ContextOverflow) | 32 | 395.979 |
+| partial-router-warm | FAIL (ContextOverflow) | 35 | 593.792 | FAIL (ContextOverflow) | 33 | 472.360 |
+| pdf-byte-boundary | FAIL (ContextOverflow) | 38 | 554.457 | FAIL (ContextOverflow) | 38 | 548.406 |
+| post-hook-status | FAIL (ContextOverflow) | 32 | 417.151 | FAIL (ContextOverflow) | 32 | 432.703 |
+| remote-macos-config | FAIL (ContextOverflow) | 31 | 361.539 | FAIL (ContextOverflow) | 31 | 338.879 |
+| scanner-word-boundary | FAIL (ContextOverflow) | 37 | 628.342 | FAIL (ContextOverflow) | 37 | 638.460 |
+| server-port-ownership | FAIL (ContextOverflow) | 32 | 403.836 | FAIL (ValueError) | 17 | 199.523 |
+| shell-binary-output | FAIL (ContextOverflow) | 37 | 583.945 | FAIL (ContextOverflow) | 34 | 436.207 |
+| shell-poll-completion | FAIL (ContextOverflow) | 31 | 434.103 | FAIL (ContextOverflow) | 30 | 356.053 |
+| switch-hidden-index | FAIL (ContextOverflow) | 34 | 471.849 | FAIL (final-answer) | 11 | 107.085 |
+| terminal-nonseekable | FAIL (ContextOverflow) | 30 | 368.961 | FAIL (ContextOverflow) | 30 | 359.097 |
+
+Each run attempted all 20 tasks once with default Lane A, the unchanged frozen sampling/prompt/tools, 40-call and 900-second task caps, and 4,096-token context. Overall time includes startup/setup and excludes shutdown. Both collectors exited 0; all owned server PIDs exited within the 30-second retirement bound.
+
+| Total | Run 1 | Run 2 | Run 2 − Run 1 |
+|---|---:|---:|---:|
+| Completed tasks | 20 | 20 | 0 |
+| Passed | 0 | 0 | +0 |
+| Failed | 20 | 20 | +0 |
+| Tool calls | 684 | 612 | -72 |
+| Task wall seconds | 10026.521 | 8479.732 | -1546.789 |
+| Startup seconds | 44.882 | 33.409 | -11.472 |
+| Overall seconds | 10074.159 | 8515.891 | -1558.268 |
+
+Differences are calculated from raw run totals, never from summed rounded task rows. These timings describe failed attempts with differing stop reasons, not successful-repair throughput.
+
+Run 1 failure stop reasons (20 failures): ContextOverflow × 19, tool-cap × 1.
+Run 2 failure stop reasons (20 failures): ContextOverflow × 17, ValueError × 2, final-answer × 1.
+
+Final read-only audit (`final-eval-audit.json`, with earlier `run-1-audit.md` and `run-2-partial-audit.md` retained):
+
+- Both runs' final grading started all 40 suites, collected 829 checks and executed 759. Across all model-requested and final verification invocations, run 1 retained 60 suite reports and run 2 retained 54. Every suite collected nonzero checks; none skipped or timed out. Every regression suite passed 37/37. Hidden suites stop on their failing assertion/exception; this is not a claim that all collected assertions executed.
+- **Grading caveat in both runs:** `local-common-directory` and `remote-macos-config` raise Git-config exit 128. Prior identical-hash PR #13 controls and Nov 8 baseline records instead show the expected task failures, with known fixes passing the earlier controls. The new discrepancy's cause is unresolved: captured Git stderr is absent from the frozen exception transport. The private ancestor gitfile is a possible cause, not a confirmed one. No reproduction or environment correction was attempted during either run; neither affected grade is presented as an infrastructure-independent bug verdict.
+- Run 2's `metadata-case-alias` and `server-port-ownership` errors are `ValueError: Truncated tool call; no execution`. Their tracebacks are retained; the truncated response payload was not saved because the request raised before the baseline collector received it. `switch-hidden-index` returned a final answer without editing source and failed its hidden assertion.
+- Run 1 made two accepted, incorrect edits to the copied `permissions.py` for `local-common-directory`; its other edit attempt failed an exact-string match. Run 2 made no edits; its `local-common-directory` regex error is retained. The first-three run-1 audit still records 108 approved reads and no edits/errors for that limited sample.
+- All 76 source hashes matched through both runs and all 89 frozen hashes match `3d9b4a6`. Product, model, sampling, prompts, flags, grammar, catalog and frozen assets were not changed. The two runs use separate private database/runtime paths.
+
+Earlier failures remain in their original evidence and BENCHMARKS entries, including the `c302973` swap stop, prior test-stub failure, raw-bind stop, initial synthetic-child retirement-control failure, and the later 3.387162624 GB recall-admission stop. Pending log 6 was moved verbatim into the vault Change Log and its original retained privately.
+
+Every task failure, traceback, verifier outcome and setup failure remains in the private evidence. `report-summary.json` contains per-task failure records/counts; `final-eval-audit.json` adds the verifier caveats and suite accounting. Evidence root: `.session/recall-resume-20261110-o5slksil`.
+
+PR #16 stays draft for Claude review. No source or task changes, gate reruns, merge, sudo, HF sync, paid API or force push.
+
+
+## 2026-11-11 — #48 in-turn compaction, admission stop
+
+Source `a3d4826c4821f99dce76a1df9acc8bd2c2f45b3b` on `compact-tool-steps`, based on main
+`c7c50ed0dc4768171f52e9d4dbee4bf3465e675c`. `fit_messages` now summarizes the oldest completed
+current-turn call/result pairs after trimming older results and before cutting
+recalled memory. Each summary contains the tool, main argument and recorded
+outcome. With older pairs available, the last four pairs remain complete; the
+current user message and raw audit messages are preserved. Existing single-result
+trimming and its generic dropped-items note remain covered by the focused checks.
+Prompts, model, flags, routing, catalog, grammar, fixtures and 4,096-token context
+are unchanged.
+
+`test_tool_result_context.py`: **5/5 PASS**, including the new 30-step fit check
+(last four pairs/user/recalled memory intact; original input unchanged).
+This focused run is separate from the 28 standing controls, which were not reached.
+
+The complete gate order and unchanged limits were declared before the first live
+attempt in `measurement-protocol.json`. Routing's initial startup passed admission
+and built its prefix. Its required restart then failed admission on swap. No timed
+routing cases ran. There was no retry and no later stage was started.
+
+| Admission | Time (UTC+7) | Pressure | Swap GB (decimal) | Ports 8123/8124 | Other models | Result |
+|---|---|---:|---:|---|---:|---|
+| routing-startup-1 | 2026-11-11T19:47:01+07:00 | 1 | 0.606475386 | free | 0 | PASS |
+| routing-startup-2 | 2026-11-11T19:48:05+07:00 | 1 | 3.708876226 | free | 0 | STOP |
+
+Failed raw swap reading: `total = 4096.00M  used = 3537.06M  free = 558.94M  (encrypted)`. Limit: 3,000,000,000 bytes.
+Ports had no LISTEN socket and successful IPv4/IPv6 SO_REUSEADDR binds.
+Owned server PIDs 78081, 79577 had exited before the second admission;
+retirement completed in 0.005095 seconds (30-second bound).
+Other sessions' processes were left untouched.
+
+Top five memory users at failure (RSS; this snapshot does not attribute the swap rise):
+
+| Process | PID | RSS MB (decimal) |
+|---|---:|---:|
+| Chrome Renderer | 93199 | 345.948 |
+| Chrome | 52756 | 265.568 |
+| Wuthering Waves | 45377 | 176.161 |
+| Claude bg-spare | 75055 | 142.328 |
+| Chrome Renderer | 93396 | 134.087 |
+
+| Stage | Status |
+|---|---|
+| Routing (mean <= 0.906 s) | ADMISSION STOP; 0 scored cases; mean unavailable |
+| Recall: one slot, answer slots 1 and 2 | NOT RUN |
+| Abstention; callable; tools | NOT RUN |
+| CLI; hooks; 28 standing controls | NOT RUN |
+| Nuke dry-run; check.sh | NOT RUN |
+| Frozen #112 eval, run 1 | NOT RUN — all 20 tasks; no scores, calls or wall times |
+| Frozen #112 eval, run 2 | NOT RUN — all 20 tasks; no scores, calls or wall times |
+
+Run totals and run difference are unavailable. This is incomplete qualification,
+not a new baseline or noise-floor result. Historical PR16 results remain above.
+
+The planned evaluation retains task freeze `3d9b4a6`, with the verifier-only PR13
+fix at `2a71126919891bea8cf094779c01daa4ea078dfd` and harness SHA-256
+`8293422c59e6051aaf33264afc214162b7e276d8eafb7c2c3368e85dfc600cba`.
+Task1 independently passed both Git-task fixed/fix-agent/no-op/cheat matrices,
+all five relevant lazy mutants and the full `test_repo_eval.py`; its original
+Git128 reproductions and first boundary-attempt failures remain retained in PR13.
+No task content or original freeze manifest changed.
+
+Evidence: `.session/verifier-compaction-20261111-swr_9zup/` — focused log,
+measurement protocol, source/collector hashes, both admission snapshots, startup
+and retirement records, routing traceback, and `task2-report-summary.json`.
+All 76 source hashes and declared collector hashes held through the stop.
+No gate reruns, PR merge, sudo, HF sync, paid API or force push.
+
+## In-turn compaction (#48), PR #17 — full gates and frozen #112 eval at `5530167` (2026-11-14/15)
+
+Product under test: `compact-tool-steps` `55301675513ece6ca9fc777b329637ffdd281a0a` (a3d4826 plus review fix:
+latest results trimmed after all older steps are summarized; one summary message). Base `main` `c7c50ed`.
+One full pass, nothing inherited, evidence `.session/compaction-fix-20261114e/`. Model, prompts, flags, routing,
+catalog, grammar, `bench_cases.json`, `test_recall.py`, frozen task assets (`3d9b4a6`) and verifier harness
+(`2a71126`) unchanged; 76 source hashes and 12 collector hashes held.
+
+| Gate | Result |
+|---|---|
+| Focused `test_tool_result_context.py` | PASS 6/6 |
+| Routing (20 cases, fresh restart) | PASS — category 20/20, lane 20/20, r17 X→C, 0 cold, mean 0.787221 s ≤ 0.906, p50 0.766063 s, p99 0.941279 s |
+| Recall, frozen one slot / answer slots 1 and 2 | PASS — 20/20, 20/20, 20/20; requests identical after path normalization |
+| Abstention | PASS — 20/20 |
+| Callable / tools | PASS — callable 20/20; exact 17/20 first pass, 20/20 after 3 retries (t07, t09, t12) |
+| CLI | PASS — 18/18, CLI recall checks 3/3 |
+| Hooks; standing controls | PASS — 5/5; 28/28 |
+| Nuke dry-run; `check.sh` | PASS — 507,831 entries, 0 outside, 0 rejected; exit 0 |
+| Verifier wiring control (no model) | PASS — no-op fails, golden fix passes |
+| Admission (10 snapshots) | all PASS — pressure 1; swap 0 for every stage through eval run 1, 1.018 GB at eval run 2; ports free; no other model |
+
+### Frozen #112 eval, both runs: 0/20 — overflow floor removed, loop floor exposed
+
+| | Run 1 | Run 2 | PR #16 run 1 / run 2 (before #48) |
+|---|---|---|---|
+| Passed | 0/20 | 0/20 | 0/20 / 0/20 |
+| Tool calls | 724 | 700 | 684 / 612 |
+| Task wall (s) | 12319.1 | 13933.7 | 10026.5 / 8479.7 |
+| Startup (s) | 38.9 | 24.3 | 44.9 / 33.4 |
+| Stops: ContextOverflow | 0 | 0 | 19 / 17 |
+| Stops: tool cap (40) | 15 | 14 | 1 / 0 |
+| Stops: wall cap (900 s) | 1 | 3 | 0 / 0 |
+| Stops: truncated tool call (ValueError) | 3 | 3 | 0 / 2 |
+| Stops: final answer, failed grading | 1 | 0 | 0 / 1 |
+
+`dup` = tool calls that exactly repeat an earlier call (same tool, same arguments) in the same task.
+
+| Task | R1 | calls | wall s | stop | dup | R2 | calls | wall s | stop | dup |
+|---|---|---|---|---|---|---|---|---|---|---|
+| action-background-outcome | FAIL | 40 | 635 | tool-cap | 19 | FAIL | 40 | 685 | tool-cap | 32 |
+| child-background-outcome | FAIL | 40 | 648 | tool-cap | 10 | FAIL | 40 | 701 | tool-cap | 15 |
+| cloud-null-calls | FAIL | 25 | 350 | final-answer | 15 | FAIL | 40 | 858 | tool-cap | 20 |
+| disabled-interval-clock | FAIL | 30 | 465 | error (ValueError) | 10 | FAIL | 40 | 695 | tool-cap | 14 |
+| foreground-warm-lock | FAIL | 40 | 686 | tool-cap | 20 | FAIL | 40 | 715 | tool-cap | 16 |
+| local-common-directory | FAIL | 40 | 636 | tool-cap | 16 | FAIL | 40 | 744 | tool-cap | 16 |
+| metadata-case-alias | FAIL | 40 | 689 | tool-cap | 18 | FAIL | 40 | 674 | tool-cap | 19 |
+| missing-session-admission | FAIL | 40 | 600 | tool-cap | 15 | FAIL | 40 | 694 | tool-cap | 13 |
+| missing-task-outcome | FAIL | 40 | 638 | tool-cap | 21 | FAIL | 40 | 699 | tool-cap | 13 |
+| oversized-hook-audit | FAIL | 40 | 555 | tool-cap | 33 | FAIL | 40 | 541 | tool-cap | 32 |
+| partial-router-warm | FAIL | 9 | 112 | error (ValueError) | 3 | FAIL | 40 | 793 | tool-cap | 18 |
+| pdf-byte-boundary | FAIL | 40 | 680 | tool-cap | 20 | FAIL | 8 | 163 | error (ValueError) | 1 |
+| post-hook-status | FAIL | 40 | 791 | tool-cap | 22 | FAIL | 11 | 414 | error (ValueError) | 4 |
+| remote-macos-config | FAIL | 39 | 900 | wall-cap (RuntimeError) | 20 | FAIL | 38 | 901 | wall-cap (RemoteDisconnected) | 17 |
+| scanner-word-boundary | FAIL | 21 | 568 | error (ValueError) | 5 | FAIL | 35 | 900 | wall-cap (RemoteDisconnected) | 18 |
+| server-port-ownership | FAIL | 40 | 772 | tool-cap | 32 | FAIL | 40 | 774 | tool-cap | 29 |
+| shell-binary-output | FAIL | 40 | 650 | tool-cap | 24 | FAIL | 37 | 900 | wall-cap (RuntimeError) | 15 |
+| shell-poll-completion | FAIL | 40 | 678 | tool-cap | 33 | FAIL | 11 | 286 | error (ValueError) | 1 |
+| switch-hidden-index | FAIL | 40 | 709 | tool-cap | 30 | FAIL | 40 | 901 | tool-cap | 22 |
+| terminal-nonseekable | FAIL | 40 | 556 | tool-cap | 29 | FAIL | 40 | 893 | tool-cap | 26 |
+
+Read-only transcript audit (both runs, 1,424 calls): 736 exact repeat calls (52%); 638 `read_file`,
+586 `grep_files`, 41 `glob_files`, 59 verifier runs, 98 `edit` calls of which 82 tool results were errors
+(mostly failed edits); 17 of 40 task runs made no edit at all. Conclusion: #48 does what it was built for — no task
+ends in ContextOverflow and turns now run to the 40-call or 900 s cap — but it does not raise the score. The model
+re-issues searches whose results were compacted away and fails most edits. This is the evidence for the next 5d
+slices: #108 repeat-call breaker, #98 loop breaker, #107 error messages (edit failures), and keeping findings
+(file:line hits) in the step summaries. No clean noise-floor claim: 0/20 in both runs.
+
+### Retained stops on the way to this pass (all at `5530167`, no product change between them)
+
+| Attempt | Outcome |
+|---|---|
+| `…20261113` (2026-11-14 17:10) | STOP UNSCORED at routing restart admission: swap 3.03 GB > 3 GB (Chrome open, Mac not restarted) |
+| `…20261114` (17:22–17:36, after a restart) | live stages exit 0; STOP at controls: `test_phase41.py` F6 glob listed `sub/._a.py`. Processes started from the Claude desktop job put `com.apple.provenance` on new files; exFAT stores it as AppleDouble `._` files |
+| `…20261114b` | prepared only; its copy carried 8,604 side files; unused |
+| `…20261114c` (17:44–17:59, `launchctl submit`) | live stages exit 0, phase41/42 PASS; STOP at `test_memory.py`: 388.0 ms > 300 ms |
+| `…20261114d` (18:03–18:05, `launchctl submit`) | STOP at `test_memory.py`: 391.4 ms. A/B probe: standard launchd job fails 5/5 (384–391 ms), `ProcessType=Interactive` passes 5/5, direct shell passes 12/12 — background-type launchd jobs get throttled timers |
+| `…20261114e` (18:06–01:44, launchd `ProcessType=Interactive`) | this report: every gate PASS, both evals completed |
+
+Open items found, not part of this PR: (1) file tools and the `git_switch` clean check do not tolerate AppleDouble
+`._` files on the exFAT root; (2) any Kildall daemon must run with `ProcessType=Interactive` or the 300 ms memory cap
+is missed. No gate limit changed, no retry inside an attempt, no sudo, HF sync, paid API or force push.
