@@ -7,8 +7,8 @@ lines). Then read `HANDOFF-main-kildall.md` for the hard rules, the 800k session
 ## What changed this session (2026-11-14 → 15)
 - **PR #17 (#48 in-turn compaction) MERGED.** Every gate passed at `5530167`. Frozen #112 eval: **0/20 and 0/20**,
   but ContextOverflow stops went 19/17 → **0/0**; 15/14 tasks now end at the 40-call cap.
-- **PR #13 (#112 eval harness + baseline) MERGED.** No open PRs.
-- **main = `ff20e40`** (code repo `/Volumes/ES2TB/Kildall/code`, checkout on `main`, clean).
+- **PR #13 (#112 eval harness + baseline) MERGED.** Open: draft PR #18 only.
+- **main = `ff20e40`** (code repo `/Volumes/ES2TB/Kildall/code`, checkout on `main`, clean; local branch `tool-output-diet` = PR #18).
 - Vault `/Volumes/ES2TB/Kildall` branch `reroot-usb` → remote `kildall` branch `workspace` (see CLAUDE.md for the SHA).
 
 ## The evidence that picks the next slice
@@ -18,6 +18,17 @@ were compacted away, and its edits fail. Report: `code/BENCHMARKS.md` (last sect
 `code/.session/compaction-fix-20261114e/` (transcripts in `frozen/.session/run-1|2/<task>/transcript.jsonl`).
 
 ## Next jobs, in order (one slice per PR, full gates each, then the frozen eval twice)
+0. **FIRST: finish draft PR #18 `tool-output-diet` (`209f929`).** Already built and pushed: plain `path:line:text`
+   grep rows (4–5× smaller), step summaries that keep read line ranges and grep match places, a note on exact
+   repeat calls, edit errors with the match count. Focused test PASS 7/7. **Gates NOT run.** Do: quiet Mac
+   (check `pgrep -lf "hf download"` — a foreign model download was loading the USB drive on 2026-11-15 and made
+   `test_phase41`/`test_phase44` miss their timing; do not stop it, wait for it), restart, then full gates + frozen
+   eval ×2 with the launchd recipe below (new evidence folder, new `source.json` for `209f929`). Keep only if it
+   beats 0/20 or clearly cuts the 52% repeat calls; record either way. It covers most of #108 and part of #107.
+   **The eval driver only exercises `fit_messages`, `system_prompt`, `BASE_TOOLS`, `tool_runtime.chat` and the
+   product tools — changes inside `_run_turn` are not measured.**
+   After it: one predefined split-16K soak from a clean-swap start (the 2026-10-14 fail began at 10.3 GB swap);
+   a 4,096 window holds only 1–2 file reads, 16K would hold ~8. Gate limit unchanged (≤ 103 warnings, 0 critical).
 1. **#108 repeat-call breaker** (biggest lever: 52% repeats). An exact repeat of an earlier call in the same turn
    should return a short "you already ran this; result was …" message instead of running again. Consider with it:
    keep findings (file:line hits) in the compaction step summaries, so the model does not need to search again.
