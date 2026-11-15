@@ -17,6 +17,14 @@ edits of which 82 returned an error; 17 of 40 task runs made no edit. The model 
 were compacted away, and its edits fail. Report: `code/BENCHMARKS.md` (last section), evidence
 `code/.session/compaction-fix-20261114e/` (transcripts in `frozen/.session/run-1|2/<task>/transcript.jsonl`).
 
+**Update 2026-11-15 18:10 — job 0 gates and eval are DONE, PR #18 is NOT merged.** Gates all PASS at `209f929`; frozen eval
+**2/20 and 1/20**; exact repeats 46.4% / 48.3%; but **ContextOverflow stops 7 / 10** (main 0 / 0). Report commit `8b563c6`
+on `tool-output-diet`, evidence `code/.session/tool-output-diet-gates-20261115b/`, table in `code/BENCHMARKS.md`.
+Open: the user decides merge-now or fix-first (Claude recommends fix first: merge duplicate summary lines + cap the
+summary block in `kildall.py`, then one more full gate + eval pass). Before any gate run also ask the user to quit
+**Wallper** (live wallpaper): it made routing miss its 0.906 s limit (1.061 s). Runner and plist to copy:
+`code/.session/tool-output-diet-gates-20261115b/run_g.py` and `local.kildall.gates.plist`. `Orbiplan.md` is v58 (S17 Monthly self-update added by the user).
+
 ## Next jobs, in order (one slice per PR, full gates each, then the frozen eval twice)
 0. **FIRST: finish draft PR #18 `tool-output-diet` (`209f929`).** Already built and pushed: plain `path:line:text`
    grep rows (4–5× smaller), step summaries that keep read line ranges and grep match places, a note on exact

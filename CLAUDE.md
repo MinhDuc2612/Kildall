@@ -6012,3 +6012,393 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-15T02:48:05+07:00 Re-root USB secret scan tool-output-diet-code-history: {"at": "2026-11-15T02:47:58.290818+07:00", "mode": "history-code", "history": {"objects": 1893, "bytes": 58922055, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
 
 - 2026-11-15T03:05+07:00 — **New slice started: tool output diet, draft PR #18** (`tool-output-diet` `209f929`, base main `ff20e40`, pushed, code-history scan 1,893 objects 0 findings; **gates NOT run**). Why: reading the eval transcripts showed (a) one `read_file` result is 4–6 KB ≈ 1,200–1,700 tokens and the fixed prompt ≈ 1,400 of the 4,096 window, so only 1–2 reads fit; (b) `grep_files` returned ripgrep `--json` events, 4–9 KB for a few matches; (c) a compacted step kept only "N lines read" / "exit 0", so the model re-ran the same searches (52% exact repeats). Also noted: the frozen eval driver (`baseline.py`) calls only `kildall.fit_messages`, `kildall.system_prompt`, `BASE_TOOLS`, `tool_runtime.chat` and the product tools through `Trial.action` — a change inside `_run_turn` is NOT measured by the eval; levers must sit in those paths. Change (4 files): `file_tools.py` grep returns plain `path:line:text` rows (measured 17,039 → 4,159 bytes and 2,826 → 544 bytes; 8 KB now holds 81 matches); `kildall.tool_step_summary` keeps read line ranges and grep match places; `fit_messages` appends `REPEATED` note to an exact repeat of an earlier read-only call (write/edit/run_command exempt); `permissions.py` edit error reports the match count and what to do; `test_tool_result_context.py` updated + new `findings_survive` → PASS 7/7 under launchd Interactive (`code/.session/tool-output-diet-20261115/dev-4`). Dev control pass `dev-1` (28 controls, not a gate): `test_phase41.py` and `test_phase44.py` failed on timing (`database is locked`, S2 timeout < 2.5 s, SIGINT wait); `test_phase41.py` then passed 2 of 3, `test_phase44.py` 1 of 1. Cause: a foreign process `hf download unsloth/Qwen3.8-Flash-Next-GGUF …` (PID 26235, started 2026-11-14 22:04, not Claude's, not stopped) is writing to the USB drive. ⚠️ It also ran during eval run 2 of PR #17 (21:49–01:44): run 2's three wall-cap stops (two `RemoteDisconnected`) may be affected; run 1 (18:23–21:49) was clean. From the Claude shell `test_tool_result_context.py::turn_completes` fails even on main (AppleDouble side files) — run tests only through launchd. Next for PR #18: quiet Mac (download finished, restart, Chrome closed) → full gates → frozen eval ×2 → keep only on evidence. Also worth one predefined test after that: the split-16K soak from a clean-swap start (its 2026-10-14 fail began at 10.3 GB swap), because a 16K window would hold ~8 reads instead of 1–2.
+
+- 2026-11-15T11:02+07:00 — Claude (sole builder/reviewer) resumed for job 0 of HANDOFF-main-kildall-2026-11-15.md: read CLAUDE.md from 2026-11-13 and both handoffs; state matched (code main ff20e40 clean, PR #18 `tool-output-diet` 209f929 DRAFT, vault reroot-usb 51de02e). Start state: uptime 4 h 12 min after restart, swap 0, pressure 1, wired 20480, ports 8123/8124 free, no model process, no `hf download`, Chrome and Wuthering Waves closed. Predeclared single attempt for PR #18: evidence `code/.session/tool-output-diet-gates-20261115`, built and run by launchd job `local.kildall.gates` (`ProcessType=Interactive`, runner `~/.claude/jobs/0302d33f/tmp/run_f.py`): checkout 209f929 → same 12 collectors by hash → source.json of all tracked files → focused test once → routing → recall → abstention → quality → CLI → hooks + 28 controls + nuke dry-run + check.sh → verifier control → frozen eval run 1 → run 2. One attempt per stage, stop at the first failure, no retries. Collector log lines keep the old label "In-turn compaction". Keep rule: PR #18 stays only if it beats 0/20 or clearly cuts the 52% exact repeat calls.
+
+- 2026-11-15T11:02:26+07:00 In-turn compaction: Starting routing once; no retries or changed limits.
+
+- 2026-11-15T11:02:26+07:00 In-turn compaction routing-startup-1 admission: {"label": "routing-startup-1", "at": "2026-11-15T11:02:26+07:00", "pressure": 1, "swap_raw": "total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)", "swap_used_bytes": 0, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:03:24+07:00 In-turn compaction: Owned server retirement: {"pids": [72053, 73645], "remaining": [], "seconds": 0.004648000000088359, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:03:24+07:00 In-turn compaction routing-startup-2 admission: {"label": "routing-startup-2", "at": "2026-11-15T11:03:24+07:00", "pressure": 1, "swap_raw": "total = 1024.00M  used = 118.38M  free = 905.62M  (encrypted)", "swap_used_bytes": 124130426, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:04:46+07:00 In-turn compaction: Owned server retirement: {"pids": [73696, 74029], "remaining": [], "seconds": 0.004368165999039775, "limit_seconds": 30, "passed": true}
+
+- USB reroot routing measurement candidate finished; owned runtimes stopped, source/frozen hashes and wired20480 verified. Summary: {"exit": 0, "category": 20, "lane": 20, "mean_s": 1.0606743, "p50_s": 1.036954, "p99_s": 1.2943879999999999, "counts": {"cold": 0, "warm": 20}, "group_mean_s": {"cold": null, "warm": 1.0606743}, "cases": [{"id": "r01", "seconds": 1.036954, "cache_tokens": 3863, "cold": false, "category": true, "lane": true}, {"id": "r02", "seconds": 1.10635, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r03", "seconds": 1.160935, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r04", "seconds": 1.0633620000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r05", "seconds": 1.167146, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r06", "seconds": 1.008207, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r07", "seconds": 0.9956520000000001, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r08", "seconds": 0.96051, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r09", "seconds": 0.9983569999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r10", "seconds": 1.0433, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r11", "seconds": 1.0689369999999998, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r12", "seconds": 0.9403769999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r13", "seconds": 0.9046369999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r14", "seconds": 0.993812, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r15", "seconds": 1.200059, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r16", "seconds": 0.93264, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r17", "seconds": 0.953712, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r18", "seconds": 1.166846, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r19", "seconds": 1.217305, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r20", "seconds": 1.2943879999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}], "r17_X_to_C": true, "quality_passed": true, "first_route_s": 1.036954, "zero_cold": true, "speed_passed": false, "limit_s": 0.906}
+
+- 2026-11-15T11:04:46+07:00 In-turn compaction: routing finished: {"exit": 1, "seconds": 140.3088298750008, "passed": false}; all evidence retained.
+
+- 2026-11-15T11:06+07:00 — PR #18 attempt `code/.session/tool-output-diet-gates-20261115` (launchd Interactive, 11:02–11:04, source 209f929, prep: 0 side files, 222 tracked files pinned, focused test 7/7): **STOP at routing, speed only.** Routing 20/20 category+lane, 0 cold, r17 X→C, but mean 1.0607 s > 0.906 s (p50 1.037, p99 1.294, fastest case 0.905 s; PR #17 run: mean 0.7872, fastest 0.663). Both admissions PASS (swap 0, then under 1 GB). Recall, abstention, quality, CLI, controls and both evals NOT RUN. Owned runtimes stopped, ports free, job booted out, evidence retained, no retry in that folder. Cause not proven; evidence points at the Mac, not the change: the diff does not touch routing (only `trim_tool_result`/`tool_step_summary`/`fit_messages` hunks in kildall.py, file_tools.py, permissions.py), cached prompt tokens are equal (3863/3866), and every case is slower by a similar amount. At 11:05 a user app `Wallper.app` (live video wallpaper, started about 10:48, after my first state check) used 31% CPU with VTDecoderXPCService 15% and WindowServer 35%; it shares the GPU with the model. Not stopped by Claude (user app). Swap 835 MB after the two loads (0 in the PR #17 run). Code checkout left on `tool-output-diet` 209f929, clean. Next: ask the user to quit Wallper; then one new predeclared attempt `tool-output-diet-gates-20261115b` (same runner, nothing inherited). If routing speed fails again with Wallper closed, treat it as a product question and stop.
+
+- 2026-11-15T11:15+07:00 — User quit Wallper and said "go". Start state: Wallper not running, WindowServer 5% CPU (35% before), swap 691 MB, pressure 1, wired 20480, ports 8123/8124 free, no model process, no `hf download`, Chrome closed, code `tool-output-diet` 209f929 clean. Started the predeclared second attempt for PR #18: `code/.session/tool-output-diet-gates-20261115b`, launchd `local.kildall.gates` (`ProcessType=Interactive`, runner `~/.claude/jobs/0302d33f/tmp/run_g.py`), one full pass from routing through both frozen evals, nothing inherited, same collectors, limits and source; stop at the first failure, no retries.
+
+- 2026-11-15T11:15:16+07:00 In-turn compaction: Starting routing once; no retries or changed limits.
+
+- 2026-11-15T11:15:17+07:00 In-turn compaction routing-startup-1 admission: {"label": "routing-startup-1", "at": "2026-11-15T11:15:17+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 691.06M  free = 1356.94M  (encrypted)", "swap_used_bytes": 724628930, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:15:40+07:00 In-turn compaction: Owned server retirement: {"pids": [83568, 83791], "remaining": [], "seconds": 0.004807916000572732, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:15:40+07:00 In-turn compaction routing-startup-2 admission: {"label": "routing-startup-2", "at": "2026-11-15T11:15:40+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 691.06M  free = 1356.94M  (encrypted)", "swap_used_bytes": 724628930, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:16:44+07:00 In-turn compaction: Owned server retirement: {"pids": [83836, 84064], "remaining": [], "seconds": 0.004427458999998635, "limit_seconds": 30, "passed": true}
+
+- USB reroot routing measurement candidate finished; owned runtimes stopped, source/frozen hashes and wired20480 verified. Summary: {"exit": 0, "category": 20, "lane": 20, "mean_s": 0.79184195, "p50_s": 0.780809, "p99_s": 0.9332509999999999, "counts": {"cold": 0, "warm": 20}, "group_mean_s": {"cold": null, "warm": 0.79184195}, "cases": [{"id": "r01", "seconds": 0.780809, "cache_tokens": 3863, "cold": false, "category": true, "lane": true}, {"id": "r02", "seconds": 0.8415, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r03", "seconds": 0.9154779999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r04", "seconds": 0.807068, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r05", "seconds": 0.845355, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r06", "seconds": 0.778965, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r07", "seconds": 0.743226, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r08", "seconds": 0.711874, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r09", "seconds": 0.719259, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r10", "seconds": 0.785245, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r11", "seconds": 0.793157, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r12", "seconds": 0.66971, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r13", "seconds": 0.672259, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r14", "seconds": 0.733087, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r15", "seconds": 0.9332509999999999, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r16", "seconds": 0.678447, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r17", "seconds": 0.699178, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r18", "seconds": 0.881965, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r19", "seconds": 0.916847, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}, {"id": "r20", "seconds": 0.930159, "cache_tokens": 3866, "cold": false, "category": true, "lane": true}], "r17_X_to_C": true, "quality_passed": true, "first_route_s": 0.780809, "zero_cold": true, "speed_passed": true, "limit_s": 0.906}
+
+- 2026-11-15T11:16:44+07:00 In-turn compaction: routing finished: {"exit": 0, "seconds": 87.65630654199958, "passed": true}; all evidence retained.
+
+- 2026-11-15T11:16:44+07:00 In-turn compaction: Starting recall once; no retries or changed limits.
+
+- 2026-11-15 USB reroot local regression: USB reroot v38 recall starting: untouched frozen harness on one slot; same exact request bodies then replayed on production answer slots1-2. Only historical vault-path normalization permitted.
+
+- 2026-11-15T11:16:44+07:00 In-turn compaction recall-startup-1 admission: {"label": "recall-startup-1", "at": "2026-11-15T11:16:44+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 683.06M  free = 1364.94M  (encrypted)", "swap_used_bytes": 716240322, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:18:10+07:00 In-turn compaction: Owned server retirement: {"pids": [85292, 85419], "remaining": [], "seconds": 0.006611916000110796, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:18:10+07:00 In-turn compaction recall-startup-2 admission: {"label": "recall-startup-2", "at": "2026-11-15T11:18:10+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 683.06M  free = 1364.94M  (encrypted)", "swap_used_bytes": 716240322, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:21:18+07:00 In-turn compaction: Owned server retirement: {"pids": [86545, 86766], "remaining": [], "seconds": 0.005402916998718865, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15 USB reroot local regression: USB reroot recall stopped; {"single_frozen_exit": 0, "single_frozen_score": 20, "per_slot": {"1": 20, "2": 20}, "frozen_files_unchanged": true, "full_requests_match_after_path_normalization": true, "only_transport_addition": "id_slot validated by trusted ownership", "router_slot0_does_not_serve_answers": true, "passed": true}; source/frozen hashes and wired20480 held.
+
+- 2026-11-15T11:21:18+07:00 In-turn compaction: recall finished: {"exit": 0, "seconds": 274.2387496250012, "passed": true}; all evidence retained.
+
+- 2026-11-15T11:21:19+07:00 In-turn compaction: Starting abstention once; no retries or changed limits.
+
+- 2026-11-15T11:21:19+07:00 In-turn compaction abstention-startup-1 admission: {"label": "abstention-startup-1", "at": "2026-11-15T11:21:19+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 675.06M  free = 1372.94M  (encrypted)", "swap_used_bytes": 707851714, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:22:58+07:00 In-turn compaction: Owned server retirement: {"pids": [89994, 90216], "remaining": [], "seconds": 0.005807875000755303, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:22:58+07:00 In-turn compaction: abstention finished: {"exit": 0, "seconds": 99.15955679200124, "passed": true}; all evidence retained.
+
+- 2026-11-15T11:22:58+07:00 In-turn compaction: Starting quality once; no retries or changed limits.
+
+- 2026-11-15T11:22:58+07:00 In-turn compaction quality-startup-1 admission: {"label": "quality-startup-1", "at": "2026-11-15T11:22:58+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 675.06M  free = 1372.94M  (encrypted)", "swap_used_bytes": 707851714, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:27:14+07:00 In-turn compaction: Owned server retirement: {"pids": [91612, 91939], "remaining": [], "seconds": 0.007164667000324698, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:27:14+07:00 In-turn compaction: quality finished: {"exit": 0, "seconds": 256.50289645900193, "passed": true}; all evidence retained.
+
+- 2026-11-15T11:27:14+07:00 In-turn compaction: Starting cli once; no retries or changed limits.
+
+- 2026-11-15T11:27:15+07:00 In-turn compaction cli-stage admission: {"label": "cli-stage", "at": "2026-11-15T11:27:15+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 675.06M  free = 1372.94M  (encrypted)", "swap_used_bytes": 707851714, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:28:24+07:00 In-turn compaction: Owned server retirement: {"pids": [96311, 96534], "remaining": [], "seconds": 0.005268208002235042, "limit_seconds": 30, "passed": true}
+
+- 2026-11-15T11:28:24+07:00 In-turn compaction: cli finished: {"exit": 0, "seconds": 69.90727462499854, "passed": true}; all evidence retained.
+
+- 2026-11-15T11:28:24+07:00 In-turn compaction controls/delivery: starting test_phase43.py once
+
+- 2026-11-15T11:28:30+07:00 In-turn compaction controls/delivery: {"test": "test_phase43.py", "exit": 0, "seconds": 5.828138291999494}; raw output retained
+
+- 2026-11-15T11:28:30+07:00 In-turn compaction controls/delivery: starting test_platform_system.py once
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: {"test": "test_platform_system.py", "exit": 0, "seconds": 0.4501913340027386}; raw output retained
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: starting test_platform_keys.py once
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: {"test": "test_platform_keys.py", "exit": 0, "seconds": 0.09045541699742898}; raw output retained
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: starting test_platform_jobs.py once
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: {"test": "test_platform_jobs.py", "exit": 0, "seconds": 0.2642554999983986}; raw output retained
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: starting test_long_context.py once
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: {"test": "test_long_context.py", "exit": 0, "seconds": 0.09059054200042738}; raw output retained
+
+- 2026-11-15T11:28:31+07:00 In-turn compaction controls/delivery: starting test_router_warmth.py once
+
+- 2026-11-15T11:28:41+07:00 In-turn compaction controls/delivery: {"test": "test_router_warmth.py", "exit": 0, "seconds": 9.54865399999835}; raw output retained
+
+- 2026-11-15T11:28:41+07:00 In-turn compaction controls/delivery: starting test_slot_isolation.py once
+
+- 2026-11-15T11:28:43+07:00 In-turn compaction controls/delivery: {"test": "test_slot_isolation.py", "exit": 0, "seconds": 1.9084557079986553}; raw output retained
+
+- 2026-11-15T11:28:43+07:00 In-turn compaction controls/delivery: starting test_phase44.py once
+
+- 2026-11-15T11:28:46+07:00 In-turn compaction controls/delivery: {"test": "test_phase44.py", "exit": 0, "seconds": 3.6570605830020213}; raw output retained
+
+- 2026-11-15T11:28:46+07:00 In-turn compaction controls/delivery: starting test_tool_runtime.py once
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: {"test": "test_tool_runtime.py", "exit": 0, "seconds": 0.15012433399897418}; raw output retained
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: starting test_benchmark.py once
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: {"test": "test_benchmark.py", "exit": 0, "seconds": 0.21040150000044378}; raw output retained
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: starting test_routing.py once
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: {"test": "test_routing.py", "exit": 0, "seconds": 0.4328395409975201}; raw output retained
+
+- 2026-11-15T11:28:47+07:00 In-turn compaction controls/delivery: starting test_permissions.py once
+
+- 2026-11-15T11:28:48+07:00 In-turn compaction controls/delivery: {"test": "test_permissions.py", "exit": 0, "seconds": 1.0817154579999624}; raw output retained
+
+- 2026-11-15T11:28:48+07:00 In-turn compaction controls/delivery: starting test_phase41.py once
+
+- 2026-11-15T11:28:52+07:00 In-turn compaction controls/delivery: {"test": "test_phase41.py", "exit": 0, "seconds": 3.517527334002807}; raw output retained
+
+- 2026-11-15T11:28:52+07:00 In-turn compaction controls/delivery: starting test_phase42.py once
+
+- 2026-11-15T11:28:56+07:00 In-turn compaction controls/delivery: {"test": "test_phase42.py", "exit": 0, "seconds": 4.347692542000004}; raw output retained
+
+- 2026-11-15T11:28:56+07:00 In-turn compaction controls/delivery: starting test_tool_grammar.py once
+
+- 2026-11-15T11:28:56+07:00 In-turn compaction controls/delivery: {"test": "test_tool_grammar.py", "exit": 0, "seconds": 0.2098176670006069}; raw output retained
+
+- 2026-11-15T11:28:56+07:00 In-turn compaction controls/delivery: starting test_shell_lifecycle.py once
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: {"test": "test_shell_lifecycle.py", "exit": 0, "seconds": 1.5298228749998088}; raw output retained
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: starting test_image_reader.py once
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: {"test": "test_image_reader.py", "exit": 0, "seconds": 0.26713979200212634}; raw output retained
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: starting test_nuke.py once
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: {"test": "test_nuke.py", "exit": 0, "seconds": 0.09036275000107707}; raw output retained
+
+- 2026-11-15T11:28:58+07:00 In-turn compaction controls/delivery: starting test_rename.py once
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: {"test": "test_rename.py", "exit": 0, "seconds": 0.20252279200212797}; raw output retained
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: starting test_check.py once
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: {"test": "test_check.py", "exit": 0, "seconds": 0.21030991700172308}; raw output retained
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: starting test_tool_validation.py once
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: {"test": "test_tool_validation.py", "exit": 0, "seconds": 0.4383851250022417}; raw output retained
+
+- 2026-11-15T11:28:59+07:00 In-turn compaction controls/delivery: starting test_memory.py once
+
+- 2026-11-15T11:29:00+07:00 In-turn compaction controls/delivery: {"test": "test_memory.py", "exit": 0, "seconds": 1.00397920800242}; raw output retained
+
+- 2026-11-15T11:29:00+07:00 In-turn compaction controls/delivery: starting test_cloud_keys.py once
+
+- 2026-11-15T11:29:00+07:00 In-turn compaction controls/delivery: {"test": "test_cloud_keys.py", "exit": 0, "seconds": 0.09196437500213506}; raw output retained
+
+- 2026-11-15T11:29:00+07:00 In-turn compaction controls/delivery: starting test_backup_ops.py once
+
+- 2026-11-15T11:29:01+07:00 In-turn compaction controls/delivery: {"test": "test_backup_ops.py", "exit": 0, "seconds": 0.1492379580013221}; raw output retained
+
+- 2026-11-15T11:29:01+07:00 In-turn compaction controls/delivery: starting test_secret_scanner.py once
+
+- 2026-11-15T11:29:03+07:00 In-turn compaction controls/delivery: {"test": "test_secret_scanner.py", "exit": 0, "seconds": 2.4950558749987977}; raw output retained
+
+- 2026-11-15T11:29:03+07:00 In-turn compaction controls/delivery: starting test_prompt_reuse.py once
+
+- 2026-11-15T11:29:03+07:00 In-turn compaction controls/delivery: {"test": "test_prompt_reuse.py", "exit": 0, "seconds": 0.1441995000022871}; raw output retained
+
+- 2026-11-15T11:29:03+07:00 In-turn compaction controls/delivery: starting test_cloud.py once
+
+- 2026-11-15T11:29:04+07:00 In-turn compaction controls/delivery: {"test": "test_cloud.py", "exit": 0, "seconds": 0.8365682080002443}; raw output retained
+
+- 2026-11-15T11:29:04+07:00 In-turn compaction controls/delivery: starting test_usb_mount.py once
+
+- 2026-11-15T11:29:04+07:00 In-turn compaction controls/delivery: {"test": "test_usb_mount.py", "exit": 0, "seconds": 0.21037749999959487}; raw output retained
+
+- 2026-11-15T11:29:04+07:00 In-turn compaction controls/delivery: 28/28 standing controls PASS, including the single hooks5/5 run
+
+- 2026-11-15T11:29:04+07:00 In-turn compaction controls/delivery: starting nuke-dry-run once
+
+- 2026-11-15T11:31:38+07:00 In-turn compaction controls/delivery: {"test": "nuke-dry-run", "exit": 0, "seconds": 153.95453245799945}; raw output retained
+
+- 2026-11-15T11:31:46+07:00 In-turn compaction controls/delivery: starting check.sh once
+
+- 2026-11-15T11:31:46+07:00 In-turn compaction controls/delivery: {"test": "check.sh", "exit": 0, "seconds": 0.3028228750008566}; raw output retained
+
+- 2026-11-15T11:31:46+07:00 In-turn compaction controls/delivery: all post-live gates PASS; {"hooks": 5, "controls": 28, "nuke": {"test": "nuke-dry-run", "exit": 0, "seconds": 153.95453245799945, "entries": 543633, "outside": 0, "rejected_outward_paths": 0}, "check": {"test": "check.sh", "exit": 0, "seconds": 0.3028228750008566}, "passed": true}
+
+- 2026-11-15T11:31:48+07:00 In-turn compaction frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-15T11:31:50+07:00 In-turn compaction frozen eval: private frozen-verifier control {"passed": true, "model_inference": false, "task": "action-background-outcome", "no_op_pass": false, "fixed_pass": true, "product_module": "/Volumes/ES2TB/Kildall/code/kildall.py", "frozen_module": "/Volumes/ES2TB/Kildall/code/.session/tool-output-diet-gates-20261115b/frozen/repo_eval.py"}
+
+- 2026-11-15T11:31:50+07:00 In-turn compaction eval-1-startup admission: {"label": "eval-1-startup", "at": "2026-11-15T11:31:50+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 675.06M  free = 1372.94M  (encrypted)", "swap_used_bytes": 707851714, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T11:31:50+07:00 In-turn compaction frozen eval: run1 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-15T11:32+07:00 — PR #18 attempt `code/.session/tool-output-diet-gates-20261115b` (launchd Interactive, started 11:15, source 209f929, 0 side files, focused 7/7): **all fast gates PASS** 11:15–11:31. Routing 20/20 category+lane, 0 cold, mean 0.7918 s ≤ 0.906 (p50 0.781, p99 0.933, fastest 0.670), r17 X→C — same speed as the PR #17 run (0.7872), so the 11:02 routing stop is explained by the user live-wallpaper app Wallper on the shared GPU (launcher/host artifact, product unchanged between the two attempts). Recall 20/20 one slot + 20/20 slots 1 and 2; abstention 20/20; callable 20/20; tools 17 → 20 after 3 retries; CLI 18/18; hooks 5/5; controls 28/28; nuke dry-run 543,633 entries / 0 outside / 0 rejected; check.sh 0; verifier control PASS (no-op fails, golden fix passes). All 7 admissions PASS; swap 675 MB at eval start. Frozen eval run 1 started 11:31:50; run 2 follows. Note for later gates: add "no live wallpaper / video on the GPU" to the quiet-Mac list (routing mean limit 0.906 s has about 0.11 s of room).
+
+- 2026-11-15T11:32:29+07:00 In-turn compaction frozen eval: run1 ready in 38.885s; starting frozen20 in order.
+
+- 2026-11-15T11:32:29+07:00 In-turn compaction frozen eval: run1 starting action-background-outcome
+
+- 2026-11-15T11:43:52+07:00 In-turn compaction frozen eval: run1 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 682.9516595419991, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T11:43:52+07:00 In-turn compaction frozen eval: run1 starting child-background-outcome
+
+- 2026-11-15T11:55:20+07:00 In-turn compaction frozen eval: run1 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 688.4290722500009, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T11:55:20+07:00 In-turn compaction frozen eval: run1 starting cloud-null-calls
+
+- 2026-11-15T12:03:17+07:00 In-turn compaction frozen eval: run1 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 32, "wall_s": 476.30074375000186, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T12:03:17+07:00 In-turn compaction frozen eval: run1 starting disabled-interval-clock
+
+- 2026-11-15T12:13:16+07:00 In-turn compaction frozen eval: run1 {"task": "disabled-interval-clock", "status": "PASS", "tool_calls": 35, "wall_s": 598.6528383329969, "stop": "verified-pass", "agent_error": null}
+
+- 2026-11-15T12:13:16+07:00 In-turn compaction frozen eval: run1 starting foreground-warm-lock
+
+- 2026-11-15T12:25:56+07:00 In-turn compaction frozen eval: run1 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 40, "wall_s": 760.7008903329988, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T12:25:56+07:00 In-turn compaction frozen eval: run1 starting local-common-directory
+
+- 2026-11-15T12:35+07:00 — User asked whether to add a monthly auto-train/self-update feature based on `Researchhub/sample1/OrbiLLM/LLMtrain` (read only: LLM-autotrain.md = Meta Autodata, LLM self-improve.md = Prime Agent, Soup = fine-tune CLI). Claude advised: not a blind self-update now (no trusted score, self-training alone fell 15.3% → 8.7%, 24 GB Mac cannot train and serve), yes as a gated final-product feature. User: "add it with notes on adding conditions only with good enough hardware and considerable scores". `Orbiplan.md` v57 → v58: new signature feature **S17 Monthly self-update** with the two conditions (128 GB reward server; trusted frozen eval clearly above 0 on two runs + working S4), gated swap with rollback, change log line. Not committed yet (vault commit follows with the PR #18 result). PR #18 eval run 1 still running.
+
+- 2026-11-15T12:38:05+07:00 In-turn compaction frozen eval: run1 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 40, "wall_s": 728.3136050840003, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T12:38:05+07:00 In-turn compaction frozen eval: run1 starting metadata-case-alias
+
+- 2026-11-15T12:41:59+07:00 In-turn compaction frozen eval: run1 {"task": "metadata-case-alias", "status": "PASS", "tool_calls": 20, "wall_s": 233.87178141599725, "stop": "verified-pass", "agent_error": null}
+
+- 2026-11-15T12:41:59+07:00 In-turn compaction frozen eval: run1 starting missing-session-admission
+
+- 2026-11-15T12:54:28+07:00 In-turn compaction frozen eval: run1 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 40, "wall_s": 749.2356590840027, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T12:54:28+07:00 In-turn compaction frozen eval: run1 starting missing-task-outcome
+
+- 2026-11-15T13:06:36+07:00 In-turn compaction frozen eval: run1 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 727.2938314589992, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T13:06:36+07:00 In-turn compaction frozen eval: run1 starting oversized-hook-audit
+
+- 2026-11-15T13:16:15+07:00 In-turn compaction frozen eval: run1 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 40, "wall_s": 579.5443875829988, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T13:16:15+07:00 In-turn compaction frozen eval: run1 starting partial-router-warm
+
+- 2026-11-15T13:29:00+07:00 In-turn compaction frozen eval: run1 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 40, "wall_s": 764.3094505420013, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T13:29:00+07:00 In-turn compaction frozen eval: run1 starting pdf-byte-boundary
+
+- 2026-11-15T13:30:28+07:00 In-turn compaction frozen eval: run1 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 8, "wall_s": 88.52851058300075, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-15T13:30:28+07:00 In-turn compaction frozen eval: run1 starting post-hook-status
+
+- 2026-11-15T13:41:45+07:00 In-turn compaction frozen eval: run1 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 39, "wall_s": 676.2847127079986, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T13:41:45+07:00 In-turn compaction frozen eval: run1 starting remote-macos-config
+
+- 2026-11-15T13:53:04+07:00 In-turn compaction frozen eval: run1 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 40, "wall_s": 679.0174105829974, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T13:53:04+07:00 In-turn compaction frozen eval: run1 starting scanner-word-boundary
+
+- 2026-11-15T14:04:45+07:00 In-turn compaction frozen eval: run1 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 40, "wall_s": 700.7584559589995, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T14:04:45+07:00 In-turn compaction frozen eval: run1 starting server-port-ownership
+
+- 2026-11-15T14:12:38+07:00 In-turn compaction frozen eval: run1 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 31, "wall_s": 473.08781412499957, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T14:12:38+07:00 In-turn compaction frozen eval: run1 starting shell-binary-output
+
+- 2026-11-15T14:21:05+07:00 In-turn compaction frozen eval: run1 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 34, "wall_s": 506.49571883399767, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T14:21:05+07:00 In-turn compaction frozen eval: run1 starting shell-poll-completion
+
+- 2026-11-15T14:33:36+07:00 In-turn compaction frozen eval: run1 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 39, "wall_s": 751.7862119160018, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T14:33:36+07:00 In-turn compaction frozen eval: run1 starting switch-hidden-index
+
+- 2026-11-15T14:44:13+07:00 In-turn compaction frozen eval: run1 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 37, "wall_s": 636.8760996669989, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T14:44:13+07:00 In-turn compaction frozen eval: run1 starting terminal-nonseekable
+
+- 2026-11-15T14:50:54+07:00 In-turn compaction frozen eval: run1 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 32, "wall_s": 400.5163129579996, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T14:50:54+07:00 In-turn compaction frozen eval: run1 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-15T14:50:55+07:00 In-turn compaction eval-2-startup admission: {"label": "eval-2-startup", "at": "2026-11-15T14:50:55+07:00", "pressure": 1, "swap_raw": "total = 2048.00M  used = 439.12M  free = 1608.88M  (encrypted)", "swap_used_bytes": 460450693, "swap_limit_bytes": 3000000000, "ports_free": {"8123": true, "8124": true}, "port_checks": {"8123": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8124": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-15T14:50:55+07:00 In-turn compaction frozen eval: run2 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-15T14:51:18+07:00 In-turn compaction frozen eval: run2 ready in 22.668s; starting frozen20 in order.
+
+- 2026-11-15T14:51:18+07:00 In-turn compaction frozen eval: run2 starting action-background-outcome
+
+- 2026-11-15T14:53+07:00 — PR #18 frozen eval **run 1: 2/20** (11:31–14:50, 707 calls, task wall 11,903 s; `disabled-interval-clock` 35 calls and `metadata-case-alias` 20 calls ended verified-pass). Stops: 10 tool-cap, **7 ContextOverflow** (cloud-null-calls, post-hook-status, server-port-ownership, shell-binary-output, shell-poll-completion, switch-hidden-index, terminal-nonseekable), 1 ValueError (pdf-byte-boundary, 8 calls), 2 verified-pass. PR #17 run 1 at 5530167: 0/20, 0 ContextOverflow, 15 tool-cap. So the diet raises the score for the first time but brings overflow stops back; cause to be found in the transcripts (suspect: step summaries now keep line ranges and match places and are not bounded). Passes not yet checked against the known harness limits (lazy fixes can pass). Run 2 started 14:50:55, admission PASS, swap 439 MB.
+
+- 2026-11-15T14:54+07:00 — PR #18 run 1 analysis (read-only, run 2 in progress, code checkout untouched). (1) Both passes are real minimal fixes, not lazy ones: `disabled-interval-clock` adds `item.get('min_interval_seconds', 0) > 0` to the interval check in cloud.py (verifier 7/7, other tests 37/37, cheat false); `metadata-case-alias` makes the `.git` path-part check case-insensitive in permissions.py (verifier 5/5, 37/37). (2) Exact repeat calls, same method as the old audit (it reproduces 395 + 341 = 736): PR #17 run 1 54.6% (395/724), run 2 48.7% (341/700); PR #18 run 1 **46.4% (328/707)**. grep_files 321/265 → 133, read_file 306/332 → 492. Edit/write errors 42/49 and 35/49 → 26/41. Tasks without a successful edit 16/15 → 14. (3) ContextOverflow 0 → 7, raised in `fit_messages`. Offline measure with old and new `tool_step_summary` on the run-1 transcripts: the summary block of the older steps is 1.5–4.4× larger (new 2.5–3.8 KB, old 0.9–2.3 KB; mean per step 68–134 vs 30–65 chars); many lines are exact duplicates (repeated calls each keep their full match list). Not proven as the only cause: `remote-macos-config` had 3.6 KB and ended at the tool cap. Fix candidate for the next commit: merge duplicate summary lines into one with a count, and cap the block. (4) #107 evidence: in `disabled-interval-clock` the same edit failed 6 times in a row because `old` had 13 spaces of indentation and the file has 12; the error text ("found 0 … copy the exact text, including indentation") did not help. No decision before run 2 ends.
+
+- 2026-11-15T15:03:12+07:00 In-turn compaction frozen eval: run2 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 713.9667649589974, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T15:03:12+07:00 In-turn compaction frozen eval: run2 starting child-background-outcome
+
+- 2026-11-15T15:15:28+07:00 In-turn compaction frozen eval: run2 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 736.760401208001, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T15:15:29+07:00 In-turn compaction frozen eval: run2 starting cloud-null-calls
+
+- 2026-11-15T15:23:33+07:00 In-turn compaction frozen eval: run2 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 32, "wall_s": 484.6697355420001, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T15:23:33+07:00 In-turn compaction frozen eval: run2 starting disabled-interval-clock
+
+- 2026-11-15T15:35:15+07:00 In-turn compaction frozen eval: run2 {"task": "disabled-interval-clock", "status": "FAIL", "tool_calls": 37, "wall_s": 701.8634807919989, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T15:35:15+07:00 In-turn compaction frozen eval: run2 starting foreground-warm-lock
+
+- 2026-11-15T15:47:36+07:00 In-turn compaction frozen eval: run2 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 40, "wall_s": 740.4008215829999, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T15:47:36+07:00 In-turn compaction frozen eval: run2 starting local-common-directory
+
+- 2026-11-15T15:59:42+07:00 In-turn compaction frozen eval: run2 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 40, "wall_s": 726.1524204579982, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T15:59:42+07:00 In-turn compaction frozen eval: run2 starting metadata-case-alias
+
+- 2026-11-15T16:01:09+07:00 In-turn compaction frozen eval: run2 {"task": "metadata-case-alias", "status": "PASS", "tool_calls": 10, "wall_s": 86.30915595899569, "stop": "verified-pass", "agent_error": null}
+
+- 2026-11-15T16:01:09+07:00 In-turn compaction frozen eval: run2 starting missing-session-admission
+
+- 2026-11-15T16:11:02+07:00 In-turn compaction frozen eval: run2 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 34, "wall_s": 593.3656399999963, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T16:11:02+07:00 In-turn compaction frozen eval: run2 starting missing-task-outcome
+
+- 2026-11-15T16:21:32+07:00 In-turn compaction frozen eval: run2 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 37, "wall_s": 629.9794927919938, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T16:21:32+07:00 In-turn compaction frozen eval: run2 starting oversized-hook-audit
+
+- 2026-11-15T16:27:07+07:00 In-turn compaction frozen eval: run2 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 25, "wall_s": 334.38096212500386, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-15T16:27:07+07:00 In-turn compaction frozen eval: run2 starting partial-router-warm
+
+- 2026-11-15T16:39:36+07:00 In-turn compaction frozen eval: run2 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 40, "wall_s": 748.7734410410048, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T16:39:36+07:00 In-turn compaction frozen eval: run2 starting pdf-byte-boundary
+
+- 2026-11-15T16:49:57+07:00 In-turn compaction frozen eval: run2 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 40, "wall_s": 621.3613155420026, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T16:49:57+07:00 In-turn compaction frozen eval: run2 starting post-hook-status
+
+- 2026-11-15T16:55:21+07:00 In-turn compaction frozen eval: run2 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 23, "wall_s": 323.6976711669995, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-15T16:55:21+07:00 In-turn compaction frozen eval: run2 starting remote-macos-config
+
+- 2026-11-15T17:05:29+07:00 In-turn compaction frozen eval: run2 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 38, "wall_s": 608.3908250410022, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T17:05:29+07:00 In-turn compaction frozen eval: run2 starting scanner-word-boundary
+
+- 2026-11-15T17:17:00+07:00 In-turn compaction frozen eval: run2 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 38, "wall_s": 690.5714827920019, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T17:17:00+07:00 In-turn compaction frozen eval: run2 starting server-port-ownership
+
+- 2026-11-15T17:24:32+07:00 In-turn compaction frozen eval: run2 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 30, "wall_s": 451.67463475000113, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T17:24:32+07:00 In-turn compaction frozen eval: run2 starting shell-binary-output
+
+- 2026-11-15T17:34:11+07:00 In-turn compaction frozen eval: run2 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 36, "wall_s": 579.433881166995, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T17:34:11+07:00 In-turn compaction frozen eval: run2 starting shell-poll-completion
+
+- 2026-11-15T17:44:02+07:00 In-turn compaction frozen eval: run2 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 33, "wall_s": 590.1772109169979, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T17:44:02+07:00 In-turn compaction frozen eval: run2 starting switch-hidden-index
+
+- 2026-11-15T17:55:42+07:00 In-turn compaction frozen eval: run2 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 40, "wall_s": 699.9962064580031, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-15T17:55:42+07:00 In-turn compaction frozen eval: run2 starting terminal-nonseekable
+
+- 2026-11-15T18:03:24+07:00 In-turn compaction frozen eval: run2 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 35, "wall_s": 461.7916649580002, "stop": "error", "agent_error": "ContextOverflow"}
+
+- 2026-11-15T18:03:24+07:00 In-turn compaction frozen eval: run2 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-15T18:07:01+07:00 Re-root USB secret scan pr18-report-code-history: {"at": "2026-11-15T18:06:54.351371+07:00", "mode": "history-code", "history": {"objects": 1896, "bytes": 59215457, "findings_by_rule": {}, "passed": true}, "staged_findings": {"code": 0, "vault": 0}, "passed": true}
+
+- 2026-11-15T18:07+07:00 — **PR #18 gated and evaluated; kept as DRAFT, not merged.** Attempt `code/.session/tool-output-diet-gates-20261115b` (launchd Interactive, 11:15 → 18:03, one pass, nothing inherited, source 209f929): all standing gates PASS (see 11:3x entry), 9 admissions PASS (swap 0.43–0.69 GB). **Frozen #112 eval: 2/20 and 1/20** (main 0/20, 0/20). Run 1: 707 calls, wall 11,903 s, stops 10 tool-cap / 7 ContextOverflow / 2 verified-pass / 1 truncated call. Run 2: 688 calls, 11,524 s, stops 7 tool-cap / 10 ContextOverflow / 1 verified-pass / 1 truncated / 1 wrong final answer. Passes: `disabled-interval-clock` (run 1), `metadata-case-alias` (both runs, 20 and 10 calls); both checked as real minimal fixes. Exact repeat calls 46.4% and 48.3% (main 54.6%, 48.7%): small cut. grep 586 → 220, reads 638 → 993 over both runs; edit errors 74/101 (main 77/98). 0 wall-cap stops, 0 RemoteDisconnected (the PR #17 run-2 ones came with the foreign download). **Regression: ContextOverflow 0/0 → 7/10**, raised in `fit_messages`; offline replay shows the compacted summary block 1.5–4.4× larger with many duplicate lines. Verdict by the keep rule: kept on score (beats 0/20), repeat-call cut not clear. Claude did not merge: the overflow stops are a step back on what PR #17 fixed; the decision (merge now and fix next, or fix in PR #18 first, each needs one more 8 h gate + eval pass) is put to the user, Claude recommends fix first. Report commit `8b563c6` (BENCHMARKS.md +89 lines only) on `tool-output-diet`; code-history scan 1,896 objects 0 findings; normal push 209f929..8b563c6; ls-remote verified; main unchanged ff20e40; PR #18 body updated, still DRAFT. Job `local.kildall.gates` booted out, no model process, ports free. Code checkout back on `main` ff20e40, clean. Also this session: `Orbiplan.md` v58 (S17 Monthly self-update, by the user word). Fix candidate for the next commit: in `fit_messages`/`tool_step_summary` merge duplicate summary lines into one with a count and cap the summary block; then #107 (indentation hint in the edit error: 13 vs 12 spaces failed 6 times).
