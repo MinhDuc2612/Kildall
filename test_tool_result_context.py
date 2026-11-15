@@ -192,8 +192,35 @@ def recent_result_trimmed():
     assert fitted[-1]['content'].endswith('items dropped; narrow the request.')
 
 
+def summary_block_bounded():
+    """Repeated steps share one summary line, and the summary block shrinks before the turn overflows."""
+    config = kildall.settings()
+    def counted(endpoint, body, **kwargs):
+        if endpoint.endswith('/apply-template'):
+            return dict(prompt=json.dumps([body['messages'], body['tools']]))
+        return dict(tokens=[1] * ((len(body['content'].encode()) + 3) // 4))
+    def turn(patterns):
+        current = [dict(role='user', content='Fix the bug.')]
+        for i, pattern in enumerate(patterns):
+            rows = ''.join(f'src/module_{pattern}_{n}.py:{n}:match {pattern}\n' for n in range(1, 9))
+            current += [dict(role='assistant', content='', tool_calls=[dict(id=str(i), type='function', function=dict(
+                            name='grep_files', arguments=json.dumps(dict(path='.', pattern=pattern))))]),
+                        dict(role='tool', tool_call_id=str(i), name='grep_files', content=json.dumps(dict(
+                            exit_code=0, timed_out=False, truncated=False, stderr='', stdout=rows)))]
+        return current
+    with patch.object(kildall, 'json_request', side_effect=counted):
+        same = kildall.fit_messages(config, kildall.system_prompt('.'), '', [], turn(['edit'] * 40))
+        many = kildall.fit_messages(config, kildall.system_prompt('.'), '', [], turn([f'p{n}' for n in range(60)]))
+    digest = same[2]['content']  # Equal older steps: one line with a count, built from the clean result.
+    assert digest.startswith('grep_files . edit: 8 matches: src/module_edit_1.py:1'), digest
+    assert int(digest.rsplit(' (x', 1)[1].rstrip(')')) > 1 and '\n' not in digest and 'exit_code' not in digest, digest
+    digest = many[2]['content']  # 56 different older steps do not fit: the oldest lines go, the newest stay.
+    assert digest.splitlines()[0].endswith('earlier steps omitted') and 'grep_files . p55:' in digest, digest
+    assert 'grep_files . p0:' not in digest
+
+
 if __name__ == '__main__':
     for check in (relative_paths, large_result, memory_before_tool_result, turn_completes, compact_current_turn,
-                  recent_result_trimmed, findings_survive):
+                  recent_result_trimmed, findings_survive, summary_block_bounded):
         check()
         print('PASS:', check.__name__, flush=True)

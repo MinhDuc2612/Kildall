@@ -594,6 +594,9 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
              and current[i + 1].get('role') == 'tool'
              and current[i]['tool_calls'][0]['id'] == current[i + 1].get('tool_call_id')
              and isinstance(current[i + 1].get('content'), str)]
+    # Summaries come from the results as the tools returned them, before the repeat note is appended.
+    summaries = {i: tool_step_summary(current[i]['tool_calls'][0], current[i + 1]['content'])
+                 for i in pairs[:-4]}
     seen = set()
     for i in pairs:
         call = current[i]['tool_calls'][0]['function']
@@ -602,8 +605,11 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             current[i + 1] = dict(current[i + 1], content=current[i + 1]['content'] + REPEATED)
         seen.add(key)
     protected = {i + 1 for i in pairs[-4:]} if len(pairs) > 4 else set()
-    summaries = {i: tool_step_summary(current[i]['tool_calls'][0], current[i + 1]['content'])
-                 for i in pairs[:-4]}
+    lines, omitted_steps = {}, 0  # Summary line -> times seen; equal steps share one line.
+
+    def digest_text():
+        head = [f'{omitted_steps} earlier steps omitted'] if omitted_steps else []
+        return '\n'.join(head + [line + (f' (x{times})' if times > 1 else '') for line, times in lines.items()])
     results = {i: (message['content'], 0) for i, message in enumerate(current)
                if i not in protected and message.get('role') == 'tool'
                and isinstance(message.get('content'), str)}
@@ -635,14 +641,22 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             else:
                 if summaries:
                     i = next(iter(summaries))
+                    line = summaries.pop(i)
+                    lines[line] = lines.get(line, 0) + 1
                     if digest is None:
                         digest = i
-                        current[i] = dict(role='assistant', content=summaries.pop(i))
+                        current[i] = dict(role='assistant', content='')
                     else:
-                        current[digest]['content'] += '\n' + summaries.pop(i)
                         current[i] = None
+                    current[digest]['content'] = digest_text()
                     current[i + 1] = None
                     results.pop(i + 1, None)
+                elif len(lines) > 8 or (not protected and len(lines) > 1):
+                    # The summary block is bounded too: the oldest half goes, the newest findings stay.
+                    # Down to 8 lines this comes before the latest results are trimmed; they are needed to act.
+                    for line in list(lines)[:len(lines) // 2]:
+                        omitted_steps += lines.pop(line)
+                    current[digest]['content'] = digest_text()
                 elif protected:
                     # The latest pairs stay whole only while room allows; then trim them like any result.
                     results.update({i: (current[i]['content'], 0) for i in protected})
