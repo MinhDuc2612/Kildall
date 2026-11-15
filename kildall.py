@@ -537,13 +537,20 @@ def trim_tool_result(content):
 
 
 def tool_step_summary(call, content):
+    """One line that keeps what a compacted step found, so the model need not run it again."""
     function = call['function']
     try:
         args = json.loads(function['arguments'])
     except ValueError:
         args = function['arguments']
-    argument = next((args[key] for key in ('command', 'pattern', 'path', 'query', 'text', 'name', 'url')
-                     if key in args), args) if isinstance(args, dict) else args
+    short = lambda value, size=80: ' '.join(str(value).split())[:size]
+    if isinstance(args, dict):
+        argument = ' '.join(short(value, 60) if key in ('command', 'pattern', 'path', 'query', 'text', 'name', 'url')
+                            else f'{key}={value}' for key, value in args.items()
+                            if key in ('command', 'pattern', 'path', 'query', 'text', 'name', 'url')
+                            or isinstance(value, (int, float)))
+    else:
+        argument = args
     try:
         result = json.loads(content)
     except ValueError:
@@ -555,17 +562,26 @@ def tool_step_summary(call, content):
         else:
             result = result.get('result', result)
             if isinstance(result, dict):
-                if 'exit_code' in result:
+                if function['name'] == 'grep_files' and isinstance(result.get('stdout'), str):
+                    rows = result['stdout'].splitlines()
+                    places = list(dict.fromkeys(':'.join(row.split(':', 2)[:2]) for row in rows))
+                    outcome = f"{len(rows)} matches" + (': ' + ', '.join(places[:8]) if places else '')
+                elif 'exit_code' in result:
                     outcome = f"exit {result['exit_code']}"
                 elif isinstance(result.get('text'), str):
-                    outcome = f"{len(result['text'].splitlines())} lines read"
+                    lines = result['text'].splitlines()
+                    numbers = [line.split(':', 1)[0] for line in (lines[:1] + lines[-1:])]
+                    outcome = (f"lines {numbers[0]}-{numbers[-1]} read" if numbers and all(n.isdigit() for n in numbers)
+                               else f"{len(lines)} lines read")
                 elif isinstance(result.get('paths'), list):
                     outcome = f"{len(result['paths'])} paths found"
                 if result.get('truncated'):
                     outcome = str(outcome) + ' (truncated)'
     # ponytail: other tool outcomes use bounded excerpts; specialize only when needed.
-    short = lambda value: ' '.join(str(value).split())[:80]
-    return f"{function['name']} {short(argument)}: {short(outcome)}"
+    return f"{function['name']} {short(argument, 120)}: {short(outcome, 200)}"
+
+
+REPEATED = '\nYou already made this exact call earlier in this task and got the same result. Do not repeat it; use what you know.'
 
 
 def fit_messages(config, system, memory_text, previous, current, *, tools=None, cancel=None):
@@ -578,9 +594,22 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
              and current[i + 1].get('role') == 'tool'
              and current[i]['tool_calls'][0]['id'] == current[i + 1].get('tool_call_id')
              and isinstance(current[i + 1].get('content'), str)]
-    protected = {i + 1 for i in pairs[-4:]} if len(pairs) > 4 else set()
+    # Summaries come from the results as the tools returned them, before the repeat note is appended.
     summaries = {i: tool_step_summary(current[i]['tool_calls'][0], current[i + 1]['content'])
                  for i in pairs[:-4]}
+    seen = set()
+    for i in pairs:
+        call = current[i]['tool_calls'][0]['function']
+        key = call['name'], call['arguments']
+        if key in seen and call['name'] not in ('write', 'edit', 'run_command'):
+            current[i + 1] = dict(current[i + 1], content=current[i + 1]['content'] + REPEATED)
+        seen.add(key)
+    protected = {i + 1 for i in pairs[-4:]} if len(pairs) > 4 else set()
+    lines, omitted_steps = {}, 0  # Summary line -> times seen; equal steps share one line.
+
+    def digest_text():
+        head = [f'{omitted_steps} earlier steps omitted'] if omitted_steps else []
+        return '\n'.join(head + [line + (f' (x{times})' if times > 1 else '') for line, times in lines.items()])
     results = {i: (message['content'], 0) for i, message in enumerate(current)
                if i not in protected and message.get('role') == 'tool'
                and isinstance(message.get('content'), str)}
@@ -612,14 +641,22 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             else:
                 if summaries:
                     i = next(iter(summaries))
+                    line = summaries.pop(i)
+                    lines[line] = lines.get(line, 0) + 1
                     if digest is None:
                         digest = i
-                        current[i] = dict(role='assistant', content=summaries.pop(i))
+                        current[i] = dict(role='assistant', content='')
                     else:
-                        current[digest]['content'] += '\n' + summaries.pop(i)
                         current[i] = None
+                    current[digest]['content'] = digest_text()
                     current[i + 1] = None
                     results.pop(i + 1, None)
+                elif len(lines) > 8 or (not protected and len(lines) > 1):
+                    # The summary block is bounded too: the oldest half goes, the newest findings stay.
+                    # Down to 8 lines this comes before the latest results are trimmed; they are needed to act.
+                    for line in list(lines)[:len(lines) // 2]:
+                        omitted_steps += lines.pop(line)
+                    current[digest]['content'] = digest_text()
                 elif protected:
                     # The latest pairs stay whole only while room allows; then trim them like any result.
                     results.update({i: (current[i]['content'], 0) for i in protected})

@@ -30,9 +30,7 @@ def relative_paths():
         found = file_tools.execute('glob_files', dict(path='nested', pattern='**/*.py'), root)
         assert found == dict(paths=['nested/deep/a.py'], truncated=False)
         found = file_tools.execute('grep_files', dict(path=str(root/'nested'), pattern='needle'), root)
-        paths = [json.loads(line)['data']['path']['text'] for line in found['stdout'].splitlines()
-                 if json.loads(line)['type'] == 'match']
-        assert paths == ['nested/deep/a.py']
+        assert found['stdout'] == 'nested/deep/a.py:1:needle = 1\n'  # Plain rows, not ripgrep JSON events.
         # External reads remain allowed and still return project-relative names.
         found = file_tools.execute('glob_files', dict(path=str(root/'nested'), pattern='**/*.py'), root/'nested/deep')
         assert found['paths'] == ['a.py']
@@ -143,8 +141,36 @@ def compact_current_turn():
     summaries = [m['content'] for m in fitted[2:] if m['role'] == 'assistant' and not m.get('tool_calls')]
     assert len(summaries) == 1  # One message: chat templates may trim and merge adjacent assistant turns.
     lines = summaries[0].split('\n')
-    assert len(lines) > 1 and lines == [f'read_file {i}.py: 2 lines read' for i in range(len(lines))]
+    assert len(lines) > 1 and lines == [f'read_file {i}.py: lines 1-2 read' for i in range(len(lines))]
     assert current == original  # Compaction never changes stored audit evidence.
+
+
+def findings_survive():
+    """Compacted steps keep what they found, and an exact repeat call is flagged."""
+    call = lambda name, **args: dict(function=dict(name=name, arguments=json.dumps(args)))
+    grep = json.dumps(dict(exit_code=0, timed_out=False, truncated=False, stderr='',
+                           stdout='a.py:12:def run():\na.py:40:    run()\nsub/b.py:7:run = 1\n'))
+    assert kildall.tool_step_summary(call('grep_files', path='.', pattern='run'), grep) == \
+        'grep_files . run: 3 matches: a.py:12, a.py:40, sub/b.py:7'
+    read = json.dumps(dict(text='51: x = 1\n52: y = 2\n', truncated=True))
+    assert kildall.tool_step_summary(call('read_file', path='a.py', start_line=51, max_lines=2), read) == \
+        'read_file a.py start_line=51 max_lines=2: lines 51-52 read (truncated)'
+    none = json.dumps(dict(exit_code=1, timed_out=False, truncated=False, stdout='', stderr=''))
+    assert kildall.tool_step_summary(call('grep_files', path='.', pattern='zzz'), none) == 'grep_files . zzz: 0 matches'
+    step = lambda ident, name, content, **args: [
+        dict(role='assistant', content='', tool_calls=[dict(id=ident, type='function', **call(name, **args))]),
+        dict(role='tool', tool_call_id=ident, name=name, content=content)]
+    current = ([dict(role='user', content='Find run.')] + step('1', 'grep_files', grep, path='.', pattern='run')
+               + step('2', 'read_file', read, path='a.py') + step('3', 'grep_files', grep, path='.', pattern='run')
+               + step('4', 'edit', '{"error": "x"}', path='a.py', old='a', new='b')
+               + step('5', 'edit', '{"error": "x"}', path='a.py', old='a', new='b'))
+    original = json.loads(json.dumps(current))
+    with patch.object(kildall, 'json_request', side_effect=request):
+        fitted = kildall.fit_messages(kildall.settings(), 'System.', '', [], current)
+    assert fitted[3]['content'] == grep and fitted[5]['content'] == read
+    assert fitted[7]['content'] == grep + kildall.REPEATED  # Same call, same arguments: say so.
+    assert fitted[9]['content'] == fitted[11]['content'] == '{"error": "x"}'  # Edits and commands may be retried.
+    assert current == original
 
 
 def recent_result_trimmed():
@@ -162,12 +188,39 @@ def recent_result_trimmed():
     with patch.object(kildall, 'json_request', side_effect=counted):
         fitted = kildall.fit_messages(config, kildall.system_prompt('.'), 'Memory.', [], current)
     assert fitted[1]['content'].endswith('<memory>\nMemory.\n</memory>')  # Memory outranks the latest result.
-    assert fitted[2] == dict(role='assistant', content='read_file 0.py: 1 lines read')
+    assert fitted[2] == dict(role='assistant', content='read_file 0.py: lines 1-1 read')
     assert fitted[-1]['content'].endswith('items dropped; narrow the request.')
+
+
+def summary_block_bounded():
+    """Repeated steps share one summary line, and the summary block shrinks before the turn overflows."""
+    config = kildall.settings()
+    def counted(endpoint, body, **kwargs):
+        if endpoint.endswith('/apply-template'):
+            return dict(prompt=json.dumps([body['messages'], body['tools']]))
+        return dict(tokens=[1] * ((len(body['content'].encode()) + 3) // 4))
+    def turn(patterns):
+        current = [dict(role='user', content='Fix the bug.')]
+        for i, pattern in enumerate(patterns):
+            rows = ''.join(f'src/module_{pattern}_{n}.py:{n}:match {pattern}\n' for n in range(1, 9))
+            current += [dict(role='assistant', content='', tool_calls=[dict(id=str(i), type='function', function=dict(
+                            name='grep_files', arguments=json.dumps(dict(path='.', pattern=pattern))))]),
+                        dict(role='tool', tool_call_id=str(i), name='grep_files', content=json.dumps(dict(
+                            exit_code=0, timed_out=False, truncated=False, stderr='', stdout=rows)))]
+        return current
+    with patch.object(kildall, 'json_request', side_effect=counted):
+        same = kildall.fit_messages(config, kildall.system_prompt('.'), '', [], turn(['edit'] * 40))
+        many = kildall.fit_messages(config, kildall.system_prompt('.'), '', [], turn([f'p{n}' for n in range(60)]))
+    digest = same[2]['content']  # Equal older steps: one line with a count, built from the clean result.
+    assert digest.startswith('grep_files . edit: 8 matches: src/module_edit_1.py:1'), digest
+    assert int(digest.rsplit(' (x', 1)[1].rstrip(')')) > 1 and '\n' not in digest and 'exit_code' not in digest, digest
+    digest = many[2]['content']  # 56 different older steps do not fit: the oldest lines go, the newest stay.
+    assert digest.splitlines()[0].endswith('earlier steps omitted') and 'grep_files . p55:' in digest, digest
+    assert 'grep_files . p0:' not in digest
 
 
 if __name__ == '__main__':
     for check in (relative_paths, large_result, memory_before_tool_result, turn_completes, compact_current_turn,
-                  recent_result_trimmed):
+                  recent_result_trimmed, findings_survive, summary_block_bounded):
         check()
         print('PASS:', check.__name__, flush=True)

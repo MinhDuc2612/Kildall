@@ -3322,3 +3322,92 @@ slices: #108 repeat-call breaker, #98 loop breaker, #107 error messages (edit fa
 Open items found, not part of this PR: (1) file tools and the `git_switch` clean check do not tolerate AppleDouble
 `._` files on the exFAT root; (2) any Kildall daemon must run with `ProcessType=Interactive` or the 300 ms memory cap
 is missed. No gate limit changed, no retry inside an attempt, no sudo, HF sync, paid API or force push.
+
+## Tool output diet, PR #18 — full gates and frozen #112 eval at `209f929` (2026-11-15)
+
+Product under test: `tool-output-diet` `209f92972cccf907722fa5d431a7dc1baa440bb4`, base `main` `ff20e40`. Change: plain
+`path:line:text` grep rows, step summaries that keep read line ranges and grep match places, a note on exact repeat
+read-only calls, edit errors with the match count. One full pass, nothing inherited, launchd `ProcessType=Interactive`,
+evidence `.session/tool-output-diet-gates-20261115b/`. Model, prompts, flags, routing, catalog, grammar,
+`bench_cases.json`, `test_recall.py`, frozen task assets (`3d9b4a6`) and verifier harness (`2a71126`) unchanged;
+222 source hashes (all tracked files) and 12 collector hashes held.
+
+| Gate | Result |
+|---|---|
+| Focused `test_tool_result_context.py` | PASS 7/7 |
+| Routing (20 cases, fresh restart) | PASS — category 20/20, lane 20/20, r17 X→C, 0 cold, mean 0.791842 s ≤ 0.906, p50 0.780809 s, p99 0.933251 s |
+| Recall, frozen one slot / answer slots 1 and 2 | PASS — 20/20, 20/20, 20/20; requests identical after path normalization |
+| Abstention | PASS — 20/20 |
+| Callable / tools | PASS — callable 20/20; exact 17/20 first pass, 20/20 after 3 retries |
+| CLI | PASS — 18/18, CLI recall checks 3/3 |
+| Hooks; standing controls | PASS — 5/5; 28/28 |
+| Nuke dry-run; `check.sh` | PASS — 543,633 entries, 0 outside, 0 rejected; exit 0 |
+| Verifier wiring control (no model) | PASS — no-op fails, golden fix passes |
+| Admission (9 snapshots) | all PASS — pressure 1; swap 0.46–0.72 GB; ports free; no other model |
+
+### Frozen #112 eval: 2/20 and 1/20 — first passes, but ContextOverflow stops are back
+
+| | Run 1 | Run 2 | PR #17 run 1 / run 2 (`5530167`) |
+|---|---|---|---|
+| Passed | 2/20 | 1/20 | 0/20 / 0/20 |
+| Tool calls | 707 | 688 | 724 / 700 |
+| Exact repeat calls | 328 (46.4%) | 332 (48.3%) | 395 (54.6%) / 341 (48.7%) |
+| Task wall (s) | 11903.0 | 11523.7 | 12319.1 / 13933.7 |
+| Startup (s) | 38.9 | 22.7 | 38.9 / 24.3 |
+| Stops: verified pass | 2 | 1 | 0 / 0 |
+| Stops: ContextOverflow | 7 | 10 | 0 / 0 |
+| Stops: tool cap (40) | 10 | 7 | 15 / 14 |
+| Stops: wall cap (900 s) | 0 | 0 | 1 / 3 |
+| Stops: truncated tool call (ValueError) | 1 | 1 | 3 / 3 |
+| Stops: final answer, failed grading | 0 | 1 | 1 / 0 |
+| `grep_files` / `read_file` calls | 133 / 492 | 87 / 501 | 321 / 306 and 265 / 332 |
+| `edit` calls / error results | 41 / 26 | 60 / 48 | 49 / 42 and 49 / 35 |
+
+`dup` = tool calls that exactly repeat an earlier call (same tool, same arguments) in the same task.
+
+| Task | R1 | calls | wall s | stop | dup | R2 | calls | wall s | stop | dup |
+|---|---|---|---|---|---|---|---|---|---|---|
+| action-background-outcome | FAIL | 40 | 683 | tool-cap | 11 | FAIL | 40 | 714 | tool-cap | 18 |
+| child-background-outcome | FAIL | 40 | 688 | tool-cap | 12 | FAIL | 40 | 737 | tool-cap | 18 |
+| cloud-null-calls | FAIL | 32 | 476 | error (ContextOverflow) | 17 | FAIL | 32 | 485 | error (ContextOverflow) | 18 |
+| disabled-interval-clock | PASS | 35 | 599 | verified-pass | 19 | FAIL | 37 | 702 | error (ContextOverflow) | 21 |
+| foreground-warm-lock | FAIL | 40 | 761 | tool-cap | 17 | FAIL | 40 | 740 | tool-cap | 18 |
+| local-common-directory | FAIL | 40 | 728 | tool-cap | 20 | FAIL | 40 | 726 | tool-cap | 16 |
+| metadata-case-alias | PASS | 20 | 234 | verified-pass | 8 | PASS | 10 | 86 | verified-pass | 1 |
+| missing-session-admission | FAIL | 40 | 749 | tool-cap | 18 | FAIL | 34 | 593 | error (ContextOverflow) | 20 |
+| missing-task-outcome | FAIL | 40 | 727 | tool-cap | 18 | FAIL | 37 | 630 | error (ContextOverflow) | 19 |
+| oversized-hook-audit | FAIL | 40 | 580 | tool-cap | 8 | FAIL | 25 | 334 | error (ValueError) | 8 |
+| partial-router-warm | FAIL | 40 | 764 | tool-cap | 16 | FAIL | 40 | 749 | tool-cap | 13 |
+| pdf-byte-boundary | FAIL | 8 | 89 | error (ValueError) | 1 | FAIL | 40 | 621 | tool-cap | 29 |
+| post-hook-status | FAIL | 39 | 676 | error (ContextOverflow) | 26 | FAIL | 23 | 324 | final-answer | 3 |
+| remote-macos-config | FAIL | 40 | 679 | tool-cap | 18 | FAIL | 38 | 608 | error (ContextOverflow) | 17 |
+| scanner-word-boundary | FAIL | 40 | 701 | tool-cap | 21 | FAIL | 38 | 691 | error (ContextOverflow) | 20 |
+| server-port-ownership | FAIL | 31 | 473 | error (ContextOverflow) | 15 | FAIL | 30 | 452 | error (ContextOverflow) | 15 |
+| shell-binary-output | FAIL | 34 | 506 | error (ContextOverflow) | 17 | FAIL | 36 | 579 | error (ContextOverflow) | 16 |
+| shell-poll-completion | FAIL | 39 | 752 | error (ContextOverflow) | 22 | FAIL | 33 | 590 | error (ContextOverflow) | 15 |
+| switch-hidden-index | FAIL | 37 | 637 | error (ContextOverflow) | 19 | FAIL | 40 | 700 | tool-cap | 23 |
+| terminal-nonseekable | FAIL | 32 | 401 | error (ContextOverflow) | 25 | FAIL | 35 | 462 | error (ContextOverflow) | 24 |
+
+What the evidence says:
+
+- **Score.** First passes on this eval: `disabled-interval-clock` (run 1) and `metadata-case-alias` (both runs, 20 and
+  10 calls). Both are minimal correct fixes (2 changed lines, verifier checks and the 37 other tests pass, cheat false).
+  Three passes in 40 task runs is a small number; no noise-floor claim.
+- **Repeat calls.** 46.4% and 48.3% against 54.6% and 48.7%: a small cut, not a clear one. The mix moved: searches fell
+  (586 → 220 over both runs) and reads rose (638 → 993). The repeat note does not stop the model from repeating.
+- **Regression.** ContextOverflow stops went 0/0 → 7/10. They are raised in `fit_messages`. Offline replay of the run-1
+  transcripts through the old and new `tool_step_summary`: the summary block of the older steps is 1.5–4.4× larger
+  (new 2.5–3.8 KB, old 0.9–2.3 KB), and many lines are exact duplicates because every repeated call keeps its full
+  match list. Not proven as the only cause (one 3.6 KB task ended at the tool cap). Fix candidate: merge duplicate
+  summary lines into one with a count and cap the block.
+- **Edits (#107).** 74 of 101 edits still fail. In `disabled-interval-clock` the same edit failed 6 times in a row
+  because `old` had 13 spaces of indentation and the file has 12; the new error text did not help.
+
+### Retained stop before this pass (same source, no product change)
+
+| Attempt | Outcome |
+|---|---|
+| `…gates-20261115` (11:02–11:04) | STOP at routing on speed only: 20/20 category and lane, 0 cold, mean 1.0607 s > 0.906 s. A user live-wallpaper app (video decode on the shared GPU) was running; with it closed the next attempt measured 0.7918 s |
+| `…gates-20261115b` (11:15–18:03) | this report: every gate PASS, both evals completed |
+
+No gate limit changed, no retry inside an attempt, no sudo, HF sync, paid API or force push.
