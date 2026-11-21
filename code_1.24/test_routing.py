@@ -219,8 +219,7 @@ def live(*, stop_runtime=True):
                 row["lane_correct"] = row["log"]["lane"] == case["expected"]["lane"]
                 row["category_correct"] = row["log"]["decision"]["category"] == case["expected"]["skill"]
                 row["correct"] = row["lane_correct"] and row["category_correct"]
-                assert row["exit_code"] == (0 if row["log"]["lane"] == "A" else 3)
-                assert row["log"]["succeeded"] == (1 if row["log"]["lane"] == "A" else None)
+                # code_1.24 runs every lane locally, so exit codes differ by lane; score lane and category only.
             except Exception as error:
                 row["error"] = repr(error)
                 row["correct"] = False

@@ -84,15 +84,7 @@ model = "/Volumes/ES2TB/AI-Models/Kokoro-82M-MLX-BF16"
 voice = "af_heart"
 output = "/Volumes/ES2TB/Kildall/code_1.24/.session/speech"
 
-# Not routed: on the two code jobs that split the models it matched Gemma (json pass, cron fail) at 20-40x the time.
-[lanes.local.servers.flash_next]
-url = "http://127.0.0.1:11434/v1"
-model = "qwen3.8-flash-next:4bit"
-# Resume whole conversations, not only pass boundaries; keep them on the model drive.
-start = "SLOTSTREAM_OPT_ALIGNED_RESUME=0 $HOME/.slotstream/bin/slotstream serve --prefix-cache-dir /Volumes/ES2TB/AI-Models/slotstream/prefix-cache"
-tool_rounds = 4
-context_tokens = 32768 # slotstream's limit, not Lane A's 4096.
-stop = "$HOME/.slotstream/bin/slotstream stop"
+# Fit rule (Orbiplan v59): only models that write >= 2 tok/s at all times here. Qwen3.8-Flash-Next (1.1 tok/s) removed.
 
 [budget]
 monthly = 0 # Local and free tiers only.
