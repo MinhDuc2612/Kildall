@@ -3,7 +3,9 @@
 **v1 · 2026-09-05.** The concrete answer to "which models, how big, how much disk." *(Product renamed Kildall 2026-09-27; model list unchanged.)*
 Replaces the soft "~26 models, ~4.9 TB" in `Orbiplan.md`. **Every number here sums.**
 
-⚠️ **Out of date since 2026-11-01 — every lane is being re-picked in Phase R (`Orbiplan.md` v55).** Known now: Qwen3.8-27B + CMoE is dead (dense 27B measured 5.48 tok/s); this file is rewritten in step R7.
+**v2 · 2026-11-21 — the fit rule (`Orbiplan.md` v59):** a model is listed only if it writes **≥ 2 tok/s at all times on
+this Mac**, worst case measured. Giants, Qwen3.8-Flash-Next and GLM-5.3-Flash are removed. Lanes A and C below are
+rewritten; Lane B is unchanged pending Phase R (R5). Research: `Researchhub/sample4/fitmodels-m4-24gb.md`.
 
 ---
 
@@ -11,99 +13,41 @@ Replaces the soft "~26 models, ~4.9 TB" in `Orbiplan.md`. **Every number here su
 
 | | |
 |---|---|
-| **Models** | **22** |
-| **Params STORED** | **~9.87 T** |
-| **Disk at 4-bit** | **~5.23 TB** of the 8 TB drive |
-| **Held in RAM at once** | **~5–8 GB** — Lane A streams its experts; only ~3 GB of it is ever active |
-| **Fits the M4 24 GB?** | ✅ **yes**, with one caveat — see the RAM ceiling warning |
+| **Rule** | **≥ 2 tok/s at all times on this Mac** — worst case (longest allowed context, 600 s soak), measured |
+| **Models listed** | **22** — Lane A 1 · Lane B 14 · Lane C 7 |
+| **Params stored** | **~0.40 T** |
+| **Disk** | **~220 GB** — Lane A 11.3 GB · Lane B ~76 GB planned · Lane C ~132 GB on ES2TB |
+| **In RAM at once** | **one model whole** — Lane A 12–13.5 GB measured RSS; a Lane C model up to ~21 GB with Lane A stopped |
+| **Removed in v2** | every Lane C giant · Qwen3.8-Flash-Next (1.08–1.24 tok/s) · GLM-5.3-Flash IQ1_S (0.65–0.70 tok/s) |
 
-**Quant assumption:** 4-bit ≈ **0.5 bytes/param**, so GB ≈ params(B) ÷ 2. Kimi K3 is the exception —
-its 1.7 TB is the project's own measured figure (1.56 TB checkpoint + 109 GB packed trunk), not a
-calculation.
+**Quant assumption:** sizes are the real files on disk where a file exists; otherwise 4-bit ≈ 0.5 bytes/param.
 
 ## ⚠️ RAM ceiling
 
-**Lane A streams.** 90 GB on disk, ~3 GB of experts active per token, plus the dense trunk and KV
-cache — call it **5–8 GB resident**. That leaves room for one Lane B specialist alongside.
+**~20–22 GB usable for a model** (wired limit 20480 MB set by the boot daemon; it read **22528** on 2026-11-21).
+**Lane A and a Lane C model never share RAM** — Lane A stops first. Lane C files of 19.5–21.2 GB sit at the ceiling:
+their fit-rule risk is swap, not compute. Your own apps (Chrome, a second `llama-server`) share the same RAM.
 
-**The one pair that still does not fit:** Lane A + `Qwen3-Omni` (15 GB) is over budget. Use the
-**ASR + TTS pair (2.0 GB)** for voice — better per-task scores anyway.
-
-**Quantise the KV cache** (`-ctk q8_0 -ctv q8_0`) and cap context at 32K. Past ~100K tokens the cache
-outgrows the active weights.
+**Lane A + `Qwen3-Omni` (15 GB) is over budget.** Use the **ASR + TTS pair (2.0 GB)** for voice.
 
 ---
 
-# LANE A — resident router · **MoE, no size cap**
+# LANE A — resident router
 
-## The two rules that decide this
+**Gemma 4 26B-A4B UD-IQ3_S** · `unsloth/gemma-4-26B-A4B-it-GGUF` · native MoE, 4 B active · **11.3 GB** · Gemma Terms.
 
-1. **Sparse when resident — but dense is convertible, not disqualified.** The architecture rests on
-   sparsity. A dense model fires every parameter every token, which a 24 GB machine cannot afford at
-   scale — **but a dense model can be converted to MoE with CMoE in under five minutes, no training.**
-   See **"When a model is dense — convert it"** below for the real quality cost. Prefer a native MoE;
-   convert a dense one rather than rejecting it.
-2. **No size cap.** Total params are nearly free — they live on disk. **Active params are the cost.**
-   Pick on active size and quality, never on total.
+| Measured on this Mac | Value |
+|---|---|
+| Speed gate | **26.67 tok/s** (2026-11-06) · 29.33 (2026-09-08) |
+| Worst case so far | 600 s child soaks pass, 0 critical (4K per slot, production) · 2 × 32K in code_1.24: 140 normal / 13 warning / 0 critical |
+| Quality | routing 20/20 · recall 20/20 · tools 17/20 first → 20/20 after retry · best on the 18 hard jobs (16/18) |
 
-> ❌ **Retracted:** earlier versions of this file capped Lane A at ~5 GB / 8B, then picked
-> **Qwen3.8-27B — a dense model.** Both were wrong. The cap was invented so a Lane B model could sit
-> in RAM beside Lane A; the dense pick contradicted the plan's own premise. Neither came from a
-> requirement.
-
-## The candidates — all four are live
-
-**Ranked. Phase 1 measures and picks.** Disk is against **253.65 GB free** (measured 2026-09-06).
-
-**Why Lane A is sized against the internal disk, and only Lane A:** Lane A **streams its experts on
-every request**, so disk read speed sets tok/s directly. Your internal SSD is a **measured 3.44 GB/s**;
-external Thunderbolt is slower. **Lane A lives on the internal disk permanently** — not as a stopgap.
-It also has to run before the 8 TB drive exists.
-
-**Lanes B and C are sized against the external drive**, not this one. Disk column below is internal
-free space: **93.3 GB now, ~155 GB once the Trash is emptied.**
-
-| # | Model | HF path | Shape | Active | Disk @4-bit | Fits? | Licence | Tool use | The catch |
-|---|---|---|---|---|---|---|---|---|---|
-| **1** | **Qwen3.8-Flash-Next** | `Qwen/Qwen3.8-Flash-Next` | **native MoE** 180B | **6B (3.3%)** | **~90 GB** | ✅ **fits, 163 GB spare** | **Apache-2.0** | strong | **No conversion, so zero quality loss.** Multimodal. Speed unmeasured — no published tok/s for a 180B/6B MoE on M4 |
-| **2** | **Qwen3.8-27B + CMoE** | `Qwen/Qwen3.8-27B` | dense **→ converted to MoE** | ~7B @25% | **~17 GB** | ✅ | **Apache-2.0** | strong | Native vision, tiny footprint. But **conversion costs quality** — 33–65% worse perplexity training-free, or ~1 hr LoRA to recover ~76%. **CMoE on Metal unverified** |
-| **3** | **Gemma 4 26B-A4B** | `google/gemma-4-26b-a4b` | **native MoE** 26B | **4B** | **~13 GB** | ✅ | Gemma Terms | ⚠️ **weak** | **Only one proven on Apple Silicon** — 25–36 tok/s on M4 Pro via Turbo Fieldfare. But weak at tool use, Lane A's whole job |
-| **4** | **Granite 4.1 8B** | `ibm-granite/granite-4.1-8b` | dense, convertible | 8B | **~4.3 GB** | ✅ | Apache-2.0 ⚠ | ✅ **best <10B** | Smallest, safest. **Proven floor — 19.5 tok/s effectively measured.** If nothing clears the gates, this ships |
-
-**Why #1 leads:** it fits today, keeps a **native vision encoder** (Lane A reads screenshots and video
-itself), and is Apache-2.0. **Why #2 could still win:** no conversion at all, so no quality loss. It now fits — but at 90 GB of
-93.3 GB it leaves 3 GB, so nothing from Lane B could sit beside it.
-
-**#1 and #2 are both Qwen 3.8**, so switching between them is a config change, not a redesign.
-
-## ✅ MEASURED ON YOUR MACHINE — 2026-09-06
-
-**`qwen3:8b` (8B dense) → 19.48 tok/s.** Prompt eval 100 tok/s, load 4.1 s. First real number from
-this M4, not an estimate.
-
-**What it implies.** 8B dense clears 15 tok/s with ~30% headroom, so the **active-parameter budget for
-Lane A is roughly ≤ 10 B active**. Every MoE candidate sits under it:
-
-| Candidate | Active | Projected from the 19.48 anchor | Verdict |
-|---|---|---|---|
-| Gemma 4 26B-A4B | **4B** | comfortably above 19 tok/s | ✅ |
-| Qwen3.8-Flash-Next | **6B** | ~20–25 tok/s **if streaming holds** | ✅ likely |
-| Qwen3.8-27B + CMoE @25% | **~7B** | near or above 19 tok/s | ✅ likely |
-| Granite 4.1 8B | 8B dense | **~19.5 tok/s — effectively measured** | ✅ **proven** |
-| ~~Qwen3.8-27B dense, unconverted~~ | 27B | **~5.8 tok/s** | ❌ **would fail — confirms the conversion is required** |
-
-**The dense-27B rejection is now backed by a number, not just architecture.** And **Granite 4.1 8B is
-a proven-viable floor** — whatever else fails, Lane A ships.
-
-⚠️ **Still unmeasured: streaming.** The 19.48 figure is a model that fits in RAM. Nobody has measured a
-180B/6B MoE paging experts from SSD on an M4. That remains Phase 1's first test.
-
-## Phase 1 gates
-
-1. **tok/s over mmap streaming** — **> 15**. ⚠️ **The unknown. Test this first, before anything else**
-2. **Routing accuracy** — right skill of 341? **≥ 18/20**
-3. **Tool-call validity** — callable JSON every time? **20/20**
-4. **RAM under load** — watch memory pressure for **10 minutes, not 60 seconds**
+**Also on disk:** UD-IQ4_XS (13.6 GB, 24.0 tok/s, recall 19/20 — not adopted) · DWQ 4-bit MLX (33.1 tok/s, lane 19/20
+— fork closed) · **Granite 4.1 8B** (17.5 tok/s — the proven floor).
+**Phase R4 candidates:** Gemma + its MTP drafter (unmeasured here) · Qwen3.8-27B + DFlash2 (dense 5.48 tok/s without a
+drafter — passes the fit rule, fails Lane A's own 15 tok/s gate) · any sample4 candidate.
+**Removed:** Qwen3.8-Flash-Next (v1 candidate #1: 0.21 tok/s llama.cpp, 1.1 tok/s slotstream) · Qwen3.8-27B + CMoE
+(no Metal path).
 
 ---
 
@@ -141,77 +85,51 @@ runs for seconds, and unloads. Until the drive arrives, install selectively on t
 
 **Lane B subtotal: 14 models · ~149 B params · ~76 GB.**
 
+**Fit rule for Lane B:** the text-writing specialists (guard, translation, grounding, Omni) must each measure
+≥ 2 tok/s worst case before use. Image, video, 3D, ASR, TTS and embeddings have no tok/s: they must load and finish
+their job here without the Mac swapping.
+
+**Also on disk — fast text models, fit, not yet assigned to a leaf** (speed test 2026-11-05, short prompt; not in the
+totals, ~48 GB):
+
+| Model | File | tok/s |
+|---|---|---|
+| gpt-oss-20b UD-Q4_K_XL | 11.9 GB | 35.9–36.0 · 15/18 hard jobs |
+| North Mini Code 1.0 (30B-A3B) UD-IQ4_XS | 15.2 GB | 31.2–31.5 |
+| Nemotron 3.5 Bolt E4B (vision) | 5.1 GB | 24.2–24.3 · visual grounding in code_1.24 |
+| Qwen3 8B (Ollama) | 5.2 GB | 18.2–19.1 |
+| Granite 4.1 8B Q4_K_M | 5.3 GB | 17.5 |
+| LFM3-1.7B · Ternary-Bonsai-2-2B | 1.0 / 0.5 GB | 72.5–72.9 · 84.2–86.7 |
+| Nemotron-Labs-Dory1.0-4B Q5_K_M | 3.7 GB | ⚠ unmeasured |
+
 **On Qwen versions here:** `Qwen3-ASR`, `Qwen3-TTS`, `Qwen3-Embedding`, `Qwen3-Reranker` and
 `Qwen3-Omni` are **the latest of their lines** — Qwen 3.8 shipped only three models (27B, Flash-Next,
 2.4T-A95B) and none of them replaces a specialist. **Re-check each when Qwen ships a 3.8 equivalent.**
 
 ---
 
-# LANE C — giants, streamed
+# LANE C — heavy local *(v2; giants removed)*
 
-**7 models · ~8.9 T params · ~4,750 GB · ⏸ ALL gated on the 8 TB drive, 1+ month out**
+**7 models · ~223 B params · ~132 GB on ES2TB · Lane A stops while one runs.**
+Speeds: speed test 2026-11-05, short prompt, cold — **worst case not yet measured** (Orbiplan Phase 6, step 1).
 
-| # | Job | Model | Params | Active | Disk | Licence | Why it earns the space |
-|---|---|---|---|---|---|---|---|
-| 1 | **Agentic coding** | `moonshotai/Kimi-K3` | **2.8 T** | 104B | **1,700 GB** | Custom *Kimi K3* | Largest open model. **#1 tool-calling and Frontend Code Arena.** 93.4% SWE-bench Verified (Vals AI independent harness) |
-| 2 | General, long-context | `Qwen/Qwen3.8-2.4T-A95B` ⚠ | **2.4 T** | 95B | **1,200 GB** | ⚠ | Second-largest open model. **Text-only** |
-| 3 | **Backend / algorithmic** | `deepseek-ai/DeepSeek-V4-Pro-0813` ✅ | **1.6 T** | 49B | **800 GB** | **MIT** | **80.6% SWE-bench Verified — top open score on the official board.** GA 13 Aug 2026, MIT |
-| 4 | **Math + reasoning** | `zai-org/GLM-5.2` | **753 B** ✓ | ~40B | **376 GB** | **MIT** | **99.2 AIME 2026, 91.2 GPQA Diamond** — best open math reasoning |
-| 5 | Tool calling | `zai-org/GLM-5.3` | **744 B** | ~40B | **372 GB** | Custom *GLM-5.3* | **#2 tool calling (35.4).** 200K ctx |
-| 6 | Cheap reasoning | `zai-org/GLM-5.3-Flash` | **320 B** | 18B | **160 GB** | **MIT** | Shipped ahead of the flagship |
-| 7 | Cheap coding | `deepseek-ai/DeepSeek-V4-Flash-0731` ✅ | **284 B** | 13B | **142 GB** | **MIT** | 79.0% SWE-bench Verified at **1/6 the size** of V4-Pro. Production release 31 Jul 2026 |
-| 7b | Cheap coding — **newest** | `deepseek-ai/DeepSeek-V4.1-Flash` ✅ (2026-09-10) | **763 B** (HF API) | ⚠️ unpublished here | **~380 GB @4-bit** | **MIT** | 🔄 **Latest DeepSeek Flash (added 2026-10-13).** Too big for a 128 GB machine (~286 GB even at 3-bit), but **v54 (2026-10-30): fits the reward server's 512 GB RAM + 64 GB VRAM** — a resident candidate there, speed unmeasured. Until then: **NVIDIA NIM** (live 2026-10-13; ⚠️ slice 5c on 2026-10-24: timed out once at 30 s, not qualified) or Lane C. ⚠️ HF API puts V4-Flash-0731 at **304 B**, not the 284 B above |
-| 8 | ⚠️ **Reasoning + tools** | `tencent/Hy4-preview` ⚠️ **PREVIEW** | **770 B** | **49B** | **385 GB** | **Apache-2.0** | **SWE-Bench Pro 65.7 · GPQA Diamond 92.3 · Deep SWE 64.3 · Toolathlon 74.1.** 256 routed + 1 shared expert, top-8/token, 78 layers, 1M ctx, text-only. Ships a **built-in MTP layer** for speculative decoding. 🔴 **No GGUF or MLX — vLLM/SGLang on 8 GPUs. Cannot run on Metal today.** Released 2026-08-28 |
+| # | Model | File on ES2TB | Shape | tok/s | Job candidate | Evidence |
+|---|---|---|---|---|---|---|
+| 1 | **Qwen3.6-35B-A3B** UD-IQ4_NL_XL | 19.5 GB | MoE 35B / 3B act, vision | **28.2–29.6** | agentic coding, reasoning | SWE-bench Verified 73.4 · GPQA 86.0 · AIME26 92.7 ⚠ vendor-reported; pushed swap to 9.1 GB on 2026-11-06 |
+| 2 | **Nemotron 3.5 Lightning 30B-A3B** UD-IQ4_NL | 21.2 GB | MoE 30B / 3B act | **27.6–27.8** | coding, reasoning | 15/18 hard jobs here (1,448 s) |
+| 3 | **Swift-1.5-Qwen3.8-27B** Q4_K_M | 17.4 GB | dense 27B | **5.4–5.5** | coding | fine-tune of Qwen3.8-27B; your own daily model (64K, MTP drafter) |
+| 4 | **Nanbeige4.3-33B** IQ4_XS | 18.6 GB | dense 33B | **5.5** | reasoning | ⚠ no leaf benchmark recorded yet |
+| 5 | **Muse-Glimmer-30B** UD-Q4_K_XL | 15.9 GB (+2.1 GB vision projector) | 30B, vision | **6.3–6.4** | vision | slow and 16 GB on the picture test (2026-11-06); Bolt E4B took visual grounding |
+| 6 | ⚠ **K2-Horizon-32B** IQ4_XS | 19.4 GB | dense 32B | **unmeasured** | — | not usable until measured |
+| 7 | ⚠ **K2-Horizon-MoVA-36B-A4B** IQ4_XS | 20.4 GB | MoE 36B / 4B act | **unmeasured** | — | not usable until measured |
 
-### ⚡ Lane C speed is NOT one number — it varies ~8× by model
+**Kept out:** Flint UD-Q3_K_XL (18.5 GB) — did not start in the speed test; in the code_1.24 bench it scored 13/18
+and invented `shell_job` calls in a loop.
 
-**Token time scales with *active* params, not total.** Kimi K3 wakes 104 B per token; DeepSeek-V4-Flash
-wakes 13 B. That is **8× fewer bytes read per token**. On a Thunderbolt 4 enclosure (~2,900 MB/s):
-
-| Model | Active | Bytes/token @4-bit | Per token | 500-token answer |
-|---|---|---|---|---|
-| **`DeepSeek-V4-Flash-0731`** | **13 B** | 6.5 GB | **~2.2 s** | **~18 min** |
-| **`GLM-5.3-Flash`** | **18 B** | 9 GB | **~3.1 s** | **~26 min** |
-| `GLM-5.2` · `GLM-5.3` | ~40 B | 20 GB | ~6.9 s | ~58 min |
-| `DeepSeek-V4-Pro-0813` | 49 B | 24.5 GB | ~8.4 s | ~70 min |
-| `Hy4-preview` ⚠️ | 49 B | 24.5 GB | ~8.4 s | ~70 min |
-| `Qwen3.8-2.4T-A95B` | 95 B | 47.5 GB | ~16.4 s | ~2.3 h |
-| `Kimi-K3` | 104 B | 52 GB | ~17.9 s | ~2.5 h |
-
-*Estimates scaled from the measured internal figure, assuming disk-bound streaming. Real speeds
-should be better — the LRU expert cache avoids re-reading experts that repeat across nearby tokens.*
-
-**The Flash tier is not a "submit and walk away" lane.** `DeepSeek-V4-Flash` answers in ~18 minutes and
-scores **79.0% SWE-bench Verified**, only 1.6 points below V4-Pro. **Install the Flash tier first** —
-302 GB for both, and they are the two most likely to clear Phase 6's "beat Lane A" exit test. Kimi K3
-costs **1,700 GB and ~2.5 hours** per answer; it is the ceiling, not the starting point.
-
-⚠️ **Only Kimi K3 and Qwen3.8-2.4T are true "walk away" jobs.** The rest are coffee-break jobs.
-
-### 🔑 Active params ≠ RAM — and the difference enables speculative decoding
-
-**Active params set how many bytes stream from disk per token. They do NOT set RAM residency.**
-Lane A is Gemma 4 26B-A4B with **4 B active** — ~2 GB by that arithmetic — yet it **measured 12.23 GB
-peak RSS**. The dense trunk, the LRU expert cache and the KV cache dominate, and none appear in the
-active-param figure.
-
-**But the Flash tier is small enough that co-residency is plausible:** `DeepSeek-V4-Flash` (6.5 GB
-active) plus `GLM-5.3-Flash` (9 GB) is **15.5 GB**, inside the ~20 GB ceiling.
-
-**That is the precondition for cross-lane speculative decoding** (#1 in *Beyond the plan*) — the
-drafter and the verifier must both be resident at once. **The Flash giants being small is what makes
-that physically possible on a 24 GB machine.** Same for the critic pass (#10) and ensembles (#12).
-⚠️ Unverified — trunk and cache overhead decides it, not the active-param number.
-
-**Four things before any download:**
-1. ⏸ **Nothing installs today.** Drive is 1+ month out; this needs 4.9 TB.
-2. ✅ **Molmo-72B-0924 removed** — replaced by **Molmo2 8B** in Lane B at 1/9 the size and better scores.
-3. ✅ **Qwen3-VL-235B dropped** — released **Sept 2025**, and Qwen3.5's unified vision-language foundation **outperforms Qwen3-VL**. Lane A is multimodal either way. **Frees 118 GB.**
-4. ⚠️ **Resolve every unconfirmed HF path first.** At these sizes a wrong path wastes an overnight transfer.
-
-**Every model here is MoE** — that is what makes 4.9 TB run in ~8 GB of RAM. Only ~2–4% wakes per token.
-
-**Lane C subtotal: 8 models · ~9,671 B params (~9.67 T) · ~5,135 GB (~5.14 TB).**
+**Removed (fail the fit rule):** Kimi K3 · Qwen3.8-2.4T-A95B · DeepSeek-V4-Pro-0813 · GLM-5.2 · GLM-5.3 ·
+GLM-5.3-Flash · DeepSeek-V4-Flash-0731 · DeepSeek-V4.1-Flash · Hy4-preview — 2.2–17.9 s per token here by arithmetic;
+none was downloaded. GLM-5.3-Flash-Maya IQ1_S measured 0.65–0.70 tok/s. **Qwen3.8-Flash-Next** measured 1.08–1.24
+tok/s (its ~100 GB in `AI-Models/slotstream` can be deleted — only with your OK).
 
 ---
 
@@ -219,13 +137,13 @@ that physically possible on a 24 GB machine.** Same for the critic pass (#10) an
 
 | Lane | Models | Params | Disk |
 |---|---|---|---|
-| A — resident | 1 | **27 B → MoE** | **~17 GB** |
-| B — specialists | **14** | ~149 B | ~76 GB |
-| C — giants | **7** | ~8,901 B | ~4,750 GB |
-| **TOTAL** | **23** | **~9.87 T** | **~5.23 TB** |
+| A — resident | 1 | 26 B | 11.3 GB |
+| B — specialists | 14 | ~149 B | ~76 GB |
+| C — heavy local | 7 | ~223 B | ~132 GB |
+| **TOTAL** | **22** | **~0.40 T** | **~220 GB** |
 
-**Of the 8 TB drive: ~5.23 TB used, ~2.77 TB free.** Still comfortable.
-**Only Lane A belongs on the internal disk** — it streams every request, so it needs the measured 3.44 GB/s. **Lanes B and C go external.** Until the drive arrives, install Lane B selectively. — everything else lives external.
+Plus ~48 GB of unassigned fast models (Lane B section). **Everything fits the 2 TB ES2TB drive** (1.2 TB free on
+2026-11-21). Lane A runs from ES2TB today.
 
 ---
 
@@ -366,13 +284,12 @@ three generations in six months.
 
 **Read this before downloading anything.**
 
-1. **11 of 23 HF paths are marked ⚠ unconfirmed** in the source research. **Resolve every path before
-   Phase 6 downloads 4.9 TB.** A wrong path is a wasted overnight transfer.
+1. **HF paths for Lane B rows not yet downloaded are ⚠ unconfirmed.** Resolve each before download. *(v2: the 4.9 TB
+   Phase 6 download is gone with the giants.)*
 2. **Wan 2.7's official weights are on ModelScope, not Hugging Face.** HF copies are community
    re-uploads. Do not treat them as canonical.
 3. **Licences are not uniform.** `NLLB` is CC-BY-NC (**excluded** for that reason), `FLUX.2 dev` is
-   non-commercial and its params are unpublished (**excluded**), Kimi K3 and GLM-5.3 carry custom
-   terms. **Picked on evidence as instructed, licence flagged per row** — an eventual open-source Orbi
+   non-commercial and its params are unpublished (**excluded**), Gemma carries custom terms. **Picked on evidence as instructed, licence flagged per row** — an eventual open-source Orbi
    will need to swap the custom-licence rows.
 4. **Qwen 3.8 has only three open models** — 27B, Flash-Next, 2.4T-A95B. There is **no Qwen3.8 Omni,
    VL, Coder or embedding variant**, so those roles keep their latest 3.x models. Re-check on each
@@ -387,6 +304,7 @@ three generations in six months.
 
 ## Change Log
 
+- **2026-11-21 (v2)** — **Fit rule (`Orbiplan.md` v59): listed only if ≥ 2 tok/s at all times on this Mac, worst case measured.** Removed every Lane C giant, Qwen3.8-Flash-Next (1.08–1.24 tok/s) and GLM-5.3-Flash IQ1_S (0.65–0.70). Lane A rewritten to the measured Gemma 4 26B-A4B IQ3_S. Lane C is now "heavy local": 7 models on ES2TB (Qwen3.6-35B-A3B, Nemotron 3.5 Lightning, Swift-1.5-Qwen3.8-27B, Nanbeige4.3-33B, Muse-Glimmer-30B, and the unmeasured K2-Horizon-32B and K2-Horizon-MoVA-36B-A4B). Fast unassigned models listed under Lane B. Totals now **22 models · ~0.40 T · ~220 GB** (was 23 · ~9.87 T · ~5.23 TB). Lane B rows unchanged pending R5. Version audit and CMoE sections below are history.
 - **2026-11-01** — Marked out of date; Phase R (plan v55) re-picks every lane and rewrites this file in R7.
 - **2026-09-05 (v1)** — Created as the Phase 2 deliverable the plan called for. Replaces the soft
   "~26 models, ~9.5 T, ~4.9 TB" with an explicit 23-model list whose params and disk actually sum:

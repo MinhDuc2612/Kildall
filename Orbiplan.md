@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v58 · 2026-11-15.** Design locked. **Kildall runs the best open models — pruned, fine-tuned or merged when that measurably helps. Never a paid API.**
+**v59 · 2026-11-21.** Design locked. **Kildall runs only models that fit the machine it runs on: 2+ tok/s at all times, measured (the fit rule).** Pruned, fine-tuned or merged when that measurably helps. Never a paid API.
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -17,90 +17,60 @@ this file = how it gets built.
 | **Replaces** | **Claude Code, entirely** — files, shell, git, skills, hooks, subagents, MCP |
 | **Adds** | **image gen · video gen · 3D · voice in and out** |
 | **100% complete** | 🎯 **Kildall is the core of a personal agentic OS** — engine · Obsidian memory · Google Workspace operating layer · local voice · wallpaper dashboard · self-improving skills. **Phase 9** |
-| **Whose weights** | open models — Kimi K3, DeepSeek-V4, GLM-5.2, Qwen — **may be pruned, merged or fine-tuned** (rule removed 2026-10-13) |
+| **Whose weights** | open models that pass the fit rule — Gemma, Qwen, Nemotron, gpt-oss and others — **may be pruned, merged or fine-tuned** (rule removed 2026-10-13) |
+| **Fit rule (v59)** | ✅ **A model is used only if it writes ≥ 2 tok/s at all times on this Mac** — worst case, measured. **Removed 2026-11-21:** every Lane C giant and Qwen3.8-Flash-Next (1.1 tok/s here). See "THE FIT RULE" |
 | **Training** | ✅ **Allowed since 2026-10-13** — LoRA / fine-tuning / distillation from open or local models; **never on Claude/GPT outputs** (their terms forbid it) |
-| **Params STORED** | **~9.1 T across 22 models · ~4.84 TB** |
-| **Params RUNNING** | **5–8 GB of RAM.** Every lane streams — nothing loads whole |
-| **Runs on your M4 24 GB?** | ✅ **yes** — see "stored ≠ running" |
+| **Params STORED** | **~0.40 T across 22 listed models · ~220 GB** (`Orbimodels.md` v2) |
+| **Params RUNNING** | **One model whole in RAM at a time: ~12–21 GB.** No SSD streaming — streamed models failed the fit rule |
+| **Runs on your M4 24 GB?** | ✅ **yes, by definition** — every model is measured here before use |
 | **Lane A model** | ✅ **Gemma 4 26B-A4B** UD-IQ3_S, `--cache-ram 0` — **29.33 tok/s measured** |
-| **Speed, Lane A** | **19.48 tok/s measured** on this M4 (qwen3:8b, 2026-09-06) |
-| **Speed, Lane C giants** | **~2.2 s/token (Flash tier) to ~17.9 s/token (Kimi K3)** — varies ~8× by active params |
+| **Speed, Lane A** | **26.67 tok/s measured** (speed gate 2026-11-06; 29.33 on 2026-09-08) |
+| **Speed, Lane C** | **5.4–29.6 tok/s measured** (heavy-local models, short prompt, 2026-11-05) — giants removed v59 |
 | **Code lives at** | **`~/Kildall/code`** |
 | **Built by** | **you, via Codex (GPT-6 Astra)** — the only builder. **Claude (Opus 5.5)** writes design specs for judgment-heavy phases (4.5, 4C, 9.5, 9.11…) and reviews every slice before merge |
 | **Name** | ✅ **Kildall** — renamed from Orbi 2026-09-27 (code `70eb4e8`, repo `MinhDuc2612/Kildall`), after Gary Kildall (CP/M). `orbi` still works as a command alias for one release |
 | **Licence** | ✅ **MIT** — Orbi's own code. **Model weights keep their own licences** (see risk 9) |
-| **Ready when** | Phases 0–5 and 7–8 run **today**. **Phase 6 parked — waits for the reward server (its 8 TB NVMe is already bought)** |
-| **Reward machine** | ✅ **Kildall server (v54, 2026-10-30)** — AMD Instinct MI210 **64 GB HBM2e** (1.6 TB/s) + EPYC 7543P + **512 GB** DDR4-3200 on all 8 channels + 8 TB NVMe, Linux + ROCm. **Bought only if Kildall succeeds; cost is not a constraint** (user). Replaces the GMKtec EVO-X2. Full build: `server_build.md` |
+| **Ready when** | Phases 0–8 run **today**. **Phase 6 is now Lane C heavy-local — no drive or server needed (v59)** |
+| **Reward machine** | ✅ **Kildall server (v54, 2026-10-30)** — AMD Instinct MI210 **64 GB HBM2e** (1.6 TB/s) + EPYC 7543P + **512 GB** DDR4-3200 on all 8 channels + 8 TB NVMe, Linux + ROCm. **Bought only if Kildall succeeds; cost is not a constraint** (user). Replaces the GMKtec EVO-X2. Full build: `server_build.md`. **Models on it follow the same fit rule, measured there** |
 
 ---
 
-# 🔑 STORED ≠ RUNNING — THE WHOLE TRICK
+# 📏 THE FIT RULE — 2+ tok/s AT ALL TIMES *(v59 · 2026-11-21, user)*
 
-**Orbi stores ~9.3 trillion parameters. It never runs 9.3 trillion at once.**
+**User (2026-11-21):** *"just use models fit on this machine — by fit I mean 2 tok/s+ at all time"*, then *"Remove the
+giants and flash next … and replace it with the new rules."* Research: `Researchhub/sample4/fitmodels-m4-24gb.md`.
 
-| | Stored | In RAM when active |
+**The rule.** Kildall uses a model only if it writes **≥ 2 tokens per second at all times** on the machine it runs on.
+- **"At all times" = the worst case, measured:** generation speed at the longest context Kildall allows for that
+  model, through a 600 s soak, with whatever else Kildall keeps loaded. One reading under 2 tok/s → the model is out.
+- **Covers every model that writes tokens** (text, code, vision-language). Image, video, voice and embedding models
+  have no tok/s: they must load and finish their job here without the Mac swapping (Phase 5 gate).
+- **Measured, never estimated.** Arithmetic and published numbers only make a shortlist. Unmeasured = not usable.
+- **Per machine.** A new machine (the reward server) measures every model again under the same rule.
+
+**Removed by this rule (2026-11-21):**
+
+| Model | Measured here | Status |
 |---|---|---|
-| **Lane A** — 1 resident router, MoE or dense-converted | 17–90 GB | **~5–8 GB**, streamed |
-| **Lane B** — 14 specialists | ~76 GB | **0.35–15 GB**, one at a time |
-| **Lane C** — 7 giants | **~4,750 GB** | **~8.2 GB**, streamed |
-| **Total** | **~4.84 TB** | **5–8 GB** |
+| Qwen3.8-Flash-Next (180B/6B MoE, SSD-streamed) | **1.08–1.24 tok/s** (slotstream from ES2TB, 2026-11-05); 0.21 tok/s (llama.cpp, 2026-09-06) | ❌ removed; ~100 GB of weights still on ES2TB |
+| GLM-5.3-Flash IQ1_S (streamed) | **0.65–0.70 tok/s** (2026-11-05) | ❌ removed |
+| Lane C giants: Kimi K3, Qwen3.8-2.4T-A95B, DeepSeek-V4-Pro-0813, GLM-5.2, GLM-5.3, DeepSeek-V4-Flash-0731, DeepSeek-V4.1-Flash, Hy4-preview | never downloaded; 2.2–17.9 s per token here by arithmetic | ❌ removed |
 
-**~4.84 TB of weights, ~8 GB resident. Roughly 1 byte in 600 is in memory at any moment.**
+**What ends:** "stored ≠ running" and SSD expert streaming. One model is loaded whole at a time; Lane A (12–13.5 GB
+measured RSS) stops while a Lane C model runs. A streamed model can come back only by measuring ≥ 2 tok/s worst case.
 
-## 🔴 The rule this depends on: **sparse when resident — and dense is convertible**
+**Margins.** On a short prompt every text model on the drive is 5.4–87 tok/s (table in `Orbimodels.md`). The dense
+27–33B models have ~2.7× headroom; the 19.5–21.2 GB MoE models sit at the RAM ceiling, so their risk is swap. **Only
+Lane A has a worst-case measurement so far.**
 
-Sparsity is the entire mechanism. A dense model fires every parameter every token and gets none of
-this benefit.
+**Who does the giants' jobs now** (pick by benchmark; measured here before adoption):
 
-**But a dense model is not disqualified — it is converted.** **CMoE** turns a dense LLM into an MoE
-**training-free in under five minutes**, by profiling FFN activations, making the consistently-hot
-neurons shared experts and clustering the rest into routed experts.
-
-⚠️ **It is not free.** Training-free at 75% activation is lossless but only **5% faster**; at 25%
-activation perplexity rises **33–65%**; one hour of LoRA recovers **~76%** of dense accuracy at 1.5×
-lower latency. **And whether CMoE runs on Metal is unverified** — the 5-minute figure is quoted on a
-CUDA GPU. Full numbers and limits in `Orbimodels.md` → *When a model is dense — convert it*.
-
-**Order of preference: native MoE → convert a dense one → use dense as-is only if it fits comfortably.**
-
-**Why it works — sparse MoE.** Kimi K3 is 2.78 T params but fires **16 of its 896 experts per token,
-about 1.8%**. The sleeping ~93% stays on the SSD and is fetched only when the router asks. Peak RAM
-**measured at 8.24 GB**. **More RAM buys speed, never a different answer** — output is byte-identical
-from 8 GB to 128 GB.
-
-⚠️ **The one RAM trap:** Lane A at 8 GB **plus** Qwen3-Omni at 15 GB is **23 GB on a 24 GB machine**.
-Use the ASR + TTS pair (2.0 GB) for voice instead. Detail in `Orbimodels.md`.
-
----
-
-# ⚠️ KIMI K3'S 25 s/TOKEN FIGURE — MEASURED, NOT ASSUMED
-
-**This section is about Kimi K3 only.** It is the slowest giant and the source of the plan's original
-flat figure. **Lane C as a whole runs ~2.2–17.9 s/token depending on active params** — see
-`Orbimodels.md` for the per-model table.
-
-**Source:** the `kimi-k3-in-c` author's own measurements running Kimi K3 (2.78 T), same prompt,
-**byte-identical output at every size** (`sample3/kimik3 hwmini.md` §3):
-
-| RAM | Measured |
-|---|---|
-| 8 GB laptop | **26.5 s/token** |
-| **32 GB laptop** | **24.2 s/token** |
-| 64 GB desktop | 19.8 s/token |
-| 128 GB+ workstation | 5.6 s/token |
-
-**Your 24 GB sits between the 8 GB and 32 GB rows, and that stretch is nearly flat** — 26.5 → 24.2 is
-**9% for 4× the RAM**. So **~25 s/token is an interpolation between two measured points**, not a guess.
-
-**Three limits:**
-1. **Author-measured**, not independently reproduced.
-2. **The reference platform is x86-64.** macOS/arm64 is a supported build, but **no M4 number has ever
-   been published.** Phase 6 produces the first.
-3. ⚠️ **Yours will be worse.** Lane C is **disk-bound** and the giants live on an **external** drive,
-   slower than your measured **3.44 GB/s internal**. Treat ~25 s/token as a **ceiling, not a target.**
-
-**In practice:** a 500-token answer takes **~3.5 hours**. **Lane C is a job you submit and walk away
-from. Never a chat.**
+| Job (old giant) | Now | Evidence |
+|---|---|---|
+| Agentic coding, tool calling (Kimi K3, GLM-5.3, DeepSeek-V4-Flash) | Lane A Gemma; Lane C candidate **Qwen3.6-35B-A3B** | Gemma 16/18 on the 18 hard jobs here (best of 6, 2026-11-06); Qwen3.6 SWE-bench Verified 73.4 ⚠ vendor-reported |
+| Math, reasoning (GLM-5.2, GLM-5.3-Flash, Hy4-preview) | Lane A; Lane C candidate **Qwen3.6-35B-A3B** | GPQA Diamond 86.0, AIME 2026 92.7 ⚠ vendor-reported |
+| Backend code, long context (DeepSeek-V4-Pro, Qwen3.8-2.4T) | Lane A: 4K production, 2 × 32K in code_1.24 | **Real loss:** no 1M-token context on this Mac; 16K per slot failed the soak (2026-10-14) |
+| Cheap coding (DeepSeek-V4-Flash) | gpt-oss-20b, North Mini Code (Lane B) | 36 / 31 tok/s here; gpt-oss 15/18 hard jobs |
 
 ---
 
@@ -108,9 +78,9 @@ from. Never a chat.**
 
 | Lane | What | Stored | Speed | Use for |
 |---|---|---|---|---|
-| **A — Resident** | 1 router, **MoE or dense-converted-to-MoE**. 4 candidates | 4–90 GB | **>15 tok/s — ⚠️ unmeasured** | chat, edits, routing, driving subagents |
-| **B — Hot-swap** | 14 specialists: ASR, TTS, OCR, embeddings, guard, translation, grounding, image, video, 3D | ~76 GB | **seconds to load** | one task, then released |
-| **C — Giants** | 7 models, Kimi K3 down to DeepSeek-V4-Flash | **~4.75 TB** | **~2.2–17.9 s/token** (see `Orbimodels.md`) | hard questions worth waiting for |
+| **A — Resident** | 1 router: **Gemma 4 26B-A4B** UD-IQ3_S | 11.3 GB | **26.67 tok/s measured** | chat, edits, routing, driving subagents |
+| **B — Hot-swap** | 14 specialists (ASR, TTS, OCR, embeddings, guard, translation, grounding, image, video, 3D) + small fast text models (gpt-oss-20b, North Mini Code, Bolt E4B) | ~76 GB planned | **seconds to load**; text models 18–36 tok/s | one task, then released |
+| **C — Heavy local** *(v59; was "Giants")* | the strongest models that still pass the fit rule: Qwen3.6-35B-A3B, Nemotron 3.5 Lightning, Swift-1.5/Qwen3.8-27B, Nanbeige4.3-33B, Muse-Glimmer-30B | ~132 GB | **5.4–29.6 tok/s** measured, short prompt | hard questions; Lane A stops while one runs |
 
 **Rule: Lane A answers unless the task provably needs better.**
 
@@ -134,17 +104,19 @@ difference between a Lane C job and an instant answer.
 
 ## What you gave up, on record
 
-**The giants cannot be merged into one model.** Different hidden sizes, different tokenizers. Their
+**Different model families cannot be merged into one model.** Different hidden sizes, different tokenizers. Their
 weights do not combine — physics, not a missing tool (`sample3/LLMmerge.md`).
 
 **So Orbi is several models behind one interface, not one new model.** In exchange: **their real
 quality, at zero training cost.** *(2026-10-13: training and weight changes are now allowed — see "Road to 7/10".)*
+**v59: the giants are gone.** On this Mac Kildall gives up frontier-size models and 1M-token context; in exchange
+every answer comes at 2+ tok/s.
 
 ---
 
 # BUILD ORDER
 
-**Phases 0–5 and 7–9 run today; Phase 9 comes last. Phase 6 is parked — no drive for 1+ month.**
+**Phases 0–9 run today; Phase 9 comes last. Phase 6 is Lane C heavy-local (v59) — this Mac, no drive needed.**
 ✅ **253.65 GB free** (Trash emptied 2026-09-06). Both Lane A candidates fit. **Only Lane A is sized against this disk** — it streams every request and needs the measured 3.44 GB/s. Lanes B and C go on the external drive.
 
 | Phase | What | Needs drive? | Exit test |
@@ -157,7 +129,7 @@ quality, at zero training cost.** *(2026-10-13: training and weight changes are 
 | **R** | 🔁 **Refresh everything — lanes, runtime, research, plan** *(v55, runs next)* | R3–R4 need ≥ 20 GB free; R5 the external drive | every lane model re-confirmed or replaced through its gates on the current runtime; Answer first matches measurements; `sample4/` authoritative |
 | **4C** | **Computer mode** — drive macOS apps and the browser. **Opt-in, attended, never default** | no | fills a form in a real app through the accessibility tree, every action gated by Phase 3 |
 | **5** | Media gen *(voice moved to 9.3)* | no | queues an image job end to end |
-| **6** | Lane C giants ⏸ **parked, 1+ month** | ⏸ **yes** | an overnight answer beats Lane A — **or cut Lane C** |
+| **6** | **Lane C heavy-local** *(v59; giants removed)* | no | each Lane C model passes the fit rule worst case and beats Lane A on its leaves — **else it leaves Lane C** |
 | **7** | Improvement loop — eval harness (#13) first, then **hardware auto-fit (#51, v37)** | no | one month unattended finds one upgrade you accept; **auto-fit gate passes** (see #51) |
 | **8** | Tool-set redo | no | each swap measurably better, or reverted |
 | **9** | 🎯 **Agentic OS — Kildall 100%**, built **last**: Laya reflex · Hermes channels · local voice · Obsidian second brain · activity capture · wallpaper dashboard · skill engineering · Google Workspace · skill packs · profiles | no | you speak, hear the answer, see it on the wallpaper; every listed daily/weekly task is a skill or automation; all earlier gates unchanged |
@@ -340,11 +312,9 @@ Kildall patterns; internals of closed products are not public, so Kildall copies
   the three-stage pattern, not the code. A local-only council runs members one after another (slow). **Gate
   (Phase 7 eval harness, #13): the council is kept only if it beats Lane A alone on the frozen fixtures.**
 - **Swarm orchestration (the Kimi Agent Swarm pattern) — a 4.4 follow-up slice, after 4.4 merges; never added to the running 4.4.** Kildall's own orchestrator splits a task
-  across a few Lane A subagents (capped by free RAM) and sends only the hardest step to Lane C overnight.
+  across a few Lane A subagents (capped by free RAM) and sends only the hardest step to Lane C.
   🔴 **Kimi's 300-agent runtime is Moonshot's closed service; no downloadable model includes it.**
-  **`moonshotai/Kimi-K2.6`** (1.03 T / 32 B active, modified MIT, ~515 GB, ~5.5 s/token by arithmetic) is
-  **recorded for later, not added** — it is older than K3, so it needs benchmark evidence as a min-viable pick.
-  **Revisit if** the orchestrator needs a Kimi-family worker faster than K3, or a benchmark shows it winning a leaf.
+  *(v59: `Kimi-K2.6`, recorded for later on 2026-10-01, is removed — it fails the fit rule.)*
 
 ## Queued small slices *(v41 · 2026-10-07)*
 
@@ -395,17 +365,10 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
    REQUIRED and must be done before the server arrives.** Parts, sellers, compatibility and assembly: `server_build.md`.
    History: 2026-10-13 picked the EVO-X2 (Ryzen AI Max+ 395, 128 GB unified, 256 GB/s, 4 TB + 4 TB); 2026-10-12
    candidates were that mini PC, a desktop with 2 used RTX 3090s, or a Mac Studio M5 Max 128 GB.
-2. ⚠️ **How the 7/10 model fits the server (v54):** HF API puts V4-Flash-0731 at **304 B** → ~114 GB (≈106 GiB) at
-   3-bit — **too big for the 64 GB of VRAM alone.** Attention, shared layers and as many experts as fit stay on the
-   MI210; the remaining experts sit in the 512 GB RAM (llama.cpp expert offload, e.g. `--n-cpu-moe`). RAM bandwidth
-   then sets writing speed — the reason all 8 memory channels are filled (4 sticks would halve it). Rough estimate
-   **~20–40 tok/s writing at 3-bit — unmeasured.** 512 GB also allows **4-bit or higher** (less quality loss) at some
-   speed cost, and the newer **DeepSeek-V4.1-Flash (763 B, ~380 GB at 4-bit) now fits in RAM** as a resident
-   candidate (speed unmeasured). Prefill runs on the GPU (HBM, 1.6 TB/s). Superseded: the 2026-10-13 Strix Halo
-   research (~120 GiB usable with `amdgpu.gttsize`/`ttm.pages_limit`; community 20–30 tok/s estimate) applied only to
-   the EVO-X2. Pruning (now allowed) or a lower bit-width remain options — measured. Original line: **A strong open coding model held fully in memory** — e.g. **DeepSeek-V4-Flash** (79.0% SWE-bench Verified, in
-   Lane C today) at ~3-bit ≈ 107 GB. ⚠️ Fit, speed and 3-bit quality loss are **unmeasured**; gate them like any
-   Lane A candidate (speed, routing, tools, 10-min soak).
+2. **The 7/10 model (v59 rewrite):** the strongest open model that passes the fit rule **on the reward server**,
+   measured there — worst case ≥ 2 tok/s. **No model is named until it is measured.** The v54 method still holds:
+   attention, shared layers and as many experts as fit on the MI210; the rest in the 512 GB RAM (llama.cpp expert
+   offload); all 8 memory channels filled. *(Removed v59: the DeepSeek-V4-Flash / V4.1-Flash picks — giants.)*
 3. **Context ≥ 64K** per answer slot (the long-context slice, re-run on the new machine).
 4. **Core proven:** test #3 (unassisted multi-file refactor, tests passing) and test #1 (one week without Claude
    Code) pass. **No new features until then.**
@@ -415,7 +378,7 @@ paid frontier APIs would close it, which breaks the $0 rule. **A 7 is realistic*
 **Extra levers now allowed (2026-10-13, user removed three rules; paid APIs stay banned forever):**
 - **Expert pruning** of big MoE models (REAP-style) so a stronger model fits the server's 64 GB VRAM + 512 GB RAM — measure the quality loss first.
 - **Fine-tuning** (LoRA) on your own repos and accepted answers (#42 pairs) — from open/local model outputs only.
-- **Speculative decoding** measured per platform — e.g. DeepSeek's built-in MTP draft head on the reward server (ROCm).
+- **Speculative decoding** measured per platform — e.g. a model's built-in MTP draft head on the reward server (ROCm).
   **v52: per skill** — on only for code/math leaves, off for prose/chat, where it can lose. Web evidence (2026-10-19;
   measured on Strix Halo, not the MI210 — re-measure on the server):
   Strix Halo, llama.cpp Vulkan, Gemma 4 31B + E2B drafter **+103%** average (code +139%, creative +40%),
@@ -530,7 +493,7 @@ Order is fixed: the council needs the cloud; the guard must exist before web tex
 - Rotation in order: 429/5xx/timeout → cooldown (honour `Retry-After`); 401/403 → key invalid until it
   changes; 402/billing → disabled. Daily use per provider counted in `kildall.db`; stop at 90% of the
   documented limit. All exhausted → Lane A, saying **`cloud exhausted — answering locally`**.
-- **"Necessary" means:** the routed lane is not available locally (Lane C parked, a Lane B model absent), or
+- **"Necessary" means:** the routed lane is not available locally (no local model passes the fit rule for the task, or a Lane B model is absent), or
   the input exceeds Lane A's context. **Never** just because Lane A is slower.
 - **Gates:** mock-server tests for 200 / 429 / 401 / 402 / timeout / `Retry-After` / all-exhausted; routing mean ≤ **1.78 s** once PR #5 merges (routing fix 1.618 s + 10%; was 7.41 s).
 
@@ -675,23 +638,19 @@ Lane A's 12–14 GB that means **about 1 VM at a time**.
 - **Image, video and 3D generation are queued jobs**, same machinery as Lane C. They never block the
   terminal
 
-## Phase 6 — Lane C giants ⏸ **PARKED — waits for the reward server**
+## Phase 6 — Lane C heavy-local *(v59 · 2026-11-21 — giants removed)*
 
-**Do not start this phase.** v54 (2026-10-30): Lane C runs on the reward server — its **8 TB NVMe is already bought**
-(internal PCIe 4.0 M.2, faster than the old Thunderbolt-enclosure plan) and its **512 GB RAM** can hold mid-size giants
-whole (e.g. GLM-5.2 ~376 GB at 4-bit), so only the largest (Kimi K3, ~1.7 TB) still streams from disk. Lane C times
-in this file are M4 + Thunderbolt estimates; re-measure on the server. Phases 0–5 and 7–8 deliver the whole product
-apart from the giants; come back here when the server exists.
+**What changed:** the giants and their wait for the reward server are gone (fit rule). Lane C is now the strongest
+models that still write ≥ 2 tok/s here. Lane A stops while one runs — one model whole in RAM at a time (code_1.24
+already works this way).
 
-### When it arrives — measure it first
+1. **Measure each candidate's worst case:** longest allowed context, 600 s soak, swap at start ≤ 3 GB, nothing else
+   loaded. Candidates: Qwen3.6-35B-A3B, Nemotron 3.5 Lightning 30B-A3B, Swift-1.5-Qwen3.8-27B, Nanbeige4.3-33B,
+   Muse-Glimmer-30B (vision). **Unmeasured — speed test first:** K2-Horizon-32B, K2-Horizon-MoVA-36B-A4B.
+2. **Run the 18 hard jobs** (code_1.24 bench) and the frozen gates on each one that passes.
+3. **Keep a model in Lane C only for the leaves where it beats Lane A.**
 
-```bash
-dd if=/dev/zero of=/Volumes/<drive>/spd.bin bs=1m count=4096 && sync
-dd if=/Volumes/<drive>/spd.bin of=/dev/null bs=1m && rm /Volumes/<drive>/spd.bin
-```
-**Every Lane C estimate depends on this number.**
-Then `kimi-k3-in-c` for the 2.8 T tier — **needs ~1.7 TB free** (1.56 TB checkpoint + 109 GB trunk).
-⚠️ **Resolve all 11 unconfirmed HF paths before starting a 4.9 TB download.**
+**Exit:** every Lane C model passes the fit rule and beats Lane A on its leaves — else it leaves Lane C.
 
 ---
 
@@ -702,7 +661,7 @@ Then `kimi-k3-in-c` for the 2.8 T tier — **needs ~1.7 TB free** (1.56 TB check
 > **Kildall is the engine. Obsidian is the memory. Google Workspace is the operating layer.**
 > Voice is the front door, a wallpaper dashboard is the face, and skills turn daily work into one click.
 
-**When: after everything else — Phases 4, 4C, 5, 7 and 8** (user decision 2026-09-27). Parked Phase 6 does
+**When: after everything else — Phases 4, 4C, 5, 7 and 8** (user decision 2026-09-27). Phase 6 does
 not block it. **9.3 replaces Phase 5's voice half.**
 
 **Decisions from the 2026-09-27 interview:** Hermes = **channels only** · capture = **everything, keystrokes
@@ -809,7 +768,7 @@ hidden instructions can trigger actions under your name (51–100% attack succes
 **9.10 — Customisable: fork and reskin.** Profiles per client — display theme, voice, wake word,
 instructions, skill set. `kildall --profile <client>`. MIT permits forks.
 **You now, paid clients later.** 🔴 **Before the first paid client:** a licence audit of every model in use
-(custom rows: Kimi K3, GLM-5.3, Gemma terms), and **full separation per client** — own vault, own memory
+(custom rows: Gemma terms and any other custom licence), and **full separation per client** — own vault, own memory
 database, own Workspace account, own keys. No client ever sees your personal capture. **v37: and #51 auto-fit
 passing on the client's own Mac.**
 
@@ -871,11 +830,9 @@ far too outdated."* Phase R does the first full pass **now**. Phase 10 stays as 
   (`unsloth/gemma-4-26B-A4B-it-GGUF` → `MTP/mtp-gemma-4-26B-A4B-it-Q8_0.gguf`, 0.46 GB) and b10809 supports
   `--spec-type draft-mtp`, but it was **never measured on this M4**. The candidate list still names
   **Qwen3.8-27B + CMoE — dead**: CMoE has no Metal/Qwen3.8 path, and the dense 27B measured **5.48 tok/s** here
-  (2026-11-01). Flash-Next now has a Metal engine (Strata, SSD-streamed: **14.1 tok/s Q2_0 / 10.0 IQ3_XXS** on a 32 GB
-  M4 mini, **~8.3** with a small expert arena) — not measured on 24 GB.
+  (2026-11-01). *(v59: Flash-Next removed — 1.1 tok/s here; it fails the fit rule.)*
 - **Lane B.** 14 specialists picked 2026-08/09; newer versions already flagged (Wan 3.0, Hunyuan3D v3); none gated.
-- **Lane C.** 7 giants picked 2026-09; newer releases already seen (DeepSeek-V4.1-Flash-1017, Kimi-K2.7-Code,
-  V4-Flash-Vision-Exp — the Phase 10 seeds).
+- **Lane C.** *(v59: giants removed. Lane C is now heavy-local models on this Mac — Phase 6.)*
 - **Research.** `sample3/` swept 2026-09-02. `dflash2 hwmini.md` says "MLX only, not llama.cpp" — now false
   (`--spec-type draft-dflash`). Free cloud limits are still "unverified" in `kildall.toml`.
 - **This plan.** Answer-first and build-order rows disagree with measurements: "Speed, Lane A 19.48 tok/s" is the
@@ -889,16 +846,16 @@ far too outdated."* Phase R does the first full pass **now**. Phase 10 stays as 
 | **R1** | **Plan fact sync** — every Answer-first, lane and build-order fact re-read against `BENCHMARKS.md`, git and the machine | Claude | no | each fact cites a measurement or commit ≤ 30 days old, or is marked ⚠ |
 | **R2** | **Research pass → `Researchhub/sample4/`** — new dated files, sample1–3 kept as records. **Method (v57): run the `/last30days` skill (`last30days:last30days`) once per topic, phrased "best ways for {topic} — tricks, OSS projects, popularity does not count"**, then web-search supplements. Small or unknown projects count the same as famous ones; stars, downloads and hype never decide. Topics — everything: speed tricks per platform (Metal spec kernels, MTP, DFlash2, Strata, SSD/expert streaming, Avalon for the server), quantisation and pruning, Lane A/B/C candidates (latest version per family, best per skill by benchmark), routing, memory/RAG, tool calling and agent loops, coding agents, voice, image/video/3D, computer use, security, free cloud tiers re-checked live | Claude | no | one `/last30days` raw file per topic saved and linked; every pick ✓ benchmark-backed or ⚠ marked; sources dated; quota-limited runs discarded |
 | **R3** | **Runtime bump** — pin a current llama.cpp build; full regression | Codex | ≥ 20 GB free | every frozen gate unchanged or better (recall 1-slot + per-slot, tools, routing, CLI, p99, 600 s pressure) — else stay on b10809 and record the failing gate |
-| **R4** | **Lane A re-pick** on the new build — Gemma ± MTP drafter, Qwen3.8-27B + DFlash2, Flash-Next via Strata, plus any R2 candidate | Codex | ≥ 20 GB free | winner ≥ 15 tok/s; greedy output identical with and without the drafter; all Lane A gates |
+| **R4** | **Lane A re-pick** on the new build — Gemma ± MTP drafter, Qwen3.8-27B + DFlash2, plus any R2 candidate that passes the fit rule | Codex | ≥ 20 GB free | winner ≥ 15 tok/s; greedy output identical with and without the drafter; all Lane A gates |
 | **R5** | **Lane B re-pick** — each specialist: newest version that wins its skill; model-load procedure; its gate | Codex | external drive | each changed model passes; a replaced file is removed only with your OK |
-| **R6** | **Lane C re-pick on paper** — measurement waits for the reward server (Phase 6) | Claude | no | list current, each pick sourced |
+| **R6** | **Lane C re-pick** — heavy-local models on this Mac under the fit rule (Phase 6) | Claude + Codex | no | each pick sourced; worst case ≥ 2 tok/s measured |
 | **R7** | **Write back** — `Orbimodels.md`, `kildall.toml`, `skill_catalog.py`, this plan, the checklist, CLAUDE.md's "which file" table | Codex + Claude | no | all files agree with each other and with the measurements |
 
-**Order:** R1, R2 and R6 start now — no disk needed. R3–R5 wait for **≥ 20 GB free** (move
-`code/models/qwen3.8-flash-next`, 87 GB, to the external drive — move, not delete). Open slices (PR #13 probe fix,
+**Order:** R1, R2 and R6 start now — no disk needed. R3–R5 wait for **≥ 20 GB free** (the Flash-Next weights,
+~100 GB in `AI-Models/slotstream`, can go — delete only with your OK). Open slices (PR #13 probe fix,
 the slot-isolation one-liner) may finish in parallel; they change no model.
 **Rules:** best per skill by its own benchmark, never popularity (Phase 10 rule). **No model is adopted on research
-alone** — it must pass its lane's gates on this machine.
+alone** — it must pass its lane's gates and the fit rule on this machine.
 
 **Exit test:** every lane model re-confirmed or replaced through its gates on the current runtime; no Answer-first fact
 older than its newest measurement; `sample4/` is the authoritative research.
@@ -916,21 +873,22 @@ catalog (`skill_catalog.py`, research in `Researchhub/sample3/OrbiOSS.md`, to be
    wins the leaf wins it. No leaf benchmark exists → mark ⚠ and pick by the closest task-specific evidence.
    **Re-research every leaf** by benchmark evidence, **latest version per family**, best-per-skill regardless of brand;
    mark ✓ verified vs ⚠ reasoned default; keep a min-viable alternative where one exists.
-2. **Re-assign lanes by measured fit** on the machine in use (#51 auto-fit): resident, hot-swap, streamed, or free cloud
+2. **Re-assign lanes by measured fit** on the machine in use (#51 auto-fit): resident, hot-swap, heavy-local (fit rule), or free cloud
    (NVIDIA NIM / OpenRouter / others — **never a paid API**).
 3. **Update** `skill_catalog.py`, `Orbimodels.md` and the research file; download new models, remove replaced ones
    (deletion only with your OK).
 4. **Gate every changed model** through the model-load procedure and its lane's gates; routing 20/20, recall, tools,
    CLI unchanged or better. Quota-limited research is never merged as fact.
-**Seeds found 2026-10-13:** `tencent/Hy4-preview` now has GGUF builds (AngelSlim, AMAImedia) — its runtime blocker may be
-gone; `moonshotai/Kimi-K2.7-Code` (2026-06-11, coding specialist); `deepseek-ai/DeepSeek-V4.1-Flash` (763 B);
-`deepseek-ai/DeepSeek-V4-Flash-Vision-Exp` (2026-08-31). NVIDIA's NVFP4 builds are NVIDIA-GPU formats, not for the AMD box.
+**Seeds found 2026-10-13** (Hy4-preview, Kimi-K2.7-Code, DeepSeek-V4.1-Flash, V4-Flash-Vision-Exp) — **all removed v59:
+giants, they fail the fit rule.** Every Phase 10 pick must pass the fit rule on the machine in use.
 
 ---
 
 # 🔮 BEYOND THE PLAN — 187 improvements, after Phase 8 *(#52–#75 added v41, #76–#87 v42, #88–#90 v47, #91–#96 v51, #97–#126 v53, #127–#187 and S7–S16 v56; 19 of them scheduled earlier — see "Queued small slices")*
 
 **Nothing here is scheduled or scoped. Recorded so the current build does not design them out.**
+**v59:** ideas written for Lane C giants (#1, #4, #7, #42, #94) now mean Lane C heavy-local models; giant names and
+s/token figures inside them are history.
 Phases 0–8 deliver a working Orbi. These are the ceilings that build then hits.
 
 ## ⭐ Do these three first
@@ -1355,14 +1313,17 @@ one minute can thrash at minute six.
 - **Lane A** — resident, so it gets the full treatment. **Phase 1 must apply all of this before
   measuring the four gates**, or the tok/s number is meaningless.
 - **Lane B** — loads and unloads in seconds. Quantise once, then the standard flags.
-- **Lane C** — streamed. `-lm mmap` is doing the heavy lifting; expert paging is the bottleneck.
+- **Lane C** — heavy-local (v59): loaded whole after Lane A stops; no expert streaming (streamed models failed the
+  fit rule). Measure the worst case before first use.
 - **Dense models** — see `Orbimodels.md` → *When a model is dense, convert it* (CMoE, training-free).
 
 # HONEST RISKS
 
-1. **Lane C may not earn its 4.9 TB.** ~17.9 s/token for Kimi K3, worse on a slow external drive — though the **Flash tier runs at ~2.2 s/token** and is far likelier to pass. Phase 6's exit test is
-   designed to kill it.
-2. **No Apple Silicon number exists** for the 2.8 T tier. Phase 6 produces the first.
+1. **The fit rule costs capability (v59, accepted by the user).** No frontier-size model and no 1M-token context on
+   this Mac. Phase 7's eval shows what that costs on your tasks.
+2. **RAM-ceiling models can fall under 2 tok/s when the Mac swaps.** Qwen3.6-35B-A3B (19.5 GB) and Lightning
+   (21.2 GB) sit at the limit, and your own apps share the RAM. The worst-case gate (600 s soak, swap at start
+   ≤ 3 GB) decides; a model that fails it leaves Lane C.
 3. **Turbo Fieldfare is not an escape hatch.** It proves Apple Silicon expert streaming works, but is
    **pinned to one model and one quantisation** and needs macOS 26 / Swift 6.2 / Metal 4. A borrowable
    design (16-slot-per-layer LFU cache), not a runtime for your models.
@@ -1385,12 +1346,12 @@ one minute can thrash at minute six.
    `Orbimodels.md`.
 8. ⚠️ **Disk is adequate, not roomy. 93.3 GB free (measured 2026-09-06).** Lane A candidate #1
    (Qwen3.8-27B + CMoE, 17 GB) fits with room for all of Lane B. Candidate #2 (Flash-Next, 90 GB)
-   fits with **3 GB spare and no room for anything else**. **Correction on record:** an earlier
+   fits with **3 GB spare and no room for anything else** *(v59: Flash-Next removed)*. **Correction on record:** an earlier
    estimate said 113.8 GB would be reclaimed by deleting caches and Orbi-Sources; the real gain was
    **28.4 GB**, because `du` reports logical size on APFS and both the HuggingFace cache and the
    180 git repos shared blocks heavily. **Freeing the 62 GB CrossOver Steam bottle is the one move
    that would make every option comfortable.**
-9. **Licences vary — and Orbi's own licence is MIT.** Kimi K3 and GLM-5.3 custom; `NLLB` CC-BY-NC and
+9. **Licences vary — and Orbi's own licence is MIT.** Gemma Terms custom; `NLLB` CC-BY-NC and
    `FLUX.2 dev` non-commercial were **excluded**. Picked on evidence, licence flagged per row.
    🔑 **MIT covers Kildall's code only (`~/Kildall/code`), never the models.** Orbi downloads weights from
    their publishers at setup and **never ships or redistributes them**, so each model's own licence
@@ -1406,18 +1367,20 @@ one minute can thrash at minute six.
 
 # OPEN QUESTIONS
 
-1. **Will Lane A hit 15 tok/s?** **Qwen3.8-Flash-Next** is the right shape (MoE, 6B active) but
-   **streaming a 180B/6B MoE on an M4 has never been measured by anyone.** Phase 1 answers it.
-2. **Which giants earn their disk?** Phase 6 measures each against Lane A.
+1. ~~**Will Lane A hit 15 tok/s?**~~ ✅ **Yes:** Gemma 4 26B-A4B, 26.67–29.33 tok/s measured. Flash-Next failed
+   (0.21 / 1.1 tok/s) and is removed (v59).
+2. ~~**Which giants earn their disk?**~~ **None — removed by the fit rule (v59).** New question: **which heavy-local
+   models beat Lane A on their leaves?** Phase 6 measures.
 3. ~~**When does the 8 TB drive arrive?**~~ — **answered 2026-09-05: not ordered yet, likely 1+ month
    out.** **Phase 6 is parked.** Build Phases 0–5 and 7–8 first; they are the whole product minus the
    giants. Do not design around Lane C arriving soon. **v54 (2026-10-30):** the 8 TB NVMe is now bought, for the
-   reward server; Lane C still waits for that server.
+   reward server. **v59: Phase 6 needs neither the drive nor the server.**
 
 ---
 
 ## Change Log
 
+- **2026-11-21 (v59)** — **Fit rule: a model is used only if it writes ≥ 2 tok/s at all times on the machine Kildall runs on — worst case, measured** (user: "just use models fit on this machine … 2 tok/s+ at all time", then "Remove the giants and flash next and /last30days research and replace it with the new rules"). **Removed:** every Lane C giant (Kimi K3, Qwen3.8-2.4T-A95B, DeepSeek-V4-Pro-0813, GLM-5.2, GLM-5.3, DeepSeek-V4-Flash-0731, DeepSeek-V4.1-Flash, Hy4-preview), Qwen3.8-Flash-Next (1.08–1.24 tok/s measured) and GLM-5.3-Flash IQ1_S (0.65–0.70), plus Kimi-K2.6 and the Phase 10 giant seeds. **Lane C is now "heavy-local"**: the strongest models that still pass the rule (Qwen3.6-35B-A3B, Nemotron 3.5 Lightning, Swift-1.5/Qwen3.8-27B, Nanbeige4.3-33B, Muse-Glimmer-30B), Lane A stopped while one runs. Phase 6 rewritten (no drive, no server); Road to 7/10 item 2 now "best model that passes the rule on the server, measured there"; risks, open questions, Phase R (R4, R6) and Phase 10 updated. "Stored ≠ running" and the Kimi K3 s/token section replaced by "THE FIT RULE". Research: `/last30days` (community evidence insufficient — Reddit blocked, rest under the floor) + 3 web supplements → `Researchhub/sample4/fitmodels-m4-24gb.md`. `Orbimodels.md` → v2, checklist Groups 4 and 16 updated.
 - **2026-11-15 (v58)** — **S17 Monthly self-update added** (user: "add it with notes on adding conditions only with good enough hardware and considerable scores", after reading `Researchhub/sample1/OrbiLLM/LLMtrain`: Autodata, Prime Agent, Soup). Final-product feature, nothing scheduled now. Two conditions before it is built or switched on: the 128 GB reward server, and a trusted frozen eval clearly above 0 on two runs plus a working S4. Every swap is gated and keeps a rollback; a blind self-update is not planned. It updates models, not code.
 - **2026-11-11 (v57)** — **Phase R step R2 now uses the `/last30days` skill** (user: "make it use skill /last30days:last30days and make it 'research for best ways for everything tricks, oss projects nobody cares'"). One run per topic, phrased "best ways for {topic} — tricks, OSS projects, popularity does not count"; small or unknown projects count the same as famous ones; topic list widened to everything Kildall does. Done-when adds one saved raw file per topic. Checklist Group 20 item 2 updated to match.
 - **2026-11-11 (v56)** — **61 ideas (#127–#187) and 10 signature features (S7–S16) added** (user: "add all", after Claude's full idea sweep). New only; nothing repeats #1–#126, S1–S6 or Phase 9. Nothing scheduled; placement column says where each would fit. Born from this week's work: S7 Memory Concierge (swap stopped the gates three times), S9 embedding router (routing 0.84 s), #132/#133/#135 (4K window, PR #16), #159/#162 (models already on disk). Keep-on-evidence rule applies. Checklist unchanged.

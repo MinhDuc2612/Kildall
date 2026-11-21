@@ -66,8 +66,8 @@
 
 ## 4. Router — P0 *(Phase 2)*
 
-- [ ] **Lane A picked from the 4 candidates** in `Orbimodels.md`. Leader: **Qwen3.8-27B + CMoE**
-      (~17 GB, fits with room for Lane B). #2 `Qwen3.8-Flash-Next` (90 GB, no conversion, no quality loss)
+- [x] **Lane A picked:** Gemma 4 26B-A4B UD-IQ3_S (`Orbimodels.md` v2). *(v59: Flash-Next removed — 1.1 tok/s;
+      Qwen3.8-27B + CMoE dead.)*
 - [ ] ⚠️ **Lane A measured above 15 tok/s** — unpublished for this shape on M4. **Test before all else**
 - [ ] Lane A is **MoE, never dense** — a dense router forfeits the whole architecture
 - [ ] Fallbacks ready in order: Gemma 4 26B-A4B, then Granite 4.1 8B
@@ -227,13 +227,13 @@
 - [ ] Notifies on completion
 - [ ] Output lands in a predictable directory
 
-## 16. Lane C giants — P2 *(Phase 6 — ⏸ PARKED, waits for the reward server)*
+## 16. Lane C heavy-local — P1 *(Phase 6 — v59: giants removed, runs on this Mac)*
 
-- [ ] Server 8 TB NVMe read/write speed measured before anything downloads
-- [ ] Every ⚠ HF path resolved before a 4.9 TB download starts
-- [ ] `kimi-k3-in-c` runs the 2.8 T tier
+- [ ] **Fit rule enforced:** every model Kildall loads has a recorded worst-case measurement ≥ 2 tok/s on this machine (longest allowed context, 600 s soak); an unmeasured model refuses to load
+- [ ] Worst case measured for each Lane C candidate (Qwen3.6-35B-A3B, Nemotron 3.5 Lightning, Swift-1.5-Qwen3.8-27B, Nanbeige4.3-33B, Muse-Glimmer-30B) and a first speed test for K2-Horizon-32B and K2-Horizon-MoVA-36B-A4B
+- [ ] Lane A stops before a Lane C model loads and restarts after; both times recorded
 - [ ] Job queue runs detached and notifies
-- [ ] **An overnight job beats Lane A on the same prompt — or Lane C is cut**
+- [ ] **A Lane C model beats Lane A on its leaves (18 hard jobs + frozen gates) — or it leaves Lane C**
 
 ## 17. Hardware — P0 *(every phase that loads a model)*
 
@@ -351,9 +351,9 @@
 - [ ] **Plan facts synced:** every Answer-first, lane and build-order fact cites a measurement or commit ≤ 30 days old, or is marked ⚠
 - [ ] **`Researchhub/sample4/` written** — one `/last30days` run per topic ("best ways for {topic} — tricks, OSS projects, popularity does not count"), raw file saved and linked; dated, every pick ✓ benchmark-backed or ⚠ marked, quota-limited runs discarded; sample1–3 kept; CLAUDE.md's "which file" table points to it
 - [ ] **Runtime on a current llama.cpp build** with every frozen gate unchanged or better — or b10809 kept and the failing gate recorded
-- [ ] **Lane A re-picked on the new build** (Gemma ± MTP, Qwen3.8-27B + DFlash2, Flash-Next via Strata, any sample4 candidate): ≥ 15 tok/s, greedy output identical with and without the drafter, all Lane A gates
+- [ ] **Lane A re-picked on the new build** (Gemma ± MTP, Qwen3.8-27B + DFlash2, any sample4 candidate that passes the fit rule): ≥ 15 tok/s, greedy output identical with and without the drafter, all Lane A gates
 - [ ] **Every Lane B specialist re-confirmed or replaced** through the model-load procedure and its gate; nothing deleted without your OK
-- [ ] **Lane C re-picked on paper**; `Orbimodels.md`, `kildall.toml` and `skill_catalog.py` agree with each other and with the measurements
+- [ ] **Lane C re-picked under the fit rule (worst case measured)**; `Orbimodels.md`, `kildall.toml` and `skill_catalog.py` agree with each other and with the measurements
 
 ---
 
@@ -385,6 +385,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-11-21** — Plan v59, fit rule (≥ 2 tok/s at all times on this Mac): Group 16 rewritten from Lane C giants to Lane C heavy-local (5 items for 5); Group 4 Lane A item ticked (Gemma measured); Group 20 Lane A/C items reworded. Still **254 items**.
 - **2026-11-01** — Plan v55, Phase R (refresh everything): new Group 20, 6 items: **254 items**.
 - **2026-10-30** — Plan v54, reward server (MI210 + 512 GB + 8 TB NVMe) replaces the EVO-X2: 3 server items in Group 17 (ROCm/HIP qualification, MI210 cooling, 8-channel RAM + expert offload); Group 16, the ≥128K item, the internal-disk note and the Linux-port item now name the server: **248 items**.
 - **2026-10-20** — 8 items for the early-scheduled v53 ideas (#97, #98, #102, #104, #105, #107, #108, #112); Linux port item notes #120: **245 items**.
