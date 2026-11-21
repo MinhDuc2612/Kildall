@@ -3,8 +3,10 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import threading
+from unittest.mock import patch
 
 from local_lanes import LaneDown
 import local_media
@@ -46,6 +48,9 @@ def main():
         assert local_media.vision("translation", plain, prompt) is plain
         parts = local_media.vision("document_ocr", plain, prompt)[-1]["content"]
         assert parts[0]["text"] == prompt and parts[1]["image_url"]["url"].startswith("data:image/png;base64,")
+        system = [dict(role="system", content="Use the available tools."), *plain]
+        assert local_media.vision("visual_grounding", system, prompt)[0] == dict(
+            role="system", content=local_media.VISION_SYSTEM)  # No tool talk when no tools are given.
         recalled = [dict(role="user", content=f"Describe it.\n\n<memory>\n{picture}\n</memory>")]
         try:
             local_media.vision("document_ocr", recalled, "Describe it.")
@@ -55,13 +60,18 @@ def main():
             raise AssertionError("An image named only in recalled memory must not be used")
         http = ThreadingHTTPServer(("127.0.0.1", 0), Stub)
         threading.Thread(target=http.serve_forever, daemon=True).start()
-        server = dict(kind="swarm", name="swarm", url=f"http://127.0.0.1:{http.server_port}", output="/out",
+        server = dict(kind="swarm", name="swarm", url=f"http://127.0.0.1:{http.server_port}", output=directory,
                       image=dict(model="i"), video=dict(videomodel="v"))
-        assert local_media.run(server, "image_generation", "a cat") == "Saved: /out/raw/a.png"
+        (Path(directory) / "raw").mkdir()
+        (Path(directory) / "raw" / "a.png").write_bytes(b"\x89PNG")
+        assert local_media.run(server, "image_generation", "a cat") == f"Saved: {directory}/raw/a.png"
         assert Stub.seen["model"] == "i" and "videomodel" not in Stub.seen
         assert Stub.freed == [{"session_id": "s", "system_ram": True}]  # ComfyUI must not keep the model.
         local_media.run(server, "video_generation", f"animate {picture}")
         assert Stub.seen["videomodel"] == "v" and Stub.seen["initimagecreativity"] == 0
+        freed = len(Stub.freed)
+        local_media.run(server, "video_generation", "a cat running")  # No image named: the first frame is its own job.
+        assert len(Stub.freed) == freed + 2 and Stub.seen["initimage"].startswith("data:image/png;base64,")
         Stub.reply = {"error": "broken"}
         try:
             local_media.run(server, "image_generation", "a cat")
@@ -80,6 +90,17 @@ def main():
         assert "audio file" in str(error)
     else:
         raise AssertionError("Speech recognition without a file must raise LaneDown")
+    with tempfile.TemporaryDirectory() as directory:
+        clip = Path(directory) / "a.wav"
+        clip.write_bytes(b"RIFF")
+        heard = subprocess.CompletedProcess([], 0, stdout=" Ask Kildall. \n")
+        whisper = dict(kind="whisper", name="w", binary="whisper-cli", model="m.bin", prompt="Kildall")
+        with patch.object(local_media.subprocess, "run", return_value=heard) as calls:
+            assert local_media.run(whisper, "speech_recognition", f"transcribe {clip}") == "Ask Kildall."
+        assert calls.call_args_list[-1].args[0][-2:] == ["--prompt", "Kildall"]
+        with patch.object(local_media.subprocess, "run", return_value=heard) as calls:
+            local_media.run(dict(whisper, prompt=""), "speech_recognition", f"transcribe {clip}")
+        assert "--prompt" not in calls.call_args_list[-1].args[0]
     print("local media gates: OK")
 
 

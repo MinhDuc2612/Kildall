@@ -14,6 +14,13 @@ import local_lanes
 class Stub(BaseHTTPRequestHandler):
     seen = None
     busy = 0
+    loading = False
+
+    def do_GET(self):
+        self.send_response(503 if Stub.loading else 200)
+        self.send_header("Content-Length", "2")
+        self.end_headers()
+        self.wfile.write(b"{}")
 
     def do_POST(self):
         Stub.seen = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
@@ -147,6 +154,14 @@ def main():
     else:
         raise AssertionError("A server that stays full must raise LaneDown")
     local_lanes.ensure_up(server, "/dev/null", tries=1, wait=0)  # Already up: starts nothing.
+    Stub.loading = True
+    try:
+        local_lanes.ensure_up(dict(server, start="true"), "/dev/null", tries=1, wait=0)
+    except local_lanes.LaneDown:
+        pass
+    else:
+        raise AssertionError("A server still loading its model (503) is not up yet")
+    Stub.loading = False
     http.shutdown()
     http.server_close()
     try:

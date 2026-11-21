@@ -275,9 +275,11 @@ def ensure_runtime(config, stop=False, *, lane_only=False, keep_embedding=False,
                     command += ["--embedding", "--pooling", "last", "--embd-normalize", "2",
                                 "-c", "2048", "-b", "2048", "-ub", "2048"]
                 else:
+                    # Write speed while the other slot reads a prompt is about read speed / batch (2026-11-21).
+                    batch = config["runtime"].get("batch", 128)
                     # Bounded native prefix cache; three SWA checkpoints allow rewinding the user suffix.
                     command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
-                        *context_flags(config), "-b", "128", "-ub", "128",
+                        *context_flags(config), "-b", str(batch), "-ub", str(batch),
                         "--jinja", "--reasoning", "off", "--perf"]
                     if slots > 1:
                         router_warmth.stop_monitor(config)

@@ -46,8 +46,8 @@ def ensure_up(server, log, *, tries=120, wait=2):
         try:
             with urllib.request.urlopen(url, timeout=3):
                 return True
-        except urllib.error.HTTPError:
-            return True  # It answered, so it is up.
+        except urllib.error.HTTPError as error:
+            return error.code != 503  # llama-server answers 503 while it still loads the model.
         except (urllib.error.URLError, OSError):
             return False
 

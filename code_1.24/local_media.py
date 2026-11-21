@@ -16,6 +16,8 @@ from local_lanes import LaneDown
 IMAGES = {".png", ".jpg", ".jpeg", ".webp"}
 AUDIO = {".wav", ".mp3", ".m4a", ".aiff", ".flac", ".ogg"}
 VISION_JOBS = {"document_ocr", "visual_grounding"}
+VISION_SYSTEM = ("You are Orbi, a local assistant. Answer the request from the attached image, in plain text. "
+                 "You have no tools here, so never write a command or a tool call.")
 STARTS = re.compile(r"(?:^|(?<=[\s'\"]))[~/]")
 ENDS = re.compile(r"\.[A-Za-z0-9]{2,5}(?=$|[\s'\",;:).])")
 
@@ -43,7 +45,9 @@ def vision(category, messages, request):
     image = input_file(request, IMAGES)
     if image is None:
         raise LaneDown("Name an image file in your request.")
-    return [*messages[:-1], dict(role="user", content=[
+    # The usual system prompt talks about tools; with none given, Bolt wrote fake run_command lines (2026-11-21).
+    head = [dict(m, content=VISION_SYSTEM) if m["role"] == "system" else m for m in messages[:-1]]
+    return [*head, dict(role="user", content=[
         dict(type="text", text=messages[-1]["content"]), dict(type="image_url", image_url=dict(url=data_uri(image)))])]
 
 
@@ -62,8 +66,9 @@ def swarm(server, category, prompt):
     if category == "video_generation":
         settings.update(server["video"])
         image = input_file(prompt, IMAGES)
-        if image:
-            settings.update(initimage=data_uri(image), initimagecreativity=0)
+        if image is None:  # First frame as its own job, so MOSS and Wan never share memory: swap +3.5 GB, not +8.4 (2026-11-21).
+            image = Path(swarm(server, "image_generation", prompt).removeprefix("Saved: "))
+        settings.update(initimage=data_uri(image), initimagecreativity=0)
     session = post(f"{base}/API/GetNewSession", {}, 30)["session_id"]
     try:
         result = post(f"{base}/API/GenerateText2Image", dict(settings, session_id=session), 3600)
@@ -83,8 +88,10 @@ def whisper(server, prompt):
         wav = Path(directory) / "input.wav"
         subprocess.run(["ffmpeg", "-loglevel", "error", "-i", str(audio), "-ar", "16000", "-ac", "1", str(wav)],
                        check=True)
-        done = subprocess.run([server["binary"], "-nt", "-m", server["model"], "-f", str(wav)],
-                              capture_output=True, text=True, check=True)
+        command = [server["binary"], "-nt", "-m", server["model"], "-f", str(wav)]
+        if server.get("prompt"):  # Names whisper does not know: without it, "Kildall" comes out "Kildal".
+            command += ["--prompt", server["prompt"]]
+        done = subprocess.run(command, capture_output=True, text=True, check=True)
     return done.stdout.strip()
 
 

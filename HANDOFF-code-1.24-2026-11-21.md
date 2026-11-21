@@ -1,5 +1,7 @@
 # Handoff — finish code_1.24 (written 2026-11-21 by Claude, job 120663e4)
 
+> **Status 2026-11-21 23:46: done.** Every item in section 4 is closed or recorded as a known limit with the user's OK (log in CLAUDE.md from 13:04). Nothing left for a next session.
+
 Paste this to start the next session:
 
 > Read `/Volumes/ES2TB/Kildall/HANDOFF-code-1.24-2026-11-21.md` and follow it. Finish code_1.24. Work until this
