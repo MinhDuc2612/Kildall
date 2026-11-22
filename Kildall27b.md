@@ -87,6 +87,7 @@ Only 16 of the 64 layers keep a growing KV cache, so the cache is small for a 27
 | Slice | What | Gate |
 |---|---|---|
 | **27b-0 Setup** | Worktree `code_27b` on branch `kildall-27b` from main. `CODE_ROOT`, nuke root, ports 8423/8424, DB and backup names for `code_27b`. `kildall.toml` model = Swift-1.5. Router, catalog dispatch and Lanes B/C removed. Tests adapted. | all controls pass, `check.sh` 0, nuke dry-run 0 outside |
+| **27b-0b Qwen tool calls** (added 2026-11-22) | `tool_runtime.py` / `tool_grammar.py` build only Gemma 4 native tool calls; a live turn on the 27B stops with `Expected the pinned Gemma 4 native chat template`. Add a Qwen3.8 tool-call path (schema-constrained), keep the Gemma path's tests. | one live turn with a tool call works; controls pass |
 | **27b-1 Speed + memory** | On build 12359: plain, MTP (`--spec-type draft-mtp --spec-draft-n-max 2`), DFlash 2 (`--spec-type draft-dflash`). Greedy output identical with and without the drafter. Longest context (8K/16K/32K) that passes the fit rule in a 600 s soak. Peak memory. | fit rule worst case; 0 critical pressure, 0 GPU OOM |
 | **27b-1b MLX (only if 27b-1 drafting fails)** | Measure DFlash 2 on MLX with the memory it needs. **The user decides** before any MLX rebuild. | user decision |
 | **27b-2 Vision** | Download the projector (name and size first). Test with Swift-1.5: image questions, text in images, screenshots. | fixed test images answered right; fit rule still holds |
@@ -118,3 +119,8 @@ Main fixes are merged into `kildall-27b` from time to time (normal merge, no for
 - **2026-11-22 (v1)**: Created after 12 questions and one research pass (user: "1 model to have it all no feature of
   choose the best model per task"). Design approved by the user.
 - **2026-11-22**: User confirmed: every Kildall feature except per-task model choice; council left out (also its one-model form).
+- **2026-11-22 (27b-0 built)**: worktree `code_27b`, branch `kildall-27b` (= main `ff20e40`) + slice branch
+  `kildall-27b-0-setup` `f7cbc5d`, draft PR #19. Gates: 27/27 controls, `check.sh` 0, nuke dry-run 13,864 / 0 outside /
+  0 refused, history scan 0 findings. Kept on purpose: section name `lanes.a` (= the 27B), runtime b10809 (27b-1 tests
+  12359), slot code unchanged (at 2 slots, slot 0 stays idle: review in 27b-1). Live smoke found the Gemma-only tool
+  layer: new slice **27b-0b**.

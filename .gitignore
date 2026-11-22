@@ -1,5 +1,7 @@
 # code/ is its own repository with its own remote
 code/
+# Kildall-27b worktree of that repository (branch kildall-27b, never merged into main)
+code_27b/
 
 # Obsidian workspace state, not content
 .obsidian/workspace.json
