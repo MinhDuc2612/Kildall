@@ -303,8 +303,7 @@ def test_malformed(work, http):
     rejected(lambda: client(config(work), http).reply([], kildall.BASE_TOOLS))
 
 
-def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixture', overflow=False,
-             catalog_model='test-model', cloud_client=None, explain=False):
+def run_turn(conf, work, *, cloud_replies=None, prompt='Read the fixture', overflow=False, cloud_client=None):
     kildall.initialize(conf['paths']['db_path'])
     session = 'session-' + str(time.monotonic_ns())
     with kildall.database(conf['paths']['db_path']) as db:
@@ -312,7 +311,6 @@ def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixtu
     memory = Mock()
     memory.retrieve.return_value = dict(text='', items=[], truncated=False)
     memory.add.return_value = 1
-    decision = dict(skill='general', lane=lane, model=catalog_model)
     cloud_reply = Mock(side_effect=cloud_replies or [dict(role='assistant', content='cloud answer')])
     output, errors = io.StringIO(), io.StringIO()
     def fit(config, system, memory_text, previous, current, **kwargs):
@@ -324,16 +322,14 @@ def run_turn(conf, work, *, lane='A', cloud_replies=None, prompt='Read the fixtu
         stack.enter_context(patch.object(kildall, 'ensure_runtime'))
         stack.enter_context(patch.object(kildall, 'fit_messages', side_effect=fit))
         local = stack.enter_context(patch.object(kildall, 'stream_reply', return_value=dict(role='assistant', content='local answer')))
-        stack.enter_context(patch('routing.decide', return_value=decision))
         if cloud_client is None:
             stack.enter_context(patch.object(cloud.Client, 'reply', cloud_reply))
         else:
             stack.enter_context(patch.object(cloud, 'Client', return_value=cloud_client))
-        stack.enter_context(patch('routing.describe', return_value='catalog decision'))
         stack.enter_context(redirect_stdout(output))
         stack.enter_context(redirect_stderr(errors))
         try:
-            status = kildall._run_turn(conf, memory, session, str(work), prompt, route_mode='auto', explain=explain)
+            status = kildall._run_turn(conf, memory, session, str(work), prompt)
         except (ValueError, PermissionError, RuntimeError) as error:
             status = error
     return status, cloud_reply, local, memory, output.getvalue(), errors.getvalue()
@@ -343,17 +339,12 @@ def test_turn_policy(work, http):
     conf = config(work)
     status, remote, local, *_ = run_turn(conf, work)
     assert status == 0 and local.call_count == 1 and remote.call_count == 0
-    for lane in ('B', 'C'):
-        status, remote, local, *_ = run_turn(conf, work, lane=lane)
-        assert status == 0 and remote.call_count == 1 and local.call_count == 0
-        assert remote.call_args.args[1] is kildall.BASE_TOOLS
     status, remote, local, *_ = run_turn(conf, work, overflow=True)
     assert status == 0 and remote.call_count == 1 and local.call_count == 0
-    status, remote, local, memory, output, errors = run_turn(conf, work, lane='C', cloud_replies=[None])
-    assert status == 0 and local.call_count == 1 and cloud.EXHAUSTED in errors
+    assert remote.call_args.args[1] is kildall.BASE_TOOLS
+    status, remote, local, memory, output, errors = run_turn(conf, work, overflow=True, cloud_replies=[None])
+    assert isinstance(status, kildall.ContextOverflow) and local.call_count == 0 and cloud.EXHAUSTED in errors
     assert any(cloud.EXHAUSTED in r['payload'] for r in rows(conf, 'orbi_messages'))
-    status, remote, local, memory, *_ = run_turn(conf, work, overflow=True, cloud_replies=[None])
-    assert isinstance(status, kildall.ContextOverflow) and local.call_count == 0
     memory.add.assert_not_called()  # Never silently truncate an oversized request.
 
 
@@ -367,7 +358,7 @@ def test_turn_permissions(work, http):
     for call in calls:
         validated = cloud.validate_message(response(call), kildall.BASE_TOOLS)
         with patch.object(kildall, 'SYSTEM_RULES', ''), patch.object(permissions, 'terminal_confirm') as confirm:
-            status, remote, local, *_ = run_turn(conf, work, lane='C', cloud_replies=[validated])
+            status, remote, local, *_ = run_turn(conf, work, overflow=True, cloud_replies=[validated])
             assert isinstance(status, PermissionError) and remote.call_count == 1 and local.call_count == 0
             confirm.assert_not_called()
         assert marker.read_text() == 'original'
@@ -376,7 +367,7 @@ def test_turn_permissions(work, http):
     wrong = tool('remember', {'text': 'Changed wording', 'scope': 'project', 'tier': 'L1'})
     with patch.object(kildall, 'copy_issues', return_value=['verbatim mismatch']), \
          patch.object(permissions, 'execute') as execute:
-        status, remote, local, memory, *_ = run_turn(conf, work, lane='C', cloud_replies=[wrong])
+        status, remote, local, memory, *_ = run_turn(conf, work, overflow=True, cloud_replies=[wrong])
         assert isinstance(status, ValueError) and remote.call_count == 1 and local.call_count == 0
         execute.assert_not_called()
         memory.add.assert_not_called()
@@ -458,48 +449,16 @@ def test_exact_selection(work, http):
         http.add(body=response(model='unapproved-model'))
         rejected(lambda: c.reply([], [], catalog_model='Kimi K2.6'))
         assert c.selection is None
-        (work / 'a.txt').write_text('READY')
-        http.add(body=response(tool(), model=model))
-        http.add(body=response(model=model))
-        status, _, local, _, _, errors = run_turn(conf, work, lane='C', catalog_model='Kimi K2.6', cloud_client=c, explain=True)
-        assert status == 0 and local.call_count == 0, status
-        recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
-        assert recorded['model'] == 'Kimi K2.6' and recorded['cloud_model'] == model
-        assert recorded['exact_match'] is True and len(recorded['cloud_calls']) == 2
-        assert all(r['exact_match'] for r in recorded['cloud_calls'])
-        assert model in errors and 'exact_match=true' in errors
-        assert all('cloud_model' not in r['payload'] for r in rows(conf, 'orbi_messages'))
-        assert rows(conf, 'orbi_permissions')[-1]['status'] == 'done'
-        http.add()
-        status, _, local, _, _, errors = run_turn(conf, work, lane='B', catalog_model='DeepSeek-V4-Pro-0813', cloud_client=c, explain=True)
-        recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
-        assert status == 0 and not recorded['exact_match'] and local.call_count == 0
-        assert recorded['cloud_model'] == 'codestral-latest' and 'exact_match=false' in errors
         conf['cloud']['providers']['nvidia']['allowed_models'].remove(model)
         http.add()
         assert c.reply([], [], catalog_model='Kimi K2.6')['content'] == 'answer'
         assert http.captured[-1]['path'] == '/llm7' and c.selection['exact_match'] is False
 
 
-def test_final_local_identity(work, http):
-    conf = config(work, ('nvidia',))
-    c = client(conf, http)
-    (work / 'a.txt').write_text('READY')
-    http.add(body=response(tool()))
-    http.add(429)
-    status, _, local, _, _, errors = run_turn(conf, work, lane='C', cloud_client=c, explain=True)
-    recorded = json.loads(rows(conf, 'orbi_routes')[-1]['decision'])
-    assert status == 0 and local.call_count == 1
-    assert recorded['execution_source'] == 'local_fallback' and recorded['model_used'] == 'test-local.gguf'
-    assert recorded['cloud_model'] is None and recorded['exact_match'] is False
-    assert len(recorded['cloud_calls']) == 1 and recorded['cloud_calls'][0]['execution_source'] == 'cloud'
-    assert 'test-local.gguf' in errors and 'exact_match=false' in errors
-
-
 def main():
     checks = [test_http_and_redaction, test_cooldown, test_timeout_rotation, test_invalid_credentials,
               test_billing, test_exhausted, test_quotas, test_allowlist, test_malformed,
-              test_turn_policy, test_turn_permissions, test_nvidia, test_exact_selection, test_final_local_identity]
+              test_turn_policy, test_turn_permissions, test_nvidia, test_exact_selection]
     failures = []
     # A mistake in the test seam must never read the actual login Keychain.
     with patch.object(darwin_keys, 'security', side_effect=AssertionError('Keychain forbidden in test')), \

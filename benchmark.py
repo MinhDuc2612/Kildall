@@ -241,7 +241,7 @@ def soak(url, pid, duration, *, chat_fn=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["speed", "quality", "soak"])
-    parser.add_argument("--url", default="http://127.0.0.1:8123")
+    parser.add_argument("--url", default="http://127.0.0.1:8423")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--pid", type=int)
     parser.add_argument("--duration", type=int, default=600)

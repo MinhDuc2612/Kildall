@@ -1,28 +1,14 @@
-# Kildall Phase 1. Relative paths are relative to this code directory.
+# Kildall-27b: one brain (Swift-1.5-Qwen3.8-27B). Relative paths are relative to this code directory.
+# No router, no catalog dispatch, no Lanes B/C. See /Volumes/ES2TB/Kildall/Kildall27b.md.
 [paths]
 code_dir = "."
 model_dir = "models"
-db_path = "kildall.db"
-backup_dir = "~/Library/Application Support/Kildall/backups" # Internal APFS; separate from the USB database.
+db_path = "kildall27b.db"
+backup_dir = "~/Library/Application Support/Kildall27b/backups" # Internal APFS; separate from main Kildall.
 
-# Phase 1 runtime retained; Lane A is provisional after the DWQ exact-argument retest.
-# Four original gates passed, but exact arguments remain 18/20; see BENCHMARKS.md.
+# The one language model. The section name stays "lanes.a" so shared code keeps one key.
 [lanes.a]
-# Ranked: Qwen3.8-Flash-Next, Qwen3.8-27B + CMoE, Gemma 4 26B-A4B, Granite 4.1 8B.
-model = "models/gemma-4-26b-a4b/gemma-4-26B-A4B-it-UD-IQ3_S.gguf"
-
-[lanes.b]
-# Specialists: canary-qwen-2.5b, Qwen3-ASR-1.7B, Qwen3-TTS-12Hz-1.7B,
-# Qwen3-Omni-30B-A3B, PaddleOCR-VL-1.6, Harrier-oss-v1-27B,
-# Qwen3-Reranker-4B, Harrier-oss-v1-0.6B, granite-guardian-4.1-8b,
-# MiLMMT-46-12B, Qwen-Image-2512, Wan 2.7, Hunyuan3D-2.1, Molmo2-8B.
-# Phase 5 revisits Wan 3.0 and Hunyuan3D v3; Omni cannot co-load with Lane A.
-model = ""
-
-[lanes.c]
-# Kimi-K3, Qwen3.8-2.4T-A95B, DeepSeek-V4-Pro-0813, GLM-5.2,
-# GLM-5.3, GLM-5.3-Flash, DeepSeek-V4-Flash-0731. Parked until the external drive exists.
-model = ""
+model = "/Volumes/ES2TB/AI-Models/Swift-1.5-Qwen3.8-27B-Q4_K_M/Swift-1.5-Qwen3.8-27B-Q4_K_M.gguf"
 
 [budget]
 monthly = 0 # Local and free tiers only.
@@ -32,15 +18,16 @@ max_items = 12
 max_chars = 4000
 max_ms = 300
 
-# Small semantic retrieval model; the 27B reranker path is not resident.
-embedding_model = "models/harrier/harrier-oss-v1-0.6B-Q4_K_M.gguf"
+# Fixed memory-search helper, shared read-only with main Kildall.
+embedding_model = "/Volumes/ES2TB/Kildall/code/models/harrier/harrier-oss-v1-0.6B-Q4_K_M.gguf"
 
 [runtime]
-server = ".tools/llama-b10809/llama-b10809/llama-server"
-port = 8123
-embedding_port = 8124
-context_size = 4096
-parallel = 3 # Routing candidate B: router0/work1-2; total12288, 4096 per slot.
+# Pinned b10809 (ran Qwen3.8-27B on 2026-11-01). Slice 27b-1 measures Homebrew 12359.
+server = "/Volumes/ES2TB/Kildall/code/.tools/llama-b10809/llama-b10809/llama-server"
+port = 8423
+embedding_port = 8424
+context_size = 4096 # Slice 27b-1 finds the longest context that passes the fit rule.
+parallel = 1 # One slot: no router slot; needed for MTP drafting.
 
 [cloud]
 enabled = true

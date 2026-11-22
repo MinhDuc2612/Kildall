@@ -144,20 +144,11 @@ def url(config, embedding=False):
 
 
 def json_request(endpoint, body=None, timeout=30, *, cancel=None):
-    from router_warmth import completed, foreground
     if body is not None and endpoint.endswith(('/completion', '/v1/chat/completions')):
         from subagents import inference_body, request_slot
         with request_slot(endpoint):
-            admitted = inference_body(endpoint, body)
-            completed(endpoint, admitted, None)
-            result = _json_request(endpoint, admitted, timeout, cancel=cancel)
-            completed(endpoint, admitted, result)
-            return result
-    if body is not None and endpoint.endswith(('/apply-template', '/tokenize')):
-        with foreground(endpoint):
-            return _json_request(endpoint, body, timeout, cancel=cancel)
+            return _json_request(endpoint, inference_body(endpoint, body), timeout, cancel=cancel)
     return _json_request(endpoint, body, timeout, cancel=cancel)
-
 
 def _json_request(endpoint, body, timeout, *, cancel=None):
     request = urllib.request.Request(endpoint,
@@ -198,7 +189,6 @@ def owns_server(record):
 
 
 def ensure_runtime(config, stop=False, *, lane_only=False):
-    import router_warmth
     slots = config['runtime'].get('parallel', 1)
     if type(slots) is not int or not 1 <= slots <= 3:
         raise ValueError('This machine is limited to at most three shared slots')
@@ -209,7 +199,6 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
         system().lock(lock)
         state = strict_json(state_file.read_text()) if state_file.exists() else {}
         if stop:
-            router_warmth.stop_monitor(config)
             for record in state.values():
                 if owns_server(record):
                     os.kill(record["pid"], signal.SIGINT)
@@ -246,8 +235,6 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                                 '--kv-unified-per-slot' not in argv or
                                 argv[argv.index('--kv-unified-per-slot') + 1] != str(config['runtime']['context_size']))):
                             raise RuntimeError('Lane A context layout changed; run kildall --stop before restarting')
-                        if slots > 1:
-                            router_warmth.start_monitor(config, state[name])
                     continue
                 binary = config["runtime"]["server"]
                 if not binary.is_file() or not model.is_file():
@@ -267,13 +254,6 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
                         *context_flags(config), "-b", "128", "-ub", "128",
                         "--jinja", "--reasoning", "off", "--perf"]
-                    if slots > 1:
-                        router_warmth.stop_monitor(config)
-                        prefix_dir = directory / 'router-prefix'
-                        prefix_dir.mkdir(mode=0o700, exist_ok=True)
-                        if prefix_dir.is_symlink() or prefix_dir.resolve() != prefix_dir.absolute():
-                            raise ValueError('Router prefix directory must not follow symlinks')
-                        command += ['--slot-save-path', str(prefix_dir)]
                 environment = dict(os.environ, XDG_CACHE_HOME=str(directory.parent / ".cache"),
                                    TMPDIR=str(directory.parent / ".tmp"))
                 Path(environment["TMPDIR"]).mkdir(exist_ok=True)
@@ -295,20 +275,15 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     if time.monotonic() >= deadline:
                         raise TimeoutError(f"{name} did not become healthy in 120 seconds")
                     time.sleep(.2)
-                if not embedding and slots > 1:
-                    router_warmth.initialize(config, state[name], command)
         except BaseException:
-            try:
-                router_warmth.stop_monitor(config)
-            finally:
-                for process in created:
-                    if process.poll() is None:
-                        process.send_signal(signal.SIGINT)
-                        try:
-                            process.wait(timeout=10)
-                        except subprocess.TimeoutExpired:
-                            process.kill()
-                            process.wait()
+            for process in created:
+                if process.poll() is None:
+                    process.send_signal(signal.SIGINT)
+                    try:
+                        process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait()
             raise
 
 
@@ -661,11 +636,11 @@ def stream_reply(config, messages, task, *, tools=None):
         task.inference(response)
 
 
-def run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None, agents=None):
+def run_turn(config, memory, session, project, prompt, *, git_intent=(), skills=(), hooks=None, agents=None):
     from subagents import turn_slot
     with activity(config["paths"]["db_path"]):
         with turn_slot(config):
-            return _run_turn(config, memory, session, project, prompt, route_mode=route_mode, explain=explain,
+            return _run_turn(config, memory, session, project, prompt,
                              git_intent=git_intent, skills=skills, hooks=hooks, agents=agents)
 
 
@@ -681,7 +656,7 @@ def system_prompt(project):
     )
 
 
-def _run_turn(config, memory, session, project, prompt, *, route_mode=None, explain=False, git_intent=(), skills=(), hooks=None, agents=None):
+def _run_turn(config, memory, session, project, prompt, *, git_intent=(), skills=(), hooks=None, agents=None):
     cloud_enabled = config.get('cloud', {}).get('enabled', False)
     if cloud_enabled:
         from cloud import credential_names, providers
@@ -694,7 +669,6 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
             secrets = ()  # Cloud admission separately fails closed; local answers remain available.
         prompt = redact(prompt, tuple(s for s in secrets if s))
     cloud_needed, cloud_client, cloud_exhausted = False, None, False
-    catalog_model, cloud_selections = None, []
     task = Task(config["paths"]["db_path"], session)
     # Extra schemas change model behavior even on unrelated requests. Keep the
     # established surface until the user explicitly requests a Git/skill task.
@@ -708,43 +682,11 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
     outcome, answer = "error", []
     copy_retry_used, pending_copy = False, False
     hooks_stopped = False
-    route_recorded, route_status, route_error = False, "classifying", None
     system = system_prompt(project)
     try:
         previous = history(config["paths"]["db_path"], session)
         task.message(current[0])
         task.set("waiting")
-        if route_mode is not None:
-            from routing import decide, describe
-            with database(task.path) as db:
-                db.execute("INSERT INTO orbi_routes(task,prompt,kind,status,created,updated) VALUES(?,?,?,?,?,?)",
-                           (task.id, prompt, "job" if route_mode == "job" else "ask",
-                            route_status, time.time(), time.time()))
-            route_recorded = True
-            ensure_runtime(config)
-            decision = decide(config, prompt, forced_lane={"a": "A", "job": "C"}.get(route_mode))
-            route_status = ("deferred_not_installed" if route_mode == "job" else "not_installed") \
-                if decision["lane"] != "A" and not cloud_enabled else "running"
-            with database(task.path) as db:
-                if db.execute("UPDATE orbi_routes SET skill=?,lane=?,model=?,status=?,decision=?,updated=? WHERE task=?",
-                              (decision["skill"], decision["lane"], decision["model"], route_status,
-                               json.dumps(decision, ensure_ascii=False), time.time(), task.id)).rowcount != 1:
-                    raise RuntimeError("Routing decision disappeared while saving")
-            if explain:
-                print(f"Decision {task.id}: {describe(decision)}", file=sys.stderr, flush=True)
-            if decision["lane"] != "A" and cloud_enabled:
-                cloud_needed = True
-                catalog_model = decision["model"]
-                route_status = 'running'
-            elif decision["lane"] != "A":
-                text = f'would route to {decision["model"] or "unassigned model"} (Lane {decision["lane"]}) — not installed'
-                text += f"\n{'Job deferred' if route_mode == 'job' else 'Decision'}: {task.id}"
-                if route_mode == "job":
-                    text += "\nLane C is parked pending external storage; no execution scheduled."
-                task.message(dict(role="assistant", content=text))
-                print(text, flush=True)
-                outcome = "deferred" if route_mode == "job" else "not_installed"
-                return 0 if route_mode == "job" else 3
         for name in skills:
             from permissions import run_action
             pack = run_action(task.path, project, 'load_skill', {'name': name}, task.id, hooks=hooks)
@@ -769,47 +711,15 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
                 if cloud_client is None:
                     cloud_client = Client(config)
                 task.set('waiting')
-                reply = cloud_client.reply(messages, tool_options.get('tools', BASE_TOOLS), task.id,
-                                           catalog_model=catalog_model)
+                reply = cloud_client.reply(messages, tool_options.get('tools', BASE_TOOLS), task.id)
                 if reply is None:
                     cloud_exhausted = True
                     print(EXHAUSTED, file=sys.stderr, flush=True)
                     task.message(dict(role='assistant', content=EXHAUSTED))
-                    local_model = config['lanes']['a']['model'].name if overflow is None else None
-                    if route_recorded:
-                        with database(task.path) as db:
-                            row = db.execute('SELECT decision FROM orbi_routes WHERE task=?', (task.id,)).fetchone()
-                            if row is None:
-                                raise RuntimeError('Routing decision disappeared while saving')
-                            recorded = json.loads(row['decision'])
-                            recorded.update(cloud_provider=None, cloud_model=None, cloud_requested_model=None,
-                                            exact_match=False, execution_source='local_fallback' if local_model else 'exhausted',
-                                            model_used=local_model, cloud_calls=cloud_selections)
-                            db.execute('UPDATE orbi_routes SET decision=?,updated=? WHERE task=?',
-                                       (json.dumps(recorded, ensure_ascii=False), time.time(), task.id))
-                    if explain:
-                        print(f'Fallback {task.id}: {local_model or "unavailable"}; exact_match=false',
-                              file=sys.stderr, flush=True)
                     if overflow is not None:
                         raise overflow
                 else:
                     cloud_reply = True
-                    selection = cloud_client.selection
-                    if selection is not None:
-                        selection = dict(selection, execution_source='cloud', model_used=selection['cloud_model'])
-                        cloud_selections.append(selection)
-                        if route_recorded:
-                            with database(task.path) as db:
-                                row = db.execute('SELECT decision FROM orbi_routes WHERE task=?', (task.id,)).fetchone()
-                                if row is None:
-                                    raise RuntimeError('Routing decision disappeared while saving')
-                                recorded = json.loads(row['decision'])
-                                recorded.update(selection, cloud_calls=cloud_selections)
-                                db.execute('UPDATE orbi_routes SET decision=?,updated=? WHERE task=?',
-                                           (json.dumps(recorded, ensure_ascii=False), time.time(), task.id))
-                        if explain:
-                            print(f"Cloud {task.id}: {selection['cloud_provider']} → {selection['cloud_model']}; "
-                                  f"exact_match={str(selection['exact_match']).lower()}", file=sys.stderr, flush=True)
                     task.message(reply)
                     print(reply['content'], end='', flush=True)
             if reply is None:
@@ -889,26 +799,12 @@ def _run_turn(config, memory, session, project, prompt, *, route_mode=None, expl
         return 0
     except KeyboardInterrupt:
         outcome = "cancelled"
-        route_error = "Cancelled by user"
         raise
     except BrokenPipeError:
         outcome = "cancelled"
-        route_error = "Output pipe closed"
-        raise
-    except Exception as error:
-        route_error = str(error)
         raise
     finally:
-        try:
-            if route_recorded:
-                status = route_status if outcome in ("deferred", "not_installed") else outcome
-                succeeded = None if outcome in ("deferred", "not_installed") else int(outcome == "done")
-                with database(task.path) as db:
-                    if db.execute("UPDATE orbi_routes SET status=?,succeeded=?,error=?,updated=? WHERE task=?",
-                                  (status, succeeded, route_error, time.time(), task.id)).rowcount != 1:
-                        raise RuntimeError("Routing outcome disappeared while saving")
-        finally:
-            task.finish(outcome)
+        task.finish(outcome)
 
 
 def schedule_backups(config):
@@ -927,11 +823,8 @@ def main():
         return cloud_main(argv)
     if argv[:1] in (["tool"], ["permissions"], ["nuke"], ["skills"]):
         return permission_main(argv)
-    route_mode = None
     if argv[:1] == ["ask"]:
-        route_mode, argv = "auto", argv[1:]
-    elif argv[:2] == ["job", "submit"]:
-        route_mode, argv = "job", argv[2:]
+        argv = argv[1:]  # Kildall-27b has no router: "ask" is a plain prompt.
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", nargs="*")
     parser.add_argument("--continue", dest="resume", action="store_true")
@@ -941,23 +834,12 @@ def main():
     parser.add_argument('--hooks', type=Path, help='Opt in to a confined hook configuration for this prompt')
     parser.add_argument('--agents', nargs='?', const='shared', choices=['shared', 'separate'],
                         help='Enable child tasks; separate model processes require measured RAM admission')
-    if route_mode is not None:
-        parser.add_argument("--explain", action="store_true", help="Print the recorded routing reason to stderr")
-    if route_mode == "auto":
-        parser.add_argument("--lane", choices=["a"], help="Force the installed Lane A")
-        parser.add_argument("--decision", metavar="ID", help="Inspect a recorded decision in this project")
     maintenance = parser.add_mutually_exclusive_group()
     maintenance.add_argument("--backup", action="store_true")
     maintenance.add_argument("--restore", type=Path)
     maintenance.add_argument("--schedule-backups", action="store_true")
     maintenance.add_argument("--stop", action="store_true", help="Stop Kildall's own local model servers")
     args = parser.parse_args(argv)
-    if route_mode is not None and any((args.backup, args.restore, args.schedule_backups, args.stop)):
-        parser.error("Maintenance options are top-level commands")
-    if getattr(args, "decision", None) and (args.prompt or args.resume or args.lane):
-        parser.error("--decision cannot be combined with a prompt, --continue or --lane")
-    if getattr(args, "lane", None):
-        route_mode = args.lane
     os.umask(0o077)
     try:
         config = settings()
@@ -969,18 +851,6 @@ def main():
             return 0
         path = config["paths"]["db_path"]
         initialize(path)
-        if getattr(args, "decision", None):
-            with database(path) as db:
-                row = db.execute("SELECT r.* FROM orbi_routes r JOIN orbi_tasks t ON r.task=t.id "
-                                 "JOIN orbi_sessions s ON t.session=s.id WHERE r.task=? AND s.project=?",
-                                 (args.decision, str(Path.cwd().resolve()))).fetchone()
-            if row is None:
-                raise ValueError("No such routing decision in this project")
-            record = dict(row)
-            record["decision"] = strict_json(record["decision"]) if record["decision"] else None
-            record["succeeded"] = None if record["succeeded"] is None else bool(record["succeeded"])
-            print(json.dumps(record, ensure_ascii=False, indent=2))
-            return 0
         memory = Memory(path, url(config, True) + "/v1/embeddings", **{
             key: config["memory"][key] for key in ("max_items", "max_chars", "max_ms")})
         if args.backup:
@@ -996,8 +866,6 @@ def main():
         interactive = sys.stdin.isatty() and not prompt
         if interactive and (args.git or args.skill or args.hooks or args.agents):
             raise ValueError('--git, --skill, --hooks and --agents require a one-shot prompt')
-        if route_mode == "job":
-            interactive = False
         if not sys.stdin.isatty():
             input_limit = config['runtime']['context_size'] * 16
             piped = sys.stdin.read(input_limit + 1)
@@ -1028,11 +896,9 @@ def main():
                 except EOFError:
                     return 0
                 if prompt.strip():
-                    run_turn(config, memory, session, project, prompt, route_mode=route_mode,
-                             explain=getattr(args, "explain", False))
+                    run_turn(config, memory, session, project, prompt)
         else:
-            return run_turn(config, memory, session, project, prompt, route_mode=route_mode,
-                            explain=getattr(args, "explain", False), git_intent=args.git, skills=args.skill,
+            return run_turn(config, memory, session, project, prompt, git_intent=args.git, skills=args.skill,
                             hooks=__import__("hooks").load(args.hooks) if args.hooks else None, agents=args.agents)
         return 0
     except KeyboardInterrupt:

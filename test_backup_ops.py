@@ -81,14 +81,14 @@ def scheduling(root):
     with patch.object(Path, "home", return_value=home), \
          patch.dict(os.environ, {"KILDALL_CONFIG": str(code / "kildall.toml")}), \
          redirect_stdout(io.StringIO()):
-        path = home / "Library/LaunchAgents/local.kildall.backup.plist"
+        path = home / "Library/LaunchAgents/local.kildall27b.backup.plist"
         legacy = code / ".session" / path.name
         service = Service()
         with patch.object(jobs(), "_launchctl", side_effect=service):
             assert ops.schedule_backups(config, code, interpreter) == path
             payload = plistlib.loads(path.read_bytes())
             assert payload == ops.backup_payload(config, code, interpreter)
-            assert payload["ProgramArguments"] == ["/usr/bin/python3", str(home / "Library/Application Support/Kildall/launcher.py"), "--backup"]
+            assert payload["ProgramArguments"] == ["/usr/bin/python3", str(home / "Library/Application Support/Kildall27b/launcher.py"), "--backup"]
             assert payload["WorkingDirectory"] == str(home)
             assert payload["RunAtLoad"] is True
             assert payload["StartCalendarInterval"] == {"Hour": 3, "Minute": 0}
@@ -153,7 +153,7 @@ def copying(root):
     assert not missing.exists()
     with patch.object(ops.os.path, "ismount", return_value=True), redirect_stdout(io.StringIO()):
         copied = ops.mirror_backup(snapshot, volume)
-        assert copied.parent == volume / "kildall-backups"
+        assert copied.parent == volume / "kildall27b-backups"
         for suffix in (".sqlite3", ".md"):
             assert hashlib.sha256(copied.with_suffix(suffix).read_bytes()).digest() == hashlib.sha256(snapshot.with_suffix(suffix).read_bytes()).digest()
         with closing(sqlite3.connect(copied.as_uri() + "?mode=ro", uri=True)) as db:
@@ -185,7 +185,7 @@ def copying(root):
         rejects(lambda: ops.mirror_backup(snapshot, linked_volume))
         another = root / "another-volume"
         another.mkdir()
-        (another / "kildall-backups").symlink_to(copied.parent, target_is_directory=True)
+        (another / "kildall27b-backups").symlink_to(copied.parent, target_is_directory=True)
         rejects(lambda: ops.mirror_backup(snapshot, another))
     errors = io.StringIO()
     with patch.object(ops.os.path, "ismount", side_effect=lambda path: Path(path) == Path("/Volumes/ES2TB")), redirect_stderr(errors):

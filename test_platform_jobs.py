@@ -28,7 +28,7 @@ def python_body(source):
 
 def health(body, limit=20480, registered=True, daemon_ok=True, mode=0o100644):
     payload = jobs().backup_payload({"paths": {"code_dir": ROOT}}, ROOT, ROOT / ".venv/bin/python")
-    agent = Path.home() / "Library/LaunchAgents/local.kildall.backup.plist"
+    agent = Path.home() / "Library/LaunchAgents/local.kildall27b.backup.plist"
     daemon = Path("/Library/LaunchDaemons/local.kildall.wiredlimit.plist")
     boot = {"Label": "local.kildall.wiredlimit", "RunAtLoad": True,
             "ProgramArguments": ["/usr/sbin/sysctl", "iogpu.wired_limit_mb=20480"]}
@@ -82,10 +82,12 @@ def main():
         with patch.dict(os.environ, env, clear=True):
             expected = legacy.backup_payload(config, ROOT, ROOT / ".venv/bin/python")
             expected.update(ProgramArguments=["/usr/bin/python3", str(
-                Path.home() / "Library/Application Support/Kildall/launcher.py"), "--backup"],
-                WorkingDirectory=str(Path.home()))
+                Path.home() / "Library/Application Support/Kildall27b/launcher.py"), "--backup"],
+                WorkingDirectory=str(Path.home()), Label="local.kildall27b.backup",
+                StandardOutPath=str(Path.home() / "Library/Logs/Kildall27b/backup.log"),
+                StandardErrorPath=str(Path.home() / "Library/Logs/Kildall27b/backup.err"))
             assert backend.backup_payload(config, ROOT, ROOT / ".venv/bin/python") == expected
-            path = Path.home() / "Library/LaunchAgents/local.kildall.backup.plist"
+            path = Path.home() / "Library/LaunchAgents/local.kildall27b.backup.plist"
             for text in (description(path, expected), "malformed registration"):
                 assert backend.registration_matches(text, expected, path) == legacy.registration_matches(text, expected, path)
 
@@ -105,7 +107,8 @@ def main():
             results.append((output.getvalue(), runner.call_args_list))
         assert results[0] == results[1]
 
-    old_check = python_body(previous("check.sh"))
+    # Kildall-27b registers its own backup label; the old check is otherwise golden.
+    old_check = python_body(previous("check.sh")).replace("local.kildall.backup", "local.kildall27b.backup")
     new_check = python_body((ROOT / "check.sh").read_text())
     for options in ({}, {"limit": 0}, {"limit": 1024}, {"registered": False},
                     {"daemon_ok": False}, {"mode": 0o100666}, {"mode": 0o120777}):

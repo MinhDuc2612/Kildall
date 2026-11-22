@@ -109,7 +109,7 @@ def main():
             else:
                 raise AssertionError(f'Path escape accepted: {candidate}')
         assert p.guard_path(str(inner)+'/', inner)==inner
-        assert p.guard_path('/Volumes/ES2TB/Kildall/code/')==p.CODE_ROOT
+        assert p.guard_path('/Volumes/ES2TB/Kildall/code_27b/')==p.CODE_ROOT
         assert p.guard_path(target)==target
         refused(lambda: run('write', path=str(p.CODE_ROOT/'../Researchhub/phase3-forbidden'), content='no'))
         outside_link = work/'outside-link'
@@ -259,7 +259,7 @@ def main():
         passed('Real nuke deletion only in throwaway tree; outward and inward links unlinked, never followed')
 
         for suffix in ('', '-wal', '-shm', '-journal'):
-            candidate=inner / ('kildall.db'+suffix)
+            candidate=inner / ('kildall27b.db'+suffix)
             candidate.symlink_to(outside/'must-not-create')
             try:
                 p.nuke_database(inner)

@@ -8,7 +8,7 @@ import tempfile
 
 
 DRIVE = Path("/Volumes/ES2TB")
-CODE = DRIVE / "Kildall/code"
+CODE = DRIVE / "Kildall/code_27b"
 MESSAGE = "Kildall drive ES2TB is not mounted"
 
 
@@ -18,7 +18,7 @@ def require_drive():
 
 
 def launcher_path():
-    return Path.home() / "Library/Application Support/Kildall/launcher.py"
+    return Path.home() / "Library/Application Support/Kildall27b/launcher.py"
 
 
 def install_launcher():

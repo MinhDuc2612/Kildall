@@ -37,8 +37,8 @@ runpy.run_path(str(script),run_name='__main__')
         config = (kildall.ROOT / 'kildall.toml').read_text()
         legacy = root / 'legacy.toml'
         modern = root / 'modern.toml'
-        legacy.write_text(config.replace('kildall.db', 'legacy.sqlite3'))
-        modern.write_text(config.replace('kildall.db', 'modern.sqlite3'))
+        legacy.write_text(config.replace('kildall27b.db', 'legacy.sqlite3'))
+        modern.write_text(config.replace('kildall27b.db', 'modern.sqlite3'))
         with patch.dict(os.environ, {'ORBI_CONFIG': str(legacy)}, clear=True):
             assert orbi.settings()['paths']['db_path'] == root / 'legacy.sqlite3'
             with patch.dict(os.environ, {'KILDALL_CONFIG': str(modern)}):
@@ -56,10 +56,10 @@ runpy.run_path(str(script),run_name='__main__')
             from backup_ops import backup_payload
             schedule = backup_payload({'paths': {'code_dir': root}}, kildall.ROOT, binary)
         assert schedule['ProgramArguments'] == ['/usr/bin/python3', str(
-            Path.home() / 'Library/Application Support/Kildall/launcher.py'), '--backup']
+            Path.home() / 'Library/Application Support/Kildall27b/launcher.py'), '--backup']
         assert schedule['WorkingDirectory'] == str(Path.home())
         assert schedule['EnvironmentVariables'] == {'KILDALL_CONFIG': str(modern)}
-        assert schedule['Label'] == 'local.kildall.backup'
+        assert schedule['Label'] == 'local.kildall27b.backup'
         assert schedule['RunAtLoad'] is True
     print('PASS: shared alias/script state, legacy config fallback, new config precedence, internal backup launcher')
 

@@ -13,12 +13,12 @@ import tempfile
 from .usb_mount import install_launcher, launcher_path, require_drive
 
 
-LABEL = "local.kildall.backup"
+LABEL = "local.kildall27b.backup"
 
 
 def backup_payload(config, root, interpreter):
     root, interpreter = Path(root), Path(interpreter)
-    logs = Path.home() / "Library/Logs/Kildall"
+    logs = Path.home() / "Library/Logs/Kildall27b"
     return {
         "Label": LABEL,
         "ProgramArguments": ["/usr/bin/python3", str(launcher_path()), "--backup"],
@@ -186,10 +186,10 @@ def check_registrations(root, limit):
         print(f"Print the installation commands: {root}/.venv/bin/python {root}/install_wiredlimit.py",
               file=sys.stderr)
     registration = f"{root}/.venv/bin/kildall --schedule-backups"
-    service = f"gui/{os.getuid()}/local.kildall.backup"
+    service = f"gui/{os.getuid()}/local.kildall27b.backup"
     job = subprocess.run(["/bin/launchctl", "print", service], text=True, capture_output=True)
     try:
-        path = Path.home() / "Library/LaunchAgents/local.kildall.backup.plist"
+        path = Path.home() / "Library/LaunchAgents/local.kildall27b.backup.plist"
         schedule = plistlib.loads(path.read_bytes())
         expected = backup_payload({"paths": {"code_dir": root}}, root, root / ".venv/bin/python")
         metadata = path.lstat()

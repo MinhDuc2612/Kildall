@@ -64,7 +64,7 @@ def mirror_backup(snapshot, mount=None):
     _verify(snapshot)
     markdown = snapshot.with_suffix(".md")
     _regular(markdown)
-    destination = mount / "kildall-backups"
+    destination = mount / "kildall27b-backups"
     destination.mkdir(mode=0o700, exist_ok=True)
     if not stat.S_ISDIR(destination.lstat().st_mode):
         raise ValueError("Backup destination must be a directory, not a symlink")

@@ -11,7 +11,6 @@ from unittest.mock import Mock, patch
 
 import benchmark
 import kildall
-import routing
 import subagents
 import tool_runtime
 
@@ -112,10 +111,6 @@ def main():
                 action(); assert sent[-1]['body']['id_slot'] == 1
             assert body == original
             with subagents.turn_slot(config):
-                routing.classify_catalog(config, 'hello')
-                assert sent[-1]['body']['id_slot'] == 0
-                routing.classify(config, 'classify', 'hello', dict(skill=dict(type='string', enum=['general_assistance'])))
-                assert sent[-1]['body']['id_slot'] == 0
                 kildall.json_request(endpoint+'/completion', dict(prompt='hello'))
                 assert sent[-1]['body']['id_slot'] == 1
             for invalid in (0, -1, 2):
@@ -132,7 +127,7 @@ def main():
             with ThreadPoolExecutor(max_workers=2) as pool:
                 replies = list(pool.map(lambda _: kildall.json_request(endpoint+'/completion', dict(prompt='hello')), range(4)))
             assert len(replies) == 4 and peaks[1] == 1
-            assert sum(r['body']['id_slot'] == 0 for r in sent) == 2
+            assert sum(r['body']['id_slot'] == 0 for r in sent) == 0  # No router: slot0 idle at two slots.
             manager = subagents.Manager(config, None, None, '/fixture', kildall.BASE_TOOLS)
             children = [dict(task=Mock(), config=config, slot=1, memory='', timings=[],
                              messages=[dict(role='user', content=name)]) for name in ('first', 'queued')]
@@ -165,8 +160,6 @@ def main():
             children = [dict(task=Mock(), config=three, slot=slot, memory='', timings=[],
                              messages=[dict(role='user', content=f'work {slot}')]) for slot in (1, 2)]
             with subagents.turn_slot(three), subagents.lease(three, 2):
-                routing.classify_catalog(three, 'hello')
-                assert sent[-1]['body']['id_slot'] == 0
                 before = len(sent)
                 concurrent_gate = threading.Barrier(2)
                 try:
@@ -178,8 +171,6 @@ def main():
             assert len(sent[before:]) == 2 and {r['body']['id_slot'] for r in sent[before:]} == {1, 2}
             one = copy.deepcopy(config); one['runtime']['parallel'] = 1
             with patch.object(kildall, 'settings', return_value=one), subagents.turn_slot(one):
-                routing.classify_catalog(one, 'hello')
-                assert sent[-1]['body']['id_slot'] == 0
                 tool_runtime.chat(endpoint, body)
                 assert sent[-1]['body']['id_slot'] == 0
             try: subagents.inference_body(endpoint+'/completion', {})
@@ -187,7 +178,7 @@ def main():
             else: raise AssertionError('Unowned generation accepted')
     finally:
         server.shutdown(); server.server_close(); thread.join()
-    print('PASS: router/work admission, no unpinned requests, A serialized work, B concurrent work1+2 with router0 isolated, failed-child drain before queued reuse, cancellable idle wait, one-slot compatibility')
+    print('PASS: work-slot admission (no router), no unpinned requests, A serialized work, B concurrent work1+2 with router0 isolated, failed-child drain before queued reuse, cancellable idle wait, one-slot compatibility')
 
 
 if __name__ == '__main__': main()

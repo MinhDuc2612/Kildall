@@ -84,7 +84,7 @@ def _project(value):
 
 
 class Memory:
-    def __init__(self, db_path, embedding_url="http://127.0.0.1:8124/v1/embeddings",
+    def __init__(self, db_path, embedding_url="http://127.0.0.1:8424/v1/embeddings",
                  max_items=12, max_chars=4000, max_ms=300):
         for name, value in (("max_items", max_items), ("max_chars", max_chars)):
             if type(value) is not int or value < 1:

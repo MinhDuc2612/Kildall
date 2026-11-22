@@ -19,7 +19,7 @@ import time
 import uuid
 
 # Production scope is never supplied by a model, configuration, or command-line flag.
-CODE_ROOT = Path("/Volumes/ES2TB/Kildall/code")
+CODE_ROOT = Path("/Volumes/ES2TB/Kildall/code_27b")
 AUTO = {"read", "ls", "git_status", "remember", "recall", "web_data"}
 CONFIRM = {"write", "edit", "commit", "install"}
 
@@ -491,7 +491,7 @@ def _delete_tree(root, manifest):
 
 def nuke_database(root=CODE_ROOT):
     guard_path(root, root)
-    path = Path(root) / "kildall.db"
+    path = Path(root) / "kildall27b.db"
     for suffix in ("", "-wal", "-shm", "-journal"):
         candidate = Path(str(path) + suffix)
         guard_path(candidate, root)

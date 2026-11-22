@@ -15,7 +15,7 @@ def main():
     root = Path(__file__).resolve().parent
     body = (root / "check.sh").read_text().split(".venv/bin/python - <<'PY'\n", 1)[1].rsplit("\nPY", 1)[0]
     schedule = backup_payload({"paths": {"code_dir": root}}, root, root / ".venv/bin/python")
-    agent = Path.home() / 'Library/LaunchAgents/local.kildall.backup.plist'
+    agent = Path.home() / 'Library/LaunchAgents/local.kildall27b.backup.plist'
     daemon = Path('/Library/LaunchDaemons/local.kildall.wiredlimit.plist')
     boot = dict(Label='local.kildall.wiredlimit', RunAtLoad=True,
                 ProgramArguments=['/usr/sbin/sysctl', 'iogpu.wired_limit_mb=20480'])

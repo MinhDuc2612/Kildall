@@ -68,35 +68,18 @@ def work_slots(config):
 
 @contextmanager
 def request_slot(endpoint):
-    """Direct generation clients borrow work capacity, never the router slot."""
+    """Direct generation clients borrow the turn's work slot."""
     from kildall import settings, url
     endpoint = endpoint.removesuffix('/v1/chat/completions').removesuffix('/completion')
-    from router_warmth import foreground
-    with foreground(endpoint):
-        selected = _SLOT.get()
-        if selected and selected[0] == endpoint:
-            yield
-            return
-        config = settings()
-        if endpoint != url(config):
-            raise ValueError('Unbound inference must use the configured local runtime')
-        with turn_slot(config):
-            yield
-
-
-@contextmanager
-def router_slot(config):
-    if 'runtime' not in config:
+    selected = _SLOT.get()
+    if selected and selected[0] == endpoint:
         yield
         return
-    from kildall import url
-    count = config['runtime'].get('parallel', 1)
-    if _SLOT.get() == (url(config), 0, count):
-        yield  # The one-slot recall/control configuration already owns slot0.
-        return
-    with lease(config, 0), bind_slot(url(config), 0, count):
+    config = settings()
+    if endpoint != url(config):
+        raise ValueError('Unbound inference must use the configured local runtime')
+    with turn_slot(config):
         yield
-
 
 def wait_idle(config, slot, *, cancel=None):
     """A disconnected client may end before llama.cpp has processed its cancellation."""
@@ -125,13 +108,12 @@ def wait_idle(config, slot, *, cancel=None):
 @contextmanager
 def lease(config, slot, *, blocking=True, cancel=None):
     from kildall import ROOT, url
-    from router_warmth import foreground
     count = config['runtime'].get('parallel', 1)
     if type(slot) is not int or not 0 <= slot < count <= 3:
         raise ValueError('Slot exceeds measured capacity')
     directory = ROOT / '.session'
     directory.mkdir(exist_ok=True)
-    with foreground(url(config)), (directory / f"slot-{config['runtime']['port']}-{slot}.lock").open('a') as lock:
+    with (directory / f"slot-{config['runtime']['port']}-{slot}.lock").open('a') as lock:
         while True:
             try:
                 system().lock(lock, nonblocking=True)
