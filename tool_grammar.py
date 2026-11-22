@@ -248,8 +248,9 @@ def _validate(schema, value):
             low, high = _integer_bounds(schema)
             if (low is not None and value < low) or (high is not None and value > high):
                 raise ValueError("Integer outside bounds")
-    elif kind == "string" and STRING_MARKER in value:
-        raise ValueError("Native string contains its delimiter")
+    elif kind == "string" and any("\ud800" <= c <= "\udfff" for c in value):
+        raise ValueError("Lone surrogate in string")
+    # ponytail: no Gemma <|"|> check here; Kildall-27b never renders Gemma history (Gemma enums still refuse it).
 
 
 def validate_arguments(schema, value):
@@ -454,6 +455,8 @@ def parse_qwen_tool_call(raw, tools, allowed_names=None):
         if stop < 0 or not raw.startswith(_PARAM_END + "\n", stop):
             raise ValueError("Unterminated parameter")
         text = raw[close + 2:stop]
+        if not _raw(properties[key]) and text != text.strip():
+            raise ValueError("Whitespace around a JSON parameter value")
         arguments[key] = text if _raw(properties[key]) else json.loads(
             text, object_pairs_hook=_no_duplicates, parse_constant=_no_constant)
         pos = stop + len(_PARAM_END) + 1

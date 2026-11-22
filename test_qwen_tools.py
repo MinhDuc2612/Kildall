@@ -31,7 +31,9 @@ GOOD = [
     ('run_command', {'command': 'ls -la', 'timeout': 3600}),
     ('write', {'path': 'x.py', 'content': ''}),
     ('spawn_agents', {'tasks': [{'prompt': 'a "quoted"\\ é', 'mode': 'shared'}, {'prompt': 'b'}]}),
-]
+    ('write', {'path': 'g.py', 'content': 'STRING_MARKER = \'<|"|>\''}),
+] + [('write', {'path': 'e.txt', 'content': edge}) for edge in
+     ('a\n', '\n', 'x\n</paramete', 'x\n</p q', 'x\n\n</parameter', '<parameter=p>')]
 BAD = [
     '<tool_call>\n<function=read_file>\n</function>\n</tool_call>',  # missing required path
     render('read_file', {'path': 'a', 'nope': 1}),
@@ -65,6 +67,9 @@ def main():
     rejects(qwen_tool_grammar, [{'type': 'function', 'function': {'name': 'f', 'parameters': {
         'type': 'object', 'properties': {'x': {'type': ['string', 'null']}}, 'additionalProperties': False}}}])
 
+    rejects(parse_qwen_tool_call, render('read_file', {'path': 'a', 'max_lines': 5}).replace('\n5\n', '\n 5\n'), TOOLS)
+    rejects(parse_qwen_tool_call, render('spawn_agents', {'tasks': [{'prompt': '\ud800'}]}), TOOLS)
+    assert not runtime._qwen('<|turn>user\nsee <|im_start|> here<turn|>\n<|turn>model\n')
     assert runtime.qwen_visible('Reading.\n<tool') == 'Reading.\n'
     assert runtime.qwen_visible('Reading.\n<tool', final=True) == 'Reading.\n<tool'
     assert runtime.qwen_visible('a <b>\n' + render('read_file', {'path': 'a'})) == 'a <b>\n'

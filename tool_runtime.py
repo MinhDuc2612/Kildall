@@ -58,8 +58,11 @@ def qwen_visible(raw, *, final=False):
     return raw
 
 
+QWEN_PROMPT_END = '<|im_start|>assistant\n<think>\n\n</think>\n\n'  # Swift template, reasoning off.
+
+
 def _qwen(prompt):
-    return '<|im_start|>' in prompt
+    return prompt.endswith(QWEN_PROMPT_END)
 
 
 def prepare(endpoint, body, *, cancel=None):
@@ -78,8 +81,8 @@ def prepare(endpoint, body, *, cancel=None):
         raise ValueError('Expected a rendered prompt')
     if _qwen(rendered):
         # Pin the Swift/Qwen XML tool format and the closed (reasoning off) think block.
-        if '<tool_call>\n<function=' not in rendered or not rendered.endswith('<|im_start|>assistant\n<think>\n\n</think>\n\n'):
-            raise ValueError('Expected the Qwen XML tool template with reasoning off')
+        if '<tool_call>\n<function=' not in rendered:
+            raise ValueError('Expected the Qwen XML tool template')
         grammar, start, preserved = qwen_tool_grammar(tools), QWEN_START, [QWEN_START, QWEN_END]
     elif '<|turn>' in rendered:
         start, preserved = TOOL_START, PRESERVED
