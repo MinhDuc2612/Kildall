@@ -64,7 +64,7 @@ Research: `Researchhub/sample4/kildall27b-methods.md`. Main plan: `Orbiplan.md` 
 
 - **Guard:** Granite Guardian cannot fit next to the 27B, so the 27B checks risky outside content itself
   (Phase 4.5 threat rules still apply; code-level Never tiers unchanged).
-- **Council (4.5d) removed**: several models voting is "picking another model".
+- **Council (4.5d) removed**: several models voting is "picking another model". The one-model form (the 27B answers 3 times and votes) was offered and **declined by the user 2026-11-22**.
 
 ## Memory budget (20 GB GPU limit)
 
@@ -117,3 +117,4 @@ Main fixes are merged into `kildall-27b` from time to time (normal merge, no for
 
 - **2026-11-22 (v1)**: Created after 12 questions and one research pass (user: "1 model to have it all no feature of
   choose the best model per task"). Design approved by the user.
+- **2026-11-22**: User confirmed: every Kildall feature except per-task model choice; council left out (also its one-model form).
