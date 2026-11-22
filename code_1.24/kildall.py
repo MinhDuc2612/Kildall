@@ -525,13 +525,84 @@ class ContextOverflow(ValueError):
         self.messages = messages
 
 
+def trim_tool_result(content):
+    """Drop complete result items, keeping JSON envelopes and text lines intact."""
+    def trim(value):
+        if isinstance(value, dict):
+            for key in sorted(value, key=lambda key: len(json.dumps(value[key])), reverse=True):
+                reduced, dropped = trim(value[key])
+                if dropped:
+                    result = dict(value, **{key: reduced})
+                    if 'truncated' in result:
+                        result['truncated'] = True
+                    return result, dropped
+        elif isinstance(value, (list, str)):
+            items = value.splitlines(keepends=True) if isinstance(value, str) else value
+            kept = len(items) // 2
+            return (''.join(items[:kept]) if isinstance(value, str) else items[:kept]), len(items) - kept
+        return value, 0
+
+    try:
+        value = json.loads(content)
+    except ValueError:
+        return trim(content)
+    reduced, dropped = trim(value)
+    return json.dumps(reduced), dropped
+
+
+def tool_step_summary(call, content):
+    function = call['function']
+    try:
+        args = json.loads(function['arguments'])
+    except ValueError:
+        args = function['arguments']
+    argument = next((args[key] for key in ('command', 'pattern', 'path', 'query', 'text', 'name', 'url')
+                     if key in args), args) if isinstance(args, dict) else args
+    try:
+        result = json.loads(content)
+    except ValueError:
+        result = content
+    outcome = result
+    if isinstance(result, dict):
+        if result.get('error') or result.get('blocked') or result.get('hook_feedback'):
+            outcome = result
+        else:
+            result = result.get('result', result)
+            if isinstance(result, dict):
+                if 'exit_code' in result:
+                    outcome = f"exit {result['exit_code']}"
+                elif isinstance(result.get('text'), str):
+                    outcome = f"{len(result['text'].splitlines())} lines read"
+                elif isinstance(result.get('paths'), list):
+                    outcome = f"{len(result['paths'])} paths found"
+                if result.get('truncated'):
+                    outcome = str(outcome) + ' (truncated)'
+    # ponytail: other tool outcomes use bounded excerpts; specialize only when needed.
+    short = lambda value: ' '.join(str(value).split())[:80]
+    return f"{function['name']} {short(argument)}: {short(outcome)}"
+
+
 def fit_messages(config, system, memory_text, previous, current, *, tools=None, cancel=None, limit=None, room=512):
+    """Fit one request: drop old turns, trim tool results, summarize old tool steps, then cut memory."""
     tools = BASE_TOOLS if tools is None else tools
     limit = limit or config["runtime"]["context_size"]
     transport = {'cancel': cancel} if cancel is not None else {}
     previous = list(previous)
+    current = [dict(message) for message in current]
+    pairs = [i for i in range(len(current) - 1)
+             if current[i].get('role') == 'assistant' and len(current[i].get('tool_calls') or []) == 1
+             and current[i + 1].get('role') == 'tool'
+             and current[i]['tool_calls'][0]['id'] == current[i + 1].get('tool_call_id')
+             and isinstance(current[i + 1].get('content'), str)]
+    protected = {i + 1 for i in pairs[-4:]} if len(pairs) > 4 else set()
+    summaries = {i: tool_step_summary(current[i]['tool_calls'][0], current[i + 1]['content'])
+                 for i in pairs[:-4]}
+    results = {i: (message['content'], 0) for i, message in enumerate(current)
+               if i not in protected and message.get('role') == 'tool'
+               and isinstance(message.get('content'), str)}
+    digest = None  # One assistant message holds every summary; templates may trim and merge adjacent turns.
     while True:
-        latest = [dict(message) for message in current]
+        latest = [dict(message) for message in current if message is not None]
         if not latest or latest[0].get('role') != 'user' or not isinstance(latest[0].get('content'), str):
             raise ValueError('Expected the current user message before recalled memory')
         latest[0]['content'] += '\n\n<memory>\n' + memory_text + '\n</memory>'
@@ -545,10 +616,34 @@ def fit_messages(config, system, memory_text, previous, current, *, tools=None, 
             return messages
         if previous:
             del previous[:(len(previous) + 1) // 2]
-        elif memory_text:
-            memory_text = memory_text[:len(memory_text) // 2]
         else:
-            raise ContextOverflow(messages, limit)
+            for i in sorted(results, key=lambda i: len(results[i][0]), reverse=True):
+                content, omitted = results[i]
+                reduced, dropped = trim_tool_result(content)
+                if dropped:
+                    omitted += dropped
+                    results[i] = reduced, omitted
+                    current[i]['content'] = reduced + f'\n{omitted} items dropped; narrow the request.'
+                    break
+            else:
+                if summaries:
+                    i = next(iter(summaries))
+                    if digest is None:
+                        digest = i
+                        current[i] = dict(role='assistant', content=summaries.pop(i))
+                    else:
+                        current[digest]['content'] += '\n' + summaries.pop(i)
+                        current[i] = None
+                    current[i + 1] = None
+                    results.pop(i + 1, None)
+                elif protected:
+                    # The latest pairs stay whole only while room allows; then trim them like any result.
+                    results.update({i: (current[i]['content'], 0) for i in protected})
+                    protected = set()
+                elif memory_text:
+                    memory_text = memory_text[:len(memory_text) // 2]
+                else:
+                    raise ContextOverflow(messages, limit)
 
 
 def stream_reply(config, messages, task, *, tools=None, max_tokens=512):

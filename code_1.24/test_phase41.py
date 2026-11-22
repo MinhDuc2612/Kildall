@@ -77,7 +77,7 @@ def main():
         (work/'sub/a.py').write_text('def hello():\n    pass\n')
         (work/'sub/a.txt').write_text('def unwanted():\n')
         result = run('glob_files', path='.', pattern='**/*.py')
-        assert result['paths'] == [str(work/'sub/a.py')]
+        assert result['paths'] == ['sub/a.py']
         passed('F6 glob pattern')
         result = run('grep_files', path='sub', pattern=r'^def \w+\(', file_type='py')
         assert 'hello' in result['stdout'] and 'unwanted' not in result['stdout'] and result['exit_code'] == 0

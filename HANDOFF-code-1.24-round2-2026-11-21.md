@@ -1,5 +1,7 @@
 # Handoff — code_1.24 round 2 (written 2026-11-21 23:55 by Claude, job e23e6252)
 
+**Status 2026-11-22 12:00: DONE (job b6c50591).** PR #16/#17 ported; gates pass (routing 20/20, recall 20/20 ×2, abstention 20/20, callable 20/20, tools 20/20 after retry, CLI 18/18); frozen eval 1/20 and 1/20, 0 ContextOverflow; README and CLAUDE.md updated; committed and pushed. Left: only the out-of-scope items in section 4.6 (downloads).
+
 Paste this to start the next session:
 
 > Read `/Volumes/ES2TB/Kildall/HANDOFF-code-1.24-round2-2026-11-21.md` and follow it. Finish code_1.24 round 2.

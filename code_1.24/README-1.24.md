@@ -27,7 +27,18 @@ Fit rule, measured 2026-11-21 (`.session/fit-20261121/`):
 
 Why batch 32: while one slot reads a prompt, the other slot writes about one token per read batch. The cost: prompt reading drops from ~170 to ~101 tok/s when both slots read. Peak 12.07 GB, 0 warning, 0 critical, no GPU out-of-memory.
 
-Final gates 2026-11-21 (batch 32, wired limit 20480): `test_cli` 18/18, live routing 20/20, the 8 no-model tests pass. Gates at 2 × 32K, 2026-11-06: frozen recall 20/20 on one slot and 20/20 on the work slot; abstention 20/20; callable JSON 20/20; tools 17/20 first pass, 20/20 after retry. Live routing is scored by lane and category only, because code_1.24 runs every lane locally.
+Gates 2026-11-22 (batch 32, wired limit 20480, `.session/gates-20261122/`): live routing 20/20; frozen recall 20/20 on one slot and 20/20 on the work slot; abstention 20/20; callable JSON 20/20; tools 17/20 first pass, 20/20 after retry; `test_cli` 18/18; the 8 no-model tests and `test_tool_result_context.py` pass. Live routing is scored by lane and category only, because code_1.24 runs every lane locally.
+
+Long tool jobs on Lane A (ported from main PR #16 and #17): glob and grep return paths relative to the project; when a request does not fit, Kildall drops old turns first, then cuts the largest tool results (with a note "N items dropped; narrow the request."), then puts older tool steps into one short summary and keeps the last 4 steps whole, and cuts recalled memory last.
+
+Frozen 20-task repo eval (#112), 2026-11-22 (`.session/eval-20261122/`), same harness and tasks as main:
+
+| Run | Pass | Tool calls | Task time | Stops |
+|---|---|---|---|---|
+| 1 | 1/20 | 478 | 8,275 s | 6 tool cap, 6 final answer, 4 wall cap, 3 broken tool call, 1 pass |
+| 2 | 1/20 | 459 | 6,074 s | 9 tool cap, 4 final answer, 5 broken tool call, 1 wall cap, 1 pass |
+
+Both passes are `disabled-interval-clock`. No run stopped on context overflow. 56% and 63% of tool calls repeat an earlier call exactly; 72 of 234 and 152 of 254 edit/write calls returned an error. Main (4,096 tokens per slot) scored 0/20 and 0/20 (PR #17) and 2/20 and 1/20 (PR #18, not merged).
 
 Lane A uses ports 8223 and 8224, so it does not block the main `code` folder. It stops after 5 idle minutes (`idle_stop_seconds`), and the next job loads it again in about 45 s. It has 2 slots of 32768 tokens each (router 0, work 1) and uses about 13.5 GB. Only Bolt, image, video and speech jobs stop Lane A; it reloads in the background after them.
 
@@ -39,10 +50,11 @@ Known limits:
 - `edit` and `write` work only inside the folder where you start Kildall (`permissions.write_root`). They are refused in `/`, your home folder, volume roots and the Kildall vault, except this folder. `install` and `kildall nuke` work only on this folder.
 - Edits need a yes typed in a real terminal. With no terminal, the edit is refused and the file does not change.
 - Gemma failed the cron coding job and scored 16 of 18 on the hard jobs. Check its code.
+- On real repo bugs Gemma fixes few: 1 of 20 in each eval run. It repeats calls and many edits fail. Check its fixes.
 - Pointing coordinates are rough: 54 px off for a circle centre, and a box that only partly overlaps the real one (2026-11-21). Check them.
 - Qwen3.6-35B-A3B ran out of Metal memory beside Harrier, so it is not used.
 - A video job still swaps: the video stage alone (Wan2.2 + text encoder, about 16 GB) added 3.5–3.7 GB of swap (2026-11-21). Making the first frame as its own job cut this from 8.4 GB, but adds about 90 s. Image jobs add no swap.
 - Speech recognition is English only (only `ggml-base.en.bin` is on disk). whisper-cli gets the prompt "Kildall", so it spells the name right.
 - No rerank or 3D model on disk.
 
-Tests: run each `test_local_lanes.py`, `test_local_media.py`, `test_routing.py`, `test_cloud.py`, `test_router_warmth.py`, `test_permissions.py`, `test_phase44.py`, `test_slot_isolation.py` and `test_cli.py` with `.venv/bin/python`. `test_routing.py --live` takes more than 9 minutes.
+Tests: run each `test_local_lanes.py`, `test_local_media.py`, `test_routing.py`, `test_cloud.py`, `test_router_warmth.py`, `test_permissions.py`, `test_phase44.py`, `test_slot_isolation.py` and `test_cli.py` with `.venv/bin/python`. `test_routing.py --live` takes more than 9 minutes. Also run `test_tool_result_context.py`. Run tests that make files on ES2TB from Terminal or launchd: a process started by a Claude background job leaves a `._name` file beside each new file on exFAT, and `turn_completes` then counts 200 paths, not 100.

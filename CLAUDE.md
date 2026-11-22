@@ -6729,3 +6729,195 @@ CandidateB live no-drop gates complete: frozen1-slot recall20/20 plus workslot1a
 - 2026-11-21T23:47:28+07:00 Vault history audit vault-scan-20261121-code124: {"ref": "HEAD", "head": "b3ecface456b544e274250da7b01c05cf2304002", "commits": 139, "objects": 1079, "blobs": 733, "bytes": 53306120, "credential_names": 4, "keychain_accounts": 1, "exact_value_blob_hits": {"'GEMINI_API_KEY'": 0, "'GROQ_API_KEY'": 0, "'NVIDIA_API_KEY'": 0, "'Keychain:NVIDIA_API_KEY'": 0}, "pattern_blob_hits": {"openai-pattern": 0, "groq-pattern": 0, "google-pattern": 0, "nvidia-pattern": 0, "huggingface-pattern": 0}, "forbidden_path_blobs": 0, "oversized_blobs": 0, "passed": true}; path/rule evidence retained.
 - 2026-11-21T23:47+07:00 — Committed `b3ecfac` (CLAUDE.md, handoff, 7 code_1.24 files; `code` link left out; pre-commit secret check passed). Vault audit `vault-scan-20261121-code124` on HEAD: 0 findings, passed. Pushed `reroot-usb → kildall/workspace` (ab970ca..b3ecfac); `git ls-remote` = b3ecfac = HEAD. Push printed `error: non-monotonic index .git/objects/pack/._pack-e2022e74….idx` (an AppleDouble side file from exFAT); push succeeded; file left alone. This line is not yet committed.
 - 2026-11-21T23:51+07:00 — User asked if all of code_1.24 is done: no. Checked: code_1.24 has no `trim_tool_result` (PR #16) and no `tool_step_summary` (PR #17); frozen gates not re-run at batch 32; frozen 20-task eval never run on it; 3D, rerank and non-English speech need downloads. User: new session. Wrote `HANDOFF-code-1.24-round2-2026-11-21.md` (port PR #16/#17, re-run frozen gates at batch 32, frozen eval ×2, README; commit on the user's word). Committing it with these log lines and pushing after the vault audit.
+
+- 2026-11-21T23:51:53+07:00 Vault history audit vault-scan-20261121-handoff: {"ref": "HEAD", "head": "ab98b94936968637b07da387b310dadf5051d92e", "commits": 140, "objects": 1083, "blobs": 735, "bytes": 54290693, "credential_names": 4, "keychain_accounts": 1, "exact_value_blob_hits": {"'GEMINI_API_KEY'": 0, "'GROQ_API_KEY'": 0, "'NVIDIA_API_KEY'": 0, "'Keychain:NVIDIA_API_KEY'": 0}, "pattern_blob_hits": {"openai-pattern": 0, "groq-pattern": 0, "google-pattern": 0, "nvidia-pattern": 0, "huggingface-pattern": 0}, "forbidden_path_blobs": 0, "oversized_blobs": 0, "passed": true}; path/rule evidence retained.
+
+- 2026-11-21T23:56+07:00 — Claude resumed code_1.24 round 2 from `HANDOFF-code-1.24-round2-2026-11-21.md` (job b6c50591). `kildall/workspace` = `ab98b94` (pushed; only the last audit line uncommitted). Machine not quiet: `iogpu.wired_limit_mb` reads 22528 again (only `local.kildall.wiredlimit` plist sets it, to 20480 at boot; setter unknown), Aerial wallpaper plays (62% CPU), swap 3.16 GB; no other `llama-server`. Asked the user: commit and push when all gates pass? and to run `sudo sysctl iogpu.wired_limit_mb=20480` + set a still wallpaper before live tests. **Ported PR #16 and #17** into `code_1.24`: `file_tools.py` glob/grep return project-relative paths; `kildall.py` gets `trim_tool_result`, `tool_step_summary` and main's `fit_messages` order (old turns → trim results → summarize old tool steps into one assistant message, keep the latest 4 pairs → release them → memory), keeping code_1.24's `limit`/`room`. Ported `test_tool_result_context.py` (helper sets the 4,096-token window main's checks assume); `test_phase41.py` F6 now expects `sub/a.py`. From the Claude shell `turn_completes` fails (each new file gets a `._` side file on exFAT, so 200 paths not 100; probe confirmed), so tests run under launchd `ProcessType=Interactive` (runner `$CLAUDE_JOB_DIR/tmp/run_list.py` + `launch.sh`, evidence `code_1.24/.session/round2-20261122/`).
+- 2026-11-22T00:05+07:00 — code_1.24 round 2: under launchd Interactive, `test_tool_result_context.py` 6/6, the 8 no-model tests and `test_phase41.py` exit 0 (`.session/round2-20261122/nomodel-1/`); `test_cli` 18/18 (`cli-1/`). First launch failed with EX_CONFIG 78 (my launcher wrote relative log paths; fixed). Built `code_1.24/.session/eval-20261122/` under launchd: frozen harness copied from `code/.session/compaction-fix-20261114e/frozen` without its old runs (0 side files), collectors copied; only changes: admission ports 8223/8224, `idle_stop_seconds=0` in the eval config (tasks run back to back), note label; recorded in its `measurement-protocol.json` and `collector-hashes.json`. Built `.session/gates-20261122/` (2026-11-06 recall/regressions scripts, fresh `source.json`; frozen `bench_cases.json`/`test_recall.py` unchanged). Chain plan ready (`$CLAUDE_JOB_DIR/tmp/plan-chain-1.json`: stop → live routing → recall → regressions → post-live → eval control → eval 1 → eval 2, stop at first failure). Not started: `iogpu.wired_limit_mb` 22528 (gates refuse) and swap 3.28 GB (> 3 GB eval admission); Aerial wallpaper still plays.
+- 2026-11-22T06:47+07:00 — User: "yes, commit and push when all gates pass". Standing answer for this round.
+- 2026-11-22T06:47+07:00 — User ran the sysctl: `iogpu.wired_limit_mb` = 20480. Swap 2,897 MiB (3.04 GB), Aerial wallpaper still plays (54% CPU). Started chain-1 under launchd (`local.kildall.r2chain`); the gate scripts check wired only; eval admission (swap ≤ 3e9 bytes) decides at eval start.
+
+- 2026-11-22T07:22:33+07:00 code_1.24 frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-22T07:23:59+07:00 code_1.24 frozen eval: private frozen-verifier control starting; no model inference
+
+- 2026-11-22T07:24:00+07:00 code_1.24 frozen eval: private frozen-verifier control {"passed": true, "model_inference": false, "task": "action-background-outcome", "no_op_pass": false, "fixed_pass": true, "product_module": "/Volumes/ES2TB/Kildall/code_1.24/kildall.py", "frozen_module": "/Volumes/ES2TB/Kildall/code_1.24/.session/eval-20261122/frozen/repo_eval.py"}
+- 2026-11-22T07:28+07:00 — **code_1.24 round 2 gates (chain-1, launchd Interactive, batch 32, wired 20480): all pass.** Live routing 20/20 (1,025 s, evidence `code_1.24/.session/routing-a32fc3b908e34144bc57bfa8d5ce8699/`); frozen recall 20/20 one slot + 20/20 work slot 1; abstention 20/20; callable 20/20; tools 17/20 first pass → 20/20 after 3 retries; `test_cli` 18/18 incl. real remember/recall (`gates-20261122/candidate/`). Eval control first FAILED: the verifier sandbox could not import numpy from code_1.24's venv (same as 2026-11-10); main runs the eval with `frozen/.venv/bin/python`, so chain-2 used that: eval control PASS (no-op fails, golden passes, product module = code_1.24 `kildall.py`). Eval 1 then stopped before any work: `source.json` missing in `eval-20261122` (my miss); copied the checked gate `source.json` (cmp equal). Stopped Kildall-started SwarmUI/ComfyUI (from the 2026-11-21 23:09 video test, 1.2 GB packed) with its `ShutdownServer` API. Swap 2,901 MiB (3.04 GB) still over the 3 GB eval admission; rest is the user's Zed/tsserver and the Aerial wallpaper decoder (2.6 GB). Watcher `wait_then_chain3.sh` starts eval 1 + 2 (chain-3) when swap ≤ 2.95e9 bytes. Failed control kept as `frozen/.session/driver-control-03-failed-numpy`.
+
+- 2026-11-22T07:53:19+07:00 In-turn compaction eval-1-startup admission: {"label": "eval-1-startup", "at": "2026-11-22T07:53:19+07:00", "pressure": 1, "swap_raw": "total = 4096.00M  used = 2741.06M  free = 1354.94M  (encrypted)", "swap_used_bytes": 2874209730, "swap_limit_bytes": 3000000000, "ports_free": {"8223": true, "8224": true}, "port_checks": {"8223": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8224": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-22T07:53:19+07:00 code_1.24 frozen eval: run1 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-22T07:53:57+07:00 code_1.24 frozen eval: run1 ready in 37.872s; starting frozen20 in order.
+
+- 2026-11-22T07:53:57+07:00 code_1.24 frozen eval: run1 starting action-background-outcome
+
+- 2026-11-22T07:58:44+07:00 code_1.24 frozen eval: run1 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 14, "wall_s": 286.9087605000241, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T07:58:44+07:00 code_1.24 frozen eval: run1 starting child-background-outcome
+
+- 2026-11-22T08:13:45+07:00 code_1.24 frozen eval: run1 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 28, "wall_s": 900.0129052909906, "stop": "wall-cap", "agent_error": "RuntimeError"}
+
+- 2026-11-22T08:13:45+07:00 code_1.24 frozen eval: run1 starting cloud-null-calls
+
+- 2026-11-22T08:16:56+07:00 code_1.24 frozen eval: run1 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 15, "wall_s": 190.35290412500035, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T08:16:56+07:00 code_1.24 frozen eval: run1 starting disabled-interval-clock
+
+- 2026-11-22T08:19:55+07:00 code_1.24 frozen eval: run1 {"task": "disabled-interval-clock", "status": "PASS", "tool_calls": 13, "wall_s": 179.55269679200137, "stop": "verified-pass", "agent_error": null}
+
+- 2026-11-22T08:19:55+07:00 code_1.24 frozen eval: run1 starting foreground-warm-lock
+
+- 2026-11-22T08:29:56+07:00 code_1.24 frozen eval: run1 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 40, "wall_s": 600.1330458750017, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T08:29:56+07:00 code_1.24 frozen eval: run1 starting local-common-directory
+
+- 2026-11-22T08:44:57+07:00 code_1.24 frozen eval: run1 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 21, "wall_s": 900.0086878750008, "stop": "wall-cap", "agent_error": "RuntimeError"}
+
+- 2026-11-22T08:44:57+07:00 code_1.24 frozen eval: run1 starting metadata-case-alias
+
+- 2026-11-22T08:59:58+07:00 code_1.24 frozen eval: run1 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 38, "wall_s": 900.0107775419892, "stop": "wall-cap", "agent_error": "RuntimeError"}
+
+- 2026-11-22T08:59:58+07:00 code_1.24 frozen eval: run1 starting missing-session-admission
+
+- 2026-11-22T09:05:53+07:00 code_1.24 frozen eval: run1 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 21, "wall_s": 355.4472360830114, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T09:05:53+07:00 code_1.24 frozen eval: run1 starting missing-task-outcome
+
+- 2026-11-22T09:10:04+07:00 code_1.24 frozen eval: run1 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 12, "wall_s": 250.91691245898255, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T09:10:04+07:00 code_1.24 frozen eval: run1 starting oversized-hook-audit
+
+- 2026-11-22T09:12:01+07:00 code_1.24 frozen eval: run1 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 10, "wall_s": 116.33348341600504, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T09:12:01+07:00 code_1.24 frozen eval: run1 starting partial-router-warm
+
+- 2026-11-22T09:13:59+07:00 code_1.24 frozen eval: run1 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 6, "wall_s": 118.07626233299379, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T09:13:59+07:00 code_1.24 frozen eval: run1 starting pdf-byte-boundary
+
+- 2026-11-22T09:19:02+07:00 code_1.24 frozen eval: run1 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 40, "wall_s": 303.0436197920062, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T09:19:02+07:00 code_1.24 frozen eval: run1 starting post-hook-status
+
+- 2026-11-22T09:21:00+07:00 code_1.24 frozen eval: run1 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 7, "wall_s": 117.43505075000576, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T09:21:00+07:00 code_1.24 frozen eval: run1 starting remote-macos-config
+
+- 2026-11-22T09:23:19+07:00 code_1.24 frozen eval: run1 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 8, "wall_s": 138.79147445899434, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T09:23:19+07:00 code_1.24 frozen eval: run1 starting scanner-word-boundary
+
+- 2026-11-22T09:34:07+07:00 code_1.24 frozen eval: run1 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 40, "wall_s": 648.6579165839939, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T09:34:07+07:00 code_1.24 frozen eval: run1 starting server-port-ownership
+
+- 2026-11-22T09:39:07+07:00 code_1.24 frozen eval: run1 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 40, "wall_s": 299.1816051249916, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T09:39:07+07:00 code_1.24 frozen eval: run1 starting shell-binary-output
+
+- 2026-11-22T09:44:12+07:00 code_1.24 frozen eval: run1 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 40, "wall_s": 305.54811966698617, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T09:44:12+07:00 code_1.24 frozen eval: run1 starting shell-poll-completion
+
+- 2026-11-22T09:53:22+07:00 code_1.24 frozen eval: run1 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 40, "wall_s": 549.6987977079989, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T09:53:22+07:00 code_1.24 frozen eval: run1 starting switch-hidden-index
+
+- 2026-11-22T09:56:57+07:00 code_1.24 frozen eval: run1 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 14, "wall_s": 214.69390004099114, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T09:56:57+07:00 code_1.24 frozen eval: run1 starting terminal-nonseekable
+
+- 2026-11-22T10:11:58+07:00 code_1.24 frozen eval: run1 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 31, "wall_s": 900.0053922499937, "stop": "wall-cap", "agent_error": "RuntimeError"}
+
+- 2026-11-22T10:11:59+07:00 code_1.24 frozen eval: run1 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+
+- 2026-11-22T10:11:59+07:00 In-turn compaction eval-2-startup admission: {"label": "eval-2-startup", "at": "2026-11-22T10:11:59+07:00", "pressure": 1, "swap_raw": "total = 4096.00M  used = 2621.00M  free = 1475.00M  (encrypted)", "swap_used_bytes": 2748317696, "swap_limit_bytes": 3000000000, "ports_free": {"8223": true, "8224": true}, "port_checks": {"8223": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}, "8224": {"lsof_exit": 1, "listeners": "", "lsof_error": "", "reuseaddr_binds": {"127.0.0.1": {"passed": true}, "::1": {"passed": true}}, "passed": true}}, "other_model_processes": [], "passed": true}; admitted.
+
+- 2026-11-22T10:11:59+07:00 code_1.24 frozen eval: run2 startup; default LaneA/config, frozen40-call/900s caps, isolated runtime state; no custom warmups.
+
+- 2026-11-22T10:12:38+07:00 code_1.24 frozen eval: run2 ready in 39.069s; starting frozen20 in order.
+
+- 2026-11-22T10:12:38+07:00 code_1.24 frozen eval: run2 starting action-background-outcome
+- 2026-11-22T10:15+07:00 — **code_1.24 frozen 20-task eval run 1: 1/20** (`disabled-interval-clock`), 478 tool calls, task wall 8,275 s, startup 38 s (chain-3, launchd Interactive, `frozen/.venv/bin/python`, admission 07:53 swap 2.87 GB). Stops: 6 final answer, 6 tool cap, 4 wall cap (RuntimeError), 3 truncated tool call (ValueError), 1 verified pass; **0 ContextOverflow**. Exact repeat calls 267/478 (55.9%); 234 edit/write calls, 72 returned an error. Main for comparison (4,096 window): PR #17 0/20 and 0/20, PR #18 2/20 and 1/20. Eval 2 admission passed (swap 2.75 GB), running. Evidence `code_1.24/.session/eval-20261122/frozen/.session/run-1/`.
+
+- 2026-11-22T10:14:38+07:00 code_1.24 frozen eval: run2 {"task": "action-background-outcome", "status": "FAIL", "tool_calls": 6, "wall_s": 119.47539375000633, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T10:14:38+07:00 code_1.24 frozen eval: run2 starting child-background-outcome
+
+- 2026-11-22T10:20:47+07:00 code_1.24 frozen eval: run2 {"task": "child-background-outcome", "status": "FAIL", "tool_calls": 40, "wall_s": 369.29444733299897, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T10:20:47+07:00 code_1.24 frozen eval: run2 starting cloud-null-calls
+
+- 2026-11-22T10:23:07+07:00 code_1.24 frozen eval: run2 {"task": "cloud-null-calls", "status": "FAIL", "tool_calls": 11, "wall_s": 139.6994165829965, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T10:23:07+07:00 code_1.24 frozen eval: run2 starting disabled-interval-clock
+
+- 2026-11-22T10:25:35+07:00 code_1.24 frozen eval: run2 {"task": "disabled-interval-clock", "status": "PASS", "tool_calls": 10, "wall_s": 148.4166848329769, "stop": "verified-pass", "agent_error": null}
+
+- 2026-11-22T10:25:35+07:00 code_1.24 frozen eval: run2 starting foreground-warm-lock
+
+- 2026-11-22T10:35:33+07:00 code_1.24 frozen eval: run2 {"task": "foreground-warm-lock", "status": "FAIL", "tool_calls": 40, "wall_s": 597.9115857919969, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T10:35:33+07:00 code_1.24 frozen eval: run2 starting local-common-directory
+
+- 2026-11-22T10:37:43+07:00 code_1.24 frozen eval: run2 {"task": "local-common-directory", "status": "FAIL", "tool_calls": 6, "wall_s": 129.19720387499547, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T10:37:43+07:00 code_1.24 frozen eval: run2 starting metadata-case-alias
+
+- 2026-11-22T10:39:32+07:00 code_1.24 frozen eval: run2 {"task": "metadata-case-alias", "status": "FAIL", "tool_calls": 5, "wall_s": 108.59058220800944, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T10:39:32+07:00 code_1.24 frozen eval: run2 starting missing-session-admission
+
+- 2026-11-22T10:44:29+07:00 code_1.24 frozen eval: run2 {"task": "missing-session-admission", "status": "FAIL", "tool_calls": 14, "wall_s": 297.51002674998017, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T10:44:29+07:00 code_1.24 frozen eval: run2 starting missing-task-outcome
+
+- 2026-11-22T10:46:13+07:00 code_1.24 frozen eval: run2 {"task": "missing-task-outcome", "status": "FAIL", "tool_calls": 5, "wall_s": 103.81547308398876, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T10:46:13+07:00 code_1.24 frozen eval: run2 starting oversized-hook-audit
+
+- 2026-11-22T10:54:11+07:00 code_1.24 frozen eval: run2 {"task": "oversized-hook-audit", "status": "FAIL", "tool_calls": 40, "wall_s": 477.7961017090129, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T10:54:11+07:00 code_1.24 frozen eval: run2 starting partial-router-warm
+
+- 2026-11-22T10:56:48+07:00 code_1.24 frozen eval: run2 {"task": "partial-router-warm", "status": "FAIL", "tool_calls": 8, "wall_s": 157.00065545798861, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T10:56:48+07:00 code_1.24 frozen eval: run2 starting pdf-byte-boundary
+
+- 2026-11-22T11:00:19+07:00 code_1.24 frozen eval: run2 {"task": "pdf-byte-boundary", "status": "FAIL", "tool_calls": 14, "wall_s": 210.65077416598797, "stop": "error", "agent_error": "ValueError"}
+
+- 2026-11-22T11:00:19+07:00 code_1.24 frozen eval: run2 starting post-hook-status
+
+- 2026-11-22T11:01:58+07:00 code_1.24 frozen eval: run2 {"task": "post-hook-status", "status": "FAIL", "tool_calls": 6, "wall_s": 98.55120391698438, "stop": "final-answer", "agent_error": null}
+
+- 2026-11-22T11:01:58+07:00 code_1.24 frozen eval: run2 starting remote-macos-config
+
+- 2026-11-22T11:04:35+07:00 code_1.24 frozen eval: run2 {"task": "remote-macos-config", "status": "FAIL", "tool_calls": 40, "wall_s": 157.1453445829975, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:04:35+07:00 code_1.24 frozen eval: run2 starting scanner-word-boundary
+
+- 2026-11-22T11:13:53+07:00 code_1.24 frozen eval: run2 {"task": "scanner-word-boundary", "status": "FAIL", "tool_calls": 40, "wall_s": 557.868586083001, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:13:53+07:00 code_1.24 frozen eval: run2 starting server-port-ownership
+
+- 2026-11-22T11:18:51+07:00 code_1.24 frozen eval: run2 {"task": "server-port-ownership", "status": "FAIL", "tool_calls": 40, "wall_s": 298.06300758299767, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:18:51+07:00 code_1.24 frozen eval: run2 starting shell-binary-output
+
+- 2026-11-22T11:24:05+07:00 code_1.24 frozen eval: run2 {"task": "shell-binary-output", "status": "FAIL", "tool_calls": 40, "wall_s": 314.264432416996, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:24:05+07:00 code_1.24 frozen eval: run2 starting shell-poll-completion
+
+- 2026-11-22T11:33:48+07:00 code_1.24 frozen eval: run2 {"task": "shell-poll-completion", "status": "FAIL", "tool_calls": 40, "wall_s": 582.3567241670098, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:33:48+07:00 code_1.24 frozen eval: run2 starting switch-hidden-index
+
+- 2026-11-22T11:38:54+07:00 code_1.24 frozen eval: run2 {"task": "switch-hidden-index", "status": "FAIL", "tool_calls": 40, "wall_s": 306.0003422499867, "stop": "tool-cap", "agent_error": null}
+
+- 2026-11-22T11:38:54+07:00 code_1.24 frozen eval: run2 starting terminal-nonseekable
+
+- 2026-11-22T11:53:55+07:00 code_1.24 frozen eval: run2 {"task": "terminal-nonseekable", "status": "FAIL", "tool_calls": 14, "wall_s": 900.0230270000175, "stop": "wall-cap", "agent_error": "RuntimeError"}
+
+- 2026-11-22T11:53:56+07:00 code_1.24 frozen eval: run2 stopped its owned runtime; 20/20 task records retained; frozen hashes unchanged.
+- 2026-11-22T11:58+07:00 — **code_1.24 frozen 20-task eval run 2: 1/20** (`disabled-interval-clock` again), 459 tool calls, task wall 6,074 s, startup 39 s. Stops: 9 tool cap, 5 truncated tool call (ValueError), 4 final answer, 1 wall cap (RuntimeError), 1 pass; **0 ContextOverflow**. Exact repeat calls 289/459 (63.0%); 254 edit/write calls, 152 errors. Chain-3 ended exit 0; ports 8223/8224 closed. README-1.24.md updated (gates 2026-11-22, the fitting order, eval table, new known limit, test note about exFAT `._` files). Round 2 done list items 1–4 met; committing and pushing on the user's 06:46 word.
