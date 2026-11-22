@@ -27,7 +27,7 @@ def render(name, arguments):
 GOOD = [
     ('read_file', {'path': 'a.txt'}),
     ('read_file', {'max_lines': 5, 'path': 'dir/b c.txt', 'start_line': 1}),
-    ('remember', {'text': 'multi\nline </param> <parameter=x>', 'scope': 'project'}),
+    ('remember', {'text': 'multi\nline </param> <parameter=x>', 'scope': 'project', 'tier': 'L1'}),
     ('run_command', {'command': 'ls -la', 'timeout': 3600}),
     ('write', {'path': 'x.py', 'content': ''}),
     ('spawn_agents', {'tasks': [{'prompt': 'a "quoted"\\ é', 'mode': 'shared'}, {'prompt': 'b'}]}),
@@ -37,7 +37,7 @@ BAD = [
     render('read_file', {'path': 'a', 'nope': 1}),
     render('read_file', {'path': 'a', 'max_lines': 201}),
     render('read_file', {'path': 'a', 'max_lines': 'five'}),
-    render('remember', {'text': 't', 'scope': 'galaxy'}),
+    render('remember', {'text': 't', 'scope': 'galaxy', 'tier': 'L1'}),
     render('sudo', {'command': 'x'}),
     render('spawn_agents', {'tasks': []}),
     render('spawn_agents', {'tasks': [{'prompt': 'a', 'extra': 1}]}),
@@ -99,4 +99,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    from subagents import bind_slot
+    with bind_slot('http://127.0.0.1', 0, 1):
+        main()
