@@ -1,11 +1,12 @@
-"""Schema GBNF on native Gemma 4 completions, using the server's unchanged template."""
+"""Schema GBNF on native Gemma 4 or Qwen XML completions, using the server's unchanged template."""
 
 import json
 import math
 import urllib.request
 import uuid
 
-from tool_grammar import TOOL_START, TOOL_END, parse_tool_call, tool_grammar
+from tool_grammar import (QWEN_END, QWEN_START, TOOL_START, TOOL_END, parse_qwen_tool_call,
+                          parse_tool_call, qwen_tool_grammar, tool_grammar)
 
 # Match common_chat_params_init_gemma4 in the pinned b10809 runtime.
 PRESERVED = ['<|channel>', '<channel|>', TOOL_START, TOOL_END, '<|turn>']
@@ -45,6 +46,22 @@ def visible(raw, *, final=False):
     return ''.join(content)
 
 
+def qwen_visible(raw, *, final=False):
+    """Content before a Qwen tool call; hold back a tail that may start one."""
+    end = raw.find(QWEN_START)
+    if end >= 0:
+        return raw[:end]
+    if not final:
+        for n in range(min(len(QWEN_START) - 1, len(raw)), 0, -1):
+            if raw.endswith(QWEN_START[:n]):
+                return raw[:-n]
+    return raw
+
+
+def _qwen(prompt):
+    return '<|im_start|>' in prompt
+
+
 def prepare(endpoint, body, *, cancel=None):
     from kildall import json_request
     if body.get('parallel_tool_calls', False) or body.get('tool_choice', 'auto') not in ('auto', 'required'):
@@ -57,14 +74,23 @@ def prepare(endpoint, body, *, cancel=None):
         'messages': body['messages'], 'tools': tools,
         'tool_choice': body.get('tool_choice', 'auto'), 'parallel_tool_calls': False,
         'add_generation_prompt': True}, **({'cancel': cancel} if cancel is not None else {}))['prompt']
-    if not isinstance(rendered, str) or '<|turn>' not in rendered:
-        raise ValueError('Expected the pinned Gemma 4 native chat template')
+    if not isinstance(rendered, str):
+        raise ValueError('Expected a rendered prompt')
+    if _qwen(rendered):
+        # Pin the Swift/Qwen XML tool format and the closed (reasoning off) think block.
+        if '<tool_call>\n<function=' not in rendered or not rendered.endswith('<|im_start|>assistant\n<think>\n\n</think>\n\n'):
+            raise ValueError('Expected the Qwen XML tool template with reasoning off')
+        grammar, start, preserved = qwen_tool_grammar(tools), QWEN_START, [QWEN_START, QWEN_END]
+    elif '<|turn>' in rendered:
+        start, preserved = TOOL_START, PRESERVED
+    else:
+        raise ValueError('Expected the pinned Gemma 4 or Qwen XML native chat template')
     native = {key: body[key] for key in ('temperature', 'top_p', 'samplers', 'seed', 'cache_prompt') if key in body}
     native.update(prompt=rendered, n_predict=body['max_tokens'], stream=body.get('stream', False),
                   grammar=grammar, grammar_lazy=body.get('tool_choice', 'auto') == 'auto',
                   # WORD becomes a special-token trigger; PATTERN also catches ordinary-token spellings.
-                  grammar_triggers=[{'type': 1, 'value': TOOL_START}, {'type': 2, 'value': r'<\|tool_call>'}],
-                  preserved_tokens=PRESERVED, return_tokens=True)
+                  grammar_triggers=[{'type': 1, 'value': start}, {'type': 2, 'value': start.replace('|', r'\|')}],
+                  preserved_tokens=preserved, return_tokens=True)
     if 'id_slot' in body:
         native['id_slot'] = body['id_slot']
     return native
@@ -82,6 +108,8 @@ def _chat(endpoint, body, *, on_text=None, cancel=None, on_progress=None, timeou
     from subagents import inference_body
     native = inference_body(endpoint + '/completion',
         prepare(endpoint, body, **({'cancel': cancel} if cancel is not None else {})))
+    qwen = _qwen(native.get('prompt', ''))
+    show, start = (qwen_visible, QWEN_START) if qwen else (visible, TOOL_START)
     if on_progress and native['stream']:
         native['return_progress'] = True
     request = urllib.request.Request(endpoint + '/completion', json.dumps(native).encode(),
@@ -115,7 +143,7 @@ def _chat(endpoint, body, *, on_text=None, cancel=None, on_progress=None, timeou
                 tokens.extend(event.get('tokens', []))
                 if len(raw) > 1_000_000:
                     raise ValueError('Oversized native response')
-                current = visible(raw)
+                current = show(raw)
                 if not current.startswith(shown):
                     raise ValueError('Native content changed after delivery')
                 if on_text and current != shown:
@@ -138,17 +166,17 @@ def _chat(endpoint, body, *, on_text=None, cancel=None, on_progress=None, timeou
     stop = completed.get('stop_type')
     if stop not in ('eos', 'limit', 'word'):
         raise ValueError('Unknown native stop reason')
-    content = visible(raw, final=True)
+    content = show(raw, final=True)
     if not content.startswith(shown):
         raise ValueError('Final native content changed after delivery')
     if on_text and content != shown:
         on_text(content[len(shown):])
     message = dict(role='assistant', content=content)
     finish = 'length' if stop == 'limit' else 'stop'
-    if TOOL_START in raw:
+    if start in raw:
         if stop == 'limit':
             raise ValueError('Truncated tool call; no execution')
-        call = parse_tool_call(raw[raw.index(TOOL_START):], body['tools'])
+        call = (parse_qwen_tool_call if qwen else parse_tool_call)(raw[raw.index(start):], body['tools'])
         message['tool_calls'] = [dict(id='call_' + uuid.uuid4().hex, type='function',
             function=dict(name=call['name'], arguments=json.dumps(call['arguments'], ensure_ascii=False, allow_nan=False)))]
         finish = 'tool_calls'

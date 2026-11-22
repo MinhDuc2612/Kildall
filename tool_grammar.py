@@ -108,7 +108,9 @@ def _native(value):
 
 
 class _Compiler:
-    def __init__(self):
+    def __init__(self, json_mode=False):
+        # json_mode: standard JSON values (Qwen XML parameters hold non-string values as JSON).
+        self.json_mode = json_mode
         self.rules = {
             "ws": r"[ \t\r\n]*",
             "native-string": f"{_literal(STRING_MARKER)} string-body",
@@ -118,6 +120,8 @@ class _Compiler:
             "string-three": r'"<" string-one | "|" string-four | [^<|] string-body',
             "string-four": r'">" | "<" string-one | [^<>] string-body',
         }
+        if json_mode:
+            self.rules["json-string"] = r'"\"" ( [^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F]{4}) )* "\""'
 
     def add(self, expression):
         name = f"s-{len(self.rules)}"
@@ -177,7 +181,8 @@ class _Compiler:
                 for i, (key, child) in enumerate(children):
                     if not mask & (1 << i):
                         prefix = '"," ws ' if mask else ''
-                        choices.append(f'{prefix}{_literal(key)} ws ":" ws {child} ws {state(mask | (1 << i))}')
+                        label = _literal(f'"{key}"' if self.json_mode else key)
+                        choices.append(f'{prefix}{label} ws ":" ws {child} ws {state(mask | (1 << i))}')
                 self.rules[name] = " | ".join(choices)
                 return name
             return self.add(f'"{{" ws {state(0)}')
@@ -195,7 +200,7 @@ class _Compiler:
                 sequence = f"({sequence})?"
             return self.add(f'"[" ws {sequence} "]"')
         expression = {
-            "string": "native-string", "boolean": '"true" | "false"', "null": '"null"',
+            "string": "json-string" if self.json_mode else "native-string", "boolean": '"true" | "false"', "null": '"null"',
             "number": r'"-"? ("0" | [1-9] [0-9]{0,99}) ("." [0-9]{1,100})? ([eE] [+-]? [0-9]{1,2})?',
         }.get(kind)
         return self.add(_integer_rule(schema) if kind == "integer" else expression)
@@ -206,7 +211,8 @@ class _Compiler:
             raise ValueError("Only nonempty primitive enums are supported")
         for value in values:
             _validate({k: v for k, v in schema.items() if k != "enum"}, value)
-        return self.add(" | ".join(_literal(_native(value)) for value in values))
+        encode = (lambda v: json.dumps(v, ensure_ascii=False, allow_nan=False)) if self.json_mode else _native
+        return self.add(" | ".join(_literal(encode(value)) for value in values))
 
 
 def _validate(schema, value):
@@ -355,6 +361,103 @@ def parse_tool_call(raw, tools, allowed_names=None):
     arguments = parser.value()
     parser.take(TOOL_END)
     if parser.pos != len(raw):
+        raise ValueError("Trailing data or multiple tool calls")
+    validate_arguments(schemas[name], arguments)
+    return {"name": name, "arguments": arguments}
+
+
+# Qwen XML tool calls (Swift-1.5-Qwen3.8-27B template): string values are raw text,
+# every other value is JSON, exactly as the template renders history.
+QWEN_START = "<tool_call>"
+QWEN_END = "</tool_call>"
+_PARAM_END = "\n</parameter>"
+
+
+def _raw(schema):
+    return schema.get("type") == "string"
+
+
+def _qwen_value(compiler, schema):
+    """Rule for one parameter value including its "\\n</parameter>" terminator."""
+    compiler.schema(schema)  # Fail closed on unsupported constraints first.
+    if isinstance(schema.get("type"), list) and "string" in schema["type"]:
+        raise ValueError("Nullable strings are ambiguous in Qwen raw parameters")
+    if not _raw(schema):
+        return f"{compiler.schema(schema)} {_literal(_PARAM_END)}"
+    if "enum" in schema:
+        if any(_PARAM_END in value for value in schema["enum"]):
+            raise ValueError("Enum value contains the parameter delimiter")
+        return compiler.add(" | ".join(_literal(value + _PARAM_END) for value in schema["enum"]))
+    if "raw-0" not in compiler.rules:
+        # Text up to the first "\n</parameter>"; "\n" occurs once in it, so mismatches fall back to raw-0 or raw-1.
+        compiler.rules["raw-0"] = r'[^\n] raw-0 | "\n" raw-1'
+        for k in range(1, len(_PARAM_END)):
+            after = f" raw-{k + 1}" if k + 1 < len(_PARAM_END) else ""
+            compiler.rules[f"raw-{k}"] = (f'{_literal(_PARAM_END[k])}{after} | "\\n" raw-1'
+                                          f' | [^\\n{_PARAM_END[k]}] raw-0')
+    return "raw-0"
+
+
+def qwen_tool_grammar(tools, allowed_names=None):
+    """GBNF for exactly one complete Qwen XML call; use QWEN_START as the lazy trigger."""
+    compiler = _Compiler(json_mode=True)
+    choices = []
+    for name, schema in _tool_schemas(tools, allowed_names).items():
+        compiler.schema(schema)  # Same object rules as Gemma: no extra keys, valid required list.
+        properties, required = schema.get("properties", {}), set(schema.get("required", []))
+        children = [(key, _qwen_value(compiler, value)) for key, value in properties.items()]
+        required_bits = sum(1 << i for i, (key, _) in enumerate(children) if key in required)
+        states = {}
+        def state(mask):
+            if mask not in states:
+                states[mask] = name_ = compiler.add('"x"')
+                options = ['"</function>\\n"'] if mask & required_bits == required_bits else []
+                options += [f'{_literal(f"<parameter={key}>" + chr(10))} {child} "\\n" {state(mask | 1 << i)}'
+                            for i, (key, child) in enumerate(children) if not mask & 1 << i]
+                compiler.rules[name_] = " | ".join(options)
+            return states[mask]
+        choices.append(f'{_literal(f"<function={name}>" + chr(10))} {state(0)}')
+    root = f'{_literal(QWEN_START + chr(10))} ({" | ".join(choices)}) {_literal(QWEN_END)}'
+    return "\n".join(f"{key} ::= {value}" for key, value in {"root": root, **compiler.rules}.items()) + "\n"
+
+
+def _no_duplicates(pairs):
+    if len({key for key, _ in pairs}) != len(pairs):
+        raise ValueError("Duplicate JSON object key")
+    return dict(pairs)
+
+
+def _no_constant(name):
+    raise ValueError(f"Non-JSON constant {name}")
+
+
+def parse_qwen_tool_call(raw, tools, allowed_names=None):
+    """Parse one complete raw Qwen XML call, rejecting trailing data and bad schemas."""
+    schemas = _tool_schemas(tools, allowed_names)
+    head = QWEN_START + "\n<function="
+    if not raw.startswith(head):
+        raise ValueError("Expected a Qwen tool call")
+    end = raw.find(">\n", len(head))
+    name = raw[len(head):end]
+    if end < 0 or name not in schemas:
+        raise ValueError("Unknown native tool name")
+    properties, arguments, pos = schemas[name].get("properties", {}), {}, end + 2
+    tail = "</function>\n" + QWEN_END
+    while not raw.startswith(tail, pos):
+        if not raw.startswith("<parameter=", pos):
+            raise ValueError(f"Expected a parameter at {pos}")
+        close = raw.find(">\n", pos)
+        key = raw[pos + len("<parameter="):close]
+        if close < 0 or key not in properties or key in arguments:
+            raise ValueError("Unknown or duplicate parameter")
+        stop = raw.find(_PARAM_END, close + 2)
+        if stop < 0 or not raw.startswith(_PARAM_END + "\n", stop):
+            raise ValueError("Unterminated parameter")
+        text = raw[close + 2:stop]
+        arguments[key] = text if _raw(properties[key]) else json.loads(
+            text, object_pairs_hook=_no_duplicates, parse_constant=_no_constant)
+        pos = stop + len(_PARAM_END) + 1
+    if pos + len(tail) != len(raw):
         raise ValueError("Trailing data or multiple tool calls")
     validate_arguments(schemas[name], arguments)
     return {"name": name, "arguments": arguments}
