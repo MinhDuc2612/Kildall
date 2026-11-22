@@ -124,3 +124,10 @@ Main fixes are merged into `kildall-27b` from time to time (normal merge, no for
   0 refused, history scan 0 findings. Kept on purpose: section name `lanes.a` (= the 27B), runtime b10809 (27b-1 tests
   12359), slot code unchanged (at 2 slots, slot 0 stays idle: review in 27b-1). Live smoke found the Gemma-only tool
   layer: new slice **27b-0b**.
+- **2026-11-22 (27b-0 merged)**: independent review found 1 blocker (`setup_kildall.py` wrote through the `.tools` link into
+  main's `code/.tools`); fixed in `0a111c3`, 34/34 gate steps, merged into `kildall-27b` (fast-forward). `main` untouched.
+- **2026-11-22 (27b-0b built)**: Qwen XML tool calls, own GBNF (way b), draft PR #20 `a2df31a`. Live: one exact
+  `read_file` call per tool turn, 5.3 tok/s; product tool turn 20.7 s. Open quirk: the first plain reply once added stray
+  `</parameter></function></tool_call>`; not reproduced in 4 later turns.
+- **2026-11-22 (27b-0b merged)**: review no blockers; fixes `6778224`; 39/39 gate steps; `kildall-27b` = `6778224`.
+  Next: 27b-1 (handoff `HANDOFF-kildall-27b-round3-2026-11-22.md`).

@@ -44,3 +44,5 @@ Read `CLAUDE.md` (top rules + last 2026-11-22 entries), `Kildall27b.md`, `code_2
 - Main Kildall goes first; ask before taking the Mac for long runs.
 - Downloads: each 2 GB or less, belonging to the 27B; name and size to the user first.
 - Stop before about 800k tokens of context and write the next handoff.
+
+**Status (2026-11-22 22:31): done.** PR #19 and PR #20 merged into `kildall-27b`; see round 3 handoff.
