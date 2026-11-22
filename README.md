@@ -1,5 +1,7 @@
 # Kildall
 
+> **This is the Kildall-27b branch.** Paths, ports and labels below are main Kildall's. For this copy read `README-27b.md`.
+
 ![Kildall logo](assets/kildall-logo.png)
 
 Kildall is a local terminal assistant with streaming replies, persistent sessions,

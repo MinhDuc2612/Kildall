@@ -124,6 +124,9 @@ def install(repositories=(ROOT, ROOT.parent), *, scanner=Path(__file__).resolve(
         directory = Path(os.fsdecode(_git(repo, 'rev-parse', '--git-common-dir').strip()))
         if not directory.is_absolute():
             directory = Path(repo) / directory
+        if not directory.resolve().is_relative_to(Path(repo).resolve()):
+            # A linked worktree (Kildall-27b) shares main's hooks; never rewrite another checkout's hook.
+            raise ScanError('shared-worktree-hooks')
         path = directory / 'hooks/pre-commit'
         if path.is_symlink() or path.parent.is_symlink():
             raise ScanError('custom-hook')

@@ -238,7 +238,8 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     continue
                 binary = config["runtime"]["server"]
                 if not binary.is_file() or not model.is_file():
-                    raise FileNotFoundError("Local artifacts missing; run .venv/bin/python setup_kildall.py")
+                    raise FileNotFoundError(f"Local artifacts missing: {binary if not binary.is_file() else model}. "
+                                            "Kildall-27b reads the runtime from main Kildall's code/.tools and the Swift GGUF from lanes.a.model.")
                 with socket.socket() as probe:
                     if probe.connect_ex(("127.0.0.1", port)) == 0:
                         raise RuntimeError(f"Port {port} is occupied by a server Kildall does not own")

@@ -36,3 +36,11 @@ Live smoke (`kildall ask "Reply with exactly one word: READY"`): both servers ca
 in 47 s, then the turn stopped with `kildall: Expected the pinned Gemma 4 native chat template`.
 `tool_runtime.py` and `tool_grammar.py` only build Gemma 4 native tool calls. A Qwen3.8 tool-call
 adapter is needed before any live gate. Evidence: `.../kildall27b-0-20261122/smoke/`.
+
+## Shared with main Kildall on purpose
+
+- Cloud keys: the same Keychain service `kildall`. `kildall keys import` here changes main's keys too.
+- Boot daemon `local.kildall.wiredlimit` (20480 MB): one per Mac.
+- Git hooks: this worktree uses main's `code/.git` hooks; `secret_scanner.py --install` refuses here.
+- Runtime b10809 and Harrier: read from `code/.tools` and `code/models`. `setup_kildall.py` refuses here.
+- Not yet split: the frozen recall test (`test_recall.py`) uses ports 8123/8124, so it refuses to run here.

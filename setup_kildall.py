@@ -31,6 +31,10 @@ def verify(path, size, expected):
 
 
 def main():
+    if (ROOT / ".tools").is_symlink():
+        # Kildall-27b links main Kildall's runtime and reads its Harrier model; never write through the link.
+        raise SystemExit("Kildall-27b does not run setup. It reads main Kildall's pinned runtime and Harrier model; "
+                         "run setup in /Volumes/ES2TB/Kildall/code. The Swift GGUF path is lanes.a.model in kildall.toml.")
     for name, size, digest, url in ARTIFACTS:
         target = ROOT / name
         target.parent.mkdir(parents=True, exist_ok=True)
