@@ -1,6 +1,6 @@
 # Orbiplan — Building Kildall *(formerly Orbi; file names kept, a frozen test fixture references them)*
 
-**v59 · 2026-11-21.** Design locked. **Kildall runs only models that fit the machine it runs on: 2+ tok/s at all times, measured (the fit rule).** Pruned, fine-tuned or merged when that measurably helps. Never a paid API.
+**v60 · 2026-11-22.** Kildall-27b sub-project added (one brain, see `Kildall27b.md`). **v59 · 2026-11-21.** Design locked. **Kildall runs only models that fit the machine it runs on: 2+ tok/s at all times, measured (the fit rule).** Pruned, fine-tuned or merged when that measurably helps. Never a paid API.
 Scope locked: **everything Claude Code does, plus image, video and voice.**
 
 **Companion files — read all three:**
@@ -862,6 +862,24 @@ older than its newest measurement; `sample4/` is the authoritative research.
 
 ---
 
+# 🧠 KILDALL-27B — ONE MODEL HAS IT ALL *(v60 · 2026-11-22 · side track; full plan in `Kildall27b.md`)*
+
+**What:** every Kildall feature driven by one brain, **Swift-1.5-Qwen3.8-27B Q4_K_M** (17.4 GB, on disk). No router and no
+"best model per task". Fixed helpers stay as tools (Harrier, macOS Vision, whisper, Kokoro, SwarmUI); cloud is one fixed
+backup. Branch `kildall-27b`, folder `code_27b`, never merged into main. Main Kildall goes first.
+
+**Methods added to this plan (research: `Researchhub/sample4/kildall27b-methods.md`, 2026-11-22):**
+- **Splash** (Inco, MLX/Metal, Qwen3.8-27B + DFlash 2): needs **36 GB+, 48 GB recommended** — not this Mac, not the Linux
+  reward server. Revisit only on a Mac with 48 GB or more.
+- **Sparse attention:** llama.cpp Metal sparse FA (#28098) needs a sparse-trained model (DeepSeek-V4 style), is gated to
+  n_kv <= 4096 and is off for Qwen. Training-free sparse prefill helps only at 64K+. **One measured test in a
+  long-context slice; no gain expected at 4K-32K.** Qwen3.8-27B already uses linear attention in 48 of 64 layers.
+- **Drafting on Metal must be measured again:** the old Metal loss (-11% to -28%) predates the few-row MMA kernels
+  (#29869, #30065). DFlash 2 on MLX measured 1.8-1.9x on a 24 GB M4 mini (one blog); MTP on an old build was slower.
+- **Swift-1.5** uses ~24.5% fewer reasoning tokens than base (vendor) — speed at 5 tok/s. Licence: free under US$1M revenue.
+
+---
+
 # 🔄 PHASE 10 — MODEL REFRESH FOR EVERY SKILL *(v49 · 2026-10-13 · runs last, after everything else is complete)*
 
 **v55:** Phase R does the first full pass now; Phase 10 repeats it once everything else is complete.
@@ -1288,7 +1306,7 @@ prefix, not from any model change. Measured 2026-09-20.
 prefix.** Never quote 0.97 s as the product number.
 
 **Never:**
-- ⚠️ **Speculative decoding — no longer a rule (removed 2026-10-13); decided by measurement per platform.** On Metal it measured **loss**, −11% to −28% **even at 100% draft
+- ⚠️ **Speculative decoding — no longer a rule (removed 2026-10-13); decided by measurement per platform.** *(v60: the Metal numbers below predate the few-row MMA kernels; re-measure, see Kildall-27b.)* On Metal it measured **loss**, −11% to −28% **even at 100% draft
   acceptance**. Each draft step launches its own Metal kernel and the dispatch overhead eats the gain.
   MLX only.
   - ⚠️ **This includes DFlash 2, and the question comes up often — here is the answer.** DFlash 2 is
@@ -1380,6 +1398,7 @@ one minute can thrash at minute six.
 
 ## Change Log
 
+- **2026-11-22 (v60)** — **Kildall-27b sub-project added** (user: "1 model to have it all no feature of choose the best model per task"; 12 answers recorded in `Kildall27b.md`). One brain = Swift-1.5-Qwen3.8-27B; helpers as fixed tools; cloud one fixed backup; fit rule is the only speed gate; side track, never merged into main. Methods added: Splash (48 GB+ Mac only), sparse attention (test only), drafting on Metal to be re-measured. Checklist Group 21.
 - **2026-11-21 (v59)** — **Fit rule: a model is used only if it writes ≥ 2 tok/s at all times on the machine Kildall runs on — worst case, measured** (user: "just use models fit on this machine … 2 tok/s+ at all time", then "Remove the giants and flash next and /last30days research and replace it with the new rules"). **Removed:** every Lane C giant (Kimi K3, Qwen3.8-2.4T-A95B, DeepSeek-V4-Pro-0813, GLM-5.2, GLM-5.3, DeepSeek-V4-Flash-0731, DeepSeek-V4.1-Flash, Hy4-preview), Qwen3.8-Flash-Next (1.08–1.24 tok/s measured) and GLM-5.3-Flash IQ1_S (0.65–0.70), plus Kimi-K2.6 and the Phase 10 giant seeds. **Lane C is now "heavy-local"**: the strongest models that still pass the rule (Qwen3.6-35B-A3B, Nemotron 3.5 Lightning, Swift-1.5/Qwen3.8-27B, Nanbeige4.3-33B, Muse-Glimmer-30B), Lane A stopped while one runs. Phase 6 rewritten (no drive, no server); Road to 7/10 item 2 now "best model that passes the rule on the server, measured there"; risks, open questions, Phase R (R4, R6) and Phase 10 updated. "Stored ≠ running" and the Kimi K3 s/token section replaced by "THE FIT RULE". Research: `/last30days` (community evidence insufficient — Reddit blocked, rest under the floor) + 3 web supplements → `Researchhub/sample4/fitmodels-m4-24gb.md`. `Orbimodels.md` → v2, checklist Groups 4 and 16 updated.
 - **2026-11-15 (v58)** — **S17 Monthly self-update added** (user: "add it with notes on adding conditions only with good enough hardware and considerable scores", after reading `Researchhub/sample1/OrbiLLM/LLMtrain`: Autodata, Prime Agent, Soup). Final-product feature, nothing scheduled now. Two conditions before it is built or switched on: the 128 GB reward server, and a trusted frozen eval clearly above 0 on two runs plus a working S4. Every swap is gated and keeps a rollback; a blind self-update is not planned. It updates models, not code.
 - **2026-11-11 (v57)** — **Phase R step R2 now uses the `/last30days` skill** (user: "make it use skill /last30days:last30days and make it 'research for best ways for everything tricks, oss projects nobody cares'"). One run per topic, phrased "best ways for {topic} — tricks, OSS projects, popularity does not count"; small or unknown projects count the same as famous ones; topic list widened to everything Kildall does. Done-when adds one saved raw file per topic. Checklist Group 20 item 2 updated to match.

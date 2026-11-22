@@ -355,6 +355,20 @@
 - [ ] **Every Lane B specialist re-confirmed or replaced** through the model-load procedure and its gate; nothing deleted without your OK
 - [ ] **Lane C re-picked under the fit rule (worst case measured)**; `Orbimodels.md`, `kildall.toml` and `skill_catalog.py` agree with each other and with the measurements
 
+## 21. Kildall-27b — P2 *(side track, v60 · plan in `Kildall27b.md`)*
+
+- [ ] **27b-0 setup:** worktree `code_27b` on branch `kildall-27b` from main; own root, ports 8423/8424, DB and backup names; router and Lanes B/C removed; all controls pass, `check.sh` 0, nuke dry-run 0 outside
+- [ ] **Speed measured on a current llama.cpp build:** plain, MTP, DFlash 2; greedy output identical with and without the drafter; peak memory under the 20 GB limit
+- [ ] **Fit rule passes worst case:** longest allowed prompt, 600 s soak, 2+ tok/s, 0 critical pressure, 0 GPU OOM
+- [ ] **Vision projector works with Swift-1.5:** image questions, text in images, screenshots answered right
+- [ ] **Every request reaches the 27B** (no router, no per-task model choice); cloud backup only on failure or overflow, fixed order
+- [ ] **Quality gates on the 27B:** recall 20/20, abstention 20/20, callable 20/20, tools, CLI 18/18
+- [ ] **Frozen 20-task test run twice** on the 27B; score recorded next to main's (no minimum)
+- [ ] **27B self-guard** for outside content; council not built
+- [ ] **Computer use (4C) on the 27B:** accessibility tree first, screenshots with its own vision second
+- [ ] **Media and voice through fixed helpers;** the 27B is stopped during SwarmUI jobs and back after
+- [ ] **Agentic OS (Phase 9) slices** that need no per-task model choice, on one brain
+
 ---
 
 # THE OTHER TWO TESTS
@@ -385,6 +399,7 @@ what it broke.
 
 ## Change Log
 
+- **2026-11-22** — Plan v60, Kildall-27b sub-project: new Group 21, 11 items: **265 items**.
 - **2026-11-21** — Plan v59, fit rule (≥ 2 tok/s at all times on this Mac): Group 16 rewritten from Lane C giants to Lane C heavy-local (5 items for 5); Group 4 Lane A item ticked (Gemma measured); Group 20 Lane A/C items reworded. Still **254 items**.
 - **2026-11-01** — Plan v55, Phase R (refresh everything): new Group 20, 6 items: **254 items**.
 - **2026-10-30** — Plan v54, reward server (MI210 + 512 GB + 8 TB NVMe) replaces the EVO-X2: 3 server items in Group 17 (ROCm/HIP qualification, MI210 cooling, 8-channel RAM + expert offload); Group 16, the ≥128K item, the internal-disk note and the Linux-port item now name the server: **248 items**.
