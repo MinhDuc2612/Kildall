@@ -15,6 +15,18 @@ def main():
     assert kildall.context_flags(config) == ['-c', '36864', '-kvu', '--kv-unified-per-slot', '16384', '--no-cache-idle-slots']
     config['runtime']['kv_unified'] = False
     assert kildall.context_flags(config) == ['-c', '49152']
+    assert kildall.draft_flags(config) == []
+    with patch.dict(config['runtime'], draft='mtp', draft_max=3, parallel=1):
+        assert kildall.draft_flags(config) == ['--spec-type', 'draft-mtp', '--spec-draft-n-max', '3']
+    for bad in (dict(draft='dflash'), dict(draft='mtp', draft_max=0), dict(draft='mtp', draft_max=True),
+                dict(draft='mtp', parallel=2)):
+        with patch.dict(config['runtime'], bad):
+            try:
+                kildall.draft_flags(config)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f'bad drafting accepted: {bad}')
     for value in (True, 16383, 262400, 0):
         with patch.dict(config['runtime'], context_size=value):
             try:

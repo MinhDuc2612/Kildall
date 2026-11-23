@@ -22,12 +22,16 @@ max_ms = 300
 embedding_model = "/Volumes/ES2TB/Kildall/code/models/harrier/harrier-oss-v1-0.6B-Q4_K_M.gguf"
 
 [runtime]
-# Pinned b10809 (ran Qwen3.8-27B on 2026-11-01). Slice 27b-1 measures Homebrew 12359.
-server = "/Volumes/ES2TB/Kildall/code/.tools/llama-b10809/llama-b10809/llama-server"
+# Homebrew llama.cpp build 12359 (slice 27b-1: Qwen render identical to b10809; MTP measured here).
+# Kildall refuses to start any other build: a brew upgrade must be measured again first.
+server = "/opt/homebrew/bin/llama-server"
+server_build = "12359"
 port = 8423
 embedding_port = 8424
-context_size = 4096 # Slice 27b-1 finds the longest context that passes the fit rule.
+context_size = 32768 # 27b-1 fit soak: passes at 32K with MTP n3 (8.08 tok/s, 18.07 GB).
 parallel = 1 # One slot: no router slot; needed for MTP drafting.
+draft = "mtp" # MTP head inside the Swift GGUF; output equals the 27B's own batched output.
+draft_max = 3 # 27b-1: code 13.25 / prose 8.22 tok/s vs plain 5.88 / 5.83.
 
 [cloud]
 enabled = true
