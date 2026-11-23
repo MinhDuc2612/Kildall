@@ -107,6 +107,11 @@ except RuntimeError:
         for stored in (record, {k: v for k, v in record.items() if k != "port"}):
             kildall.atomic_json(state_dir / "services.json", {"lane_a": stored})
             assert "--stop" in rejects(lambda: kildall.ensure_runtime(config))
+        same = dict(config, runtime=dict(config["runtime"], port=8123))
+        current = dict(record, server=str(config["runtime"]["server"]), server_build=None)
+        for stored in (record, dict(current, server="/old/llama-server"), dict(current, server_build="10809")):
+            kildall.atomic_json(state_dir / "services.json", {"lane_a": stored})
+            assert "--stop" in rejects(lambda: kildall.ensure_runtime(same))
         http.assert_not_called()
         launch.assert_not_called()
     passed("changed or legacy ports are rejected before HTTP; live port must match ownership")

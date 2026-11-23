@@ -1,4 +1,4 @@
-"""Deterministic parser and real b10809 GBNF checks; no model is allocated.
+"""Deterministic parser and real GBNF checks on b10809 and the configured runtime build; no model is allocated.
 
 Run: .venv/bin/python test_tool_grammar.py
 The ctypes bridge is deliberately pinned to the shipped macOS libc++ ABI and
@@ -18,9 +18,31 @@ class _Vector(ctypes.Structure):
     _fields_ = [(name, ctypes.c_void_p) for name in ("begin", "end", "capacity")]
 
 
+def libraries():
+    """b10809 (main Kildall) and the configured Kildall-27b runtime (build 12359): same grammar types and API."""
+    import kildall
+    server = kildall.settings()["runtime"]["server"].resolve()
+    found = [Path(__file__).parent / ".tools/llama-b10809/llama-b10809/libllama.dylib",
+             server.parent.parent / "lib/libllama.dylib"]  # Homebrew: bin/llama-server -> ../lib
+    assert all(path.is_file() for path in found), found
+    return found
+
+
 class NativeGrammar:
+    """Every check runs on each library in libraries(); results must agree."""
     def __init__(self):
-        library = Path(__file__).parent / ".tools/llama-b10809/llama-b10809/libllama.dylib"
+        self.builds = [_Library(path) for path in libraries()]
+        self.checks = 0
+
+    def matches(self, grammar, text):
+        results = {build.matches(grammar, text) for build in self.builds}
+        self.checks += len(self.builds)
+        assert len(results) == 1, f"llama.cpp builds disagree on {text!r}"
+        return results.pop()
+
+
+class _Library:
+    def __init__(self, library):
         self.lib = ctypes.CDLL(str(library))
         self.init = getattr(self.lib, "_Z23llama_grammar_init_implPK11llama_vocabPKcS3_bPS3_mPKim")
         self.init.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p,
