@@ -19,6 +19,18 @@ import tool_runtime
 from tool_grammar import parse_tool_call, tool_grammar
 from test_tool_grammar import call
 
+_settings = kildall.settings
+
+
+def _pinned_settings():  # These checks assume the 4096-token window without drafting (product: 32K + MTP).
+    config = _settings()
+    config['runtime'] = dict(config['runtime'], context_size=4096, draft='none')
+    return config
+
+
+kildall.settings = _pinned_settings
+
+
 
 def refused(fn):
     try:

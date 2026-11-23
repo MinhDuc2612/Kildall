@@ -14,6 +14,18 @@ import kildall
 import subagents
 import tool_runtime
 
+_settings = kildall.settings
+
+
+def _pinned_settings():  # These checks assume the 4096-token window without drafting (product: 32K + MTP).
+    config = _settings()
+    config['runtime'] = dict(config['runtime'], context_size=4096, draft='none')
+    return config
+
+
+kildall.settings = _pinned_settings
+
+
 
 def cancelled_mid_read():
     """cancel() shuts the socket, so a read in flight returns no bytes instead of an error."""

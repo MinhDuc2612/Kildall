@@ -255,10 +255,11 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                 binary = config["runtime"]["server"]
                 if not binary.is_file() or not model.is_file():
                     raise FileNotFoundError(f"Local artifacts missing: {binary if not binary.is_file() else model}. "
-                                            "Kildall-27b reads the runtime from main Kildall's code/.tools and the Swift GGUF from lanes.a.model.")
+                                            "Kildall-27b reads runtime.server and the Swift GGUF from lanes.a.model.")
                 build = config["runtime"].get("server_build")
-                if build and f"(build {build}," not in subprocess.run([str(binary), "--version"], text=True,
-                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout:  # e.g. a silent brew upgrade
+                version = subprocess.run([str(binary), "--version"], text=True, timeout=30,
+                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT) if build else None
+                if build and (version.returncode or f"(build {build}," not in version.stdout):  # e.g. brew upgrade
                     raise RuntimeError(f"{binary} is not llama.cpp build {build}; Kildall-27b was measured on that build")
                 with socket.socket() as probe:
                     if probe.connect_ex(("127.0.0.1", port)) == 0:
