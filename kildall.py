@@ -92,6 +92,7 @@ def settings():
     if config["runtime"]["port"] == config["runtime"]["embedding_port"]:
         raise ValueError("Generation and embedding ports must differ")
     context_flags(config)
+    draft_flags(config)
     return config
 
 
@@ -113,6 +114,17 @@ def context_flags(config):
     if unified:
         flags += ['-kvu', '--kv-unified-per-slot', str(size), '--no-cache-idle-slots']
     return flags
+
+
+def draft_flags(config):
+    """Speculative drafting with the MTP head inside the Swift GGUF (slice 27b-1: n3 measured best that fits 32K)."""
+    runtime = config['runtime']
+    kind, count = runtime.get('draft', 'none'), runtime.get('draft_max', 3)
+    if kind == 'none':
+        return []
+    if kind != 'mtp' or type(count) is not int or not 1 <= count <= 8 or runtime.get('parallel', 1) != 1:
+        raise ValueError('runtime.draft must be "none" or "mtp" with draft_max 1-8 and one slot')
+    return ['--spec-type', 'draft-mtp', '--spec-draft-n-max', str(count)]
 
 
 def inference_timeout(config):
@@ -188,6 +200,19 @@ def owns_server(record):
             and ("port" not in record or (port is not None and int(port[1]) == record["port"])))
 
 
+def check_server(config):
+    """runtime.server must exist and be the measured build (a brew upgrade must be measured again first)."""
+    binary, build = config["runtime"]["server"], config["runtime"].get("server_build")
+    if not binary.is_file():
+        raise FileNotFoundError(f"Local runtime missing: {binary}. Kildall-27b reads runtime.server from kildall.toml.")
+    if build:
+        version = subprocess.run([str(binary), "--version"], text=True, timeout=30,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if version.returncode or f"(build {build}," not in version.stdout:
+            raise RuntimeError(f"{binary} is not llama.cpp build {build}; Kildall-27b was measured on that build")
+    return binary, build
+
+
 def ensure_runtime(config, stop=False, *, lane_only=False):
     slots = config['runtime'].get('parallel', 1)
     if type(slots) is not int or not 1 <= slots <= 3:
@@ -216,9 +241,11 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                 if embedding and lane_only:
                     continue
                 port = config["runtime"]["embedding_port" if embedding else "port"]
+                binary, build = config["runtime"]["server"], config["runtime"].get("server_build")
                 if owns_server(state.get(name)):
-                    if state[name]["model"] != str(model) or state[name].get("port") != port:
-                        raise RuntimeError("Model or port changed; run kildall --stop before restarting")
+                    if (state[name]["model"] != str(model) or state[name].get("port") != port
+                            or state[name].get("server") != str(binary) or state[name].get("server_build") != build):
+                        raise RuntimeError("Model, port or runtime build changed; run kildall --stop before restarting")
                     if json_request(url(config, embedding) + "/health", timeout=2).get("status") != "ok":
                         raise RuntimeError(f"{name} is not healthy")
                     if not embedding:
@@ -235,11 +262,15 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                                 '--kv-unified-per-slot' not in argv or
                                 argv[argv.index('--kv-unified-per-slot') + 1] != str(config['runtime']['context_size']))):
                             raise RuntimeError('Lane A context layout changed; run kildall --stop before restarting')
+                        drafted = [argv[i + k] for i, arg in enumerate(argv)
+                                   if arg in ('--spec-type', '--spec-draft-n-max') for k in (0, 1)]
+                        if drafted != draft_flags(config):
+                            raise RuntimeError('Lane A drafting changed; run kildall --stop before restarting')
                     continue
-                binary = config["runtime"]["server"]
-                if not binary.is_file() or not model.is_file():
-                    raise FileNotFoundError(f"Local artifacts missing: {binary if not binary.is_file() else model}. "
-                                            "Kildall-27b reads the runtime from main Kildall's code/.tools and the Swift GGUF from lanes.a.model.")
+                check_server(config)
+                if not model.is_file():
+                    raise FileNotFoundError(f"Local model missing: {model}. "
+                                            "Kildall-27b reads the Swift GGUF from lanes.a.model.")
                 with socket.socket() as probe:
                     if probe.connect_ex(("127.0.0.1", port)) == 0:
                         raise RuntimeError(f"Port {port} is occupied by a server Kildall does not own")
@@ -253,7 +284,7 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                 else:
                     # Bounded native prefix cache; three SWA checkpoints allow rewinding the user suffix.
                     command += ["--ctx-checkpoints", "3", "-ctk", "q8_0", "-ctv", "q8_0", "-t", "8",
-                        *context_flags(config), "-b", "128", "-ub", "128",
+                        *context_flags(config), *draft_flags(config), "-b", "128", "-ub", "128",
                         "--jinja", "--reasoning", "off", "--perf"]
                 environment = dict(os.environ, XDG_CACHE_HOME=str(directory.parent / ".cache"),
                                    TMPDIR=str(directory.parent / ".tmp"))
@@ -262,7 +293,8 @@ def ensure_runtime(config, stop=False, *, lane_only=False):
                     process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log,
                         stderr=subprocess.STDOUT, env=environment, start_new_session=True)
                 created.append(process)
-                state[name] = dict(pid=process.pid, started=process_start(process.pid), model=str(model), port=port)
+                state[name] = dict(pid=process.pid, started=process_start(process.pid), model=str(model), port=port,
+                                   server=str(binary), server_build=build)
                 atomic_json(state_file, state)
                 deadline = time.monotonic() + 120
                 while True:

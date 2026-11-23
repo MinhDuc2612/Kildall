@@ -100,7 +100,7 @@ def main():
     for prompt in (PROMPT.replace('<think>\n\n</think>\n\n', '<think>\n'), PROMPT.replace('<function=', '<fn=')):
         with patch.object(kildall, 'json_request', return_value={'prompt': prompt}):
             rejects(runtime.prepare, 'http://127.0.0.1', body)
-    print(f'PASS: Qwen XML tool calls, {native.checks} real b10809 grammar checks, strict parser, runtime dispatch')
+    print(f'PASS: Qwen XML tool calls, {native.checks} real grammar checks (b10809 + runtime build), strict parser, runtime dispatch')
 
 
 if __name__ == '__main__':
