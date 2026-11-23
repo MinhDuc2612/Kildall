@@ -142,3 +142,8 @@ Main fixes are merged into `kildall-27b` from time to time (normal merge, no for
 - **2026-11-23 (27b-1 adopted, draft PR #21)**: user chose **MTP n3 at 32K** on Homebrew build 12359 (`kildall-27b-1`
   `96926b7`). Gates: controls pass after review fixes; smoke clean; **recall 19/20** (18/20 on the old b10809 4K config).
   Not merged: recall 20/20 and review should-fix items first (see handoff round 4).
+- **2026-11-23 (round 4, `27ae6ee`)**: review should-fix items done (runtime build in `services.json`, GBNF on b10809 + 12359,
+  setup check, recall embedding-port check); 46-step gate run all pass except recall 19/20; MTP n3 32K soak **with Harrier**
+  passes (8.08 tok/s, 18.29 GB). Recall-15 cause: thinking off → literal match (`UNKNOWN` 94%); thinking on answers right but
+  the frozen test caps answers at 64 tokens. **User: keep 20/20, PR #21 stays unmerged; next slice = thinking-on memory
+  answers.** Also: every new turn re-reads the whole prompt (~45 s); `-cms 256` did not help (not kept).
