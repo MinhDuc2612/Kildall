@@ -131,3 +131,14 @@ Main fixes are merged into `kildall-27b` from time to time (normal merge, no for
   `</parameter></function></tool_call>`; not reproduced in 4 later turns.
 - **2026-11-22 (27b-0b merged)**: review no blockers; fixes `6778224`; 39/39 gate steps; `kildall-27b` = `6778224`.
   Next: 27b-1 (handoff `HANDOFF-kildall-27b-round3-2026-11-22.md`).
+- **2026-11-23 (27b-1 measured)**, build 12359, product Lane A flags, evidence `code_27b/.session/27b-1-20261122/`.
+  Write tok/s code/prose at 8K: plain 5.88/5.83 · MTP n2 10.91/8.13 · MTP n3 13.25/8.22 · DFlash n7 20.93/9.02 ·
+  DFlash n3 14.12/8.78. Code text identical to plain for all; prose splits at one near-tie word, and the plain server
+  picks the drafters' word itself when it reads the same prefix in a batch (40.4% vs 37.8%): batch math, not a drafter
+  error. Fit soak (600 s, >= 2 tok/s, 0 critical, 0 GPU OOM): plain 32K pass (5.20 tok/s, 17.52 GB), MTP n3 32K pass
+  (8.08 tok/s, 18.07 GB, 6 warning samples), DFlash n7 32K **OOM**, DFlash n7 16K pass (18.38 GB, 101/120 warning
+  samples). Render on 12359 identical to b10809; tool turn works. Recall gate wrapper `test_recall_27b.py` added.
+  The written gate "greedy output identical" fails literally for every drafter; adoption waits for the user.
+- **2026-11-23 (27b-1 adopted, draft PR #21)**: user chose **MTP n3 at 32K** on Homebrew build 12359 (`kildall-27b-1`
+  `96926b7`). Gates: controls pass after review fixes; smoke clean; **recall 19/20** (18/20 on the old b10809 4K config).
+  Not merged: recall 20/20 and review should-fix items first (see handoff round 4).
